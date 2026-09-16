@@ -21,7 +21,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/limpieza-docs` | `main` @ `b4f93c2` (2026-09-16) | Ordenar la documentación, recuperar los requerimientos y renombrar el producto a SCGO | pendiente |
+| `claude/limpieza-docs` | `main` @ `b4f93c2` (2026-09-16) | Ordenar la documentación, recuperar los requerimientos y renombrar el producto a SCGO | [#8](https://github.com/AcostaAlex10/ingenieria-en-software-proyecto/pull/8) |
 
 ### Reglas
 

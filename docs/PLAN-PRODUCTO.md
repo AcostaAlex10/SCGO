@@ -131,8 +131,8 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 
 | # | Qué | Estado |
 |---|---|---|
-| **F-01** | Separar lo académico de la documentación de producto | **Hecho** en la limpieza de documentación |
-| **F-02** | Corregir el diagrama de estados y las afirmaciones desactualizadas sobre pruebas | **Hecho** en la limpieza de documentación |
+| **F-01** | Separar lo académico de la documentación de producto | **Hecho** en el PR #8 |
+| **F-02** | Corregir el diagrama de estados y las afirmaciones desactualizadas sobre pruebas | **Hecho** en el PR #8 |
 | **F-03** | Recuperar los requerimientos: el PDF del TP2 se había borrado y el repositorio no tenía ninguna copia de los RNF | **Hecho**: [REQUERIMIENTOS.md](REQUERIMIENTOS.md) |
 
 ---
