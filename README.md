@@ -1,5 +1,7 @@
 # SGSO — Sistema de Gestión y Seguimiento Operativo de Obras
 
+[![CI](https://github.com/AcostaAlex10/ingenieria-en-software-proyecto/actions/workflows/ci.yml/badge.svg)](https://github.com/AcostaAlex10/ingenieria-en-software-proyecto/actions/workflows/ci.yml)
+
 Aplicación web para que una empresa constructora centralice la gestión de sus obras:
 proyectos, planificación, avance físico, materiales, maquinaria, documentación,
 reportes y alertas de desvío.
@@ -76,7 +78,8 @@ npm run dev
 Copiar `FRONT/.env.example` a `FRONT/.env` y ajustar `VITE_API_URL` si la API no
 está en la URL por defecto.
 
-No hay scripts de test ni de lint configurados.
+Las pruebas del front son `npm run typecheck` y las cinco suites de Playwright
+(`FRONT/scripts/pruebas/`). No hay linter configurado todavía. El CI corre todo en cada PR.
 
 ---
 
@@ -126,3 +129,4 @@ Intalar/        instalador de Node y comandos de ayuda para el equipo
 - **[DEPLOY.md](DEPLOY.md)** — despliegue en la nube (Vercel + Render + Aiven).
 - **[DEPLOY-ONPREMISE.md](DEPLOY-ONPREMISE.md)** — despliegue en servidor propio.
 - **[CLAUDE.md](CLAUDE.md)** — guía para trabajar el repo con Claude Code.
+- **[RAMAS.md](RAMAS.md)** — qué es cada rama, cuál se despliega y cómo se trabaja.

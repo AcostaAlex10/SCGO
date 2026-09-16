@@ -21,10 +21,10 @@ Medido sobre el código el 2026-09-11, en `main` @ `6643888`:
 | # | Tarea (ADR §5) | Estado |
 |---|---|---|
 | 1 | `composer.json` con autoload PSR-4, mover `back/src/` a namespaces | **hecho** (Fase 1) |
-| 2 | PHPUnit sobre ciclo de vida, permisos por rol y cierre por reporte final | **2a hecha**; falta 2b (integración) |
+| 2 | PHPUnit sobre ciclo de vida, permisos por rol y cierre por reporte final | **hecho** (2a y 2b) |
 | 3 | PHPStan en nivel medio | **hecho** (nivel 5, 0 errores) |
 | 4 | Reemplazar el ruteo de 29 ramas de `index.php` | **hecho** (tabla propia) |
-| 5 | CI en GitHub Actions | pendiente |
+| 5 | CI en GitHub Actions | **hecho** |
 | 6 | `typescript` en el front y script `typecheck` | **hecho** (`366d379`) |
 
 Quedan cinco. Ninguno toca lógica de negocio: son todos red de seguridad, que es
@@ -146,6 +146,20 @@ contrastarse contra ella, en lugar de repetirla a mano como hoy.
 
 ### 2b. Pruebas de integración sobre MariaDB
 
+> **Hecho.** `back/tests/Integracion/` con 13 pruebas contra MariaDB: pausa y
+> reactivación (incluido el caso en que vuelve a `en_revision` porque hay un
+> reporte final esperando), cancelación, y el cierre por reporte final completo.
+> En CI corren las 466 pruebas sin saltear ninguna.
+>
+> `CasoConBase` levanta el esquema real y vacía las tablas entre pruebas. No
+> puede tocar una base que no sea descartable: lee **solo** las variables
+> `SGSO_TEST_DB_*` —nunca `back/.env` ni `Sgso\Database`—, se saltea si no
+> están definidas y aborta si el nombre de la base no contiene `test`.
+>
+> La tercera regla del ADR, permisos por rol, quedó cubierta en `TablaTest`:
+> recorre los 117 endpoints y verifica que el `Gerente` no pase ninguno con
+> guarda. Es más fuerte que probar unos pocos a mano, así que no se repite acá.
+
 Un puñado de pruebas que levantan el esquema real y pegan a los controladores:
 que cerrar el último período vigente devuelva la obra a `en_ejecucion` — o a
 `en_revision` si hay un reporte final esperando —, que un `Gerente` reciba 403 en
@@ -211,6 +225,15 @@ pasan igual que antes, y `index.php` baja de 549 líneas a un arranque + la tabl
 ---
 
 ## Fase 5 — CI en GitHub Actions (ADR §5.5)
+
+> **Hecho.** `.github/workflows/ci.yml` con los tres jobs, disparado en `main` y
+> en los pull request hacia `main`. `testing` no se toca: su
+> `pages-testing.yml` sigue siendo el único que corre ahí. El badge quedó en el
+> README. La primera corrida dio los tres jobs en verde.
+>
+> Cobertura medida ahí (pcov, que en local no está): **100 % de líneas y de
+> métodos** en `Sgso\Reglas` y `Sgso\Ruteo` — 174 líneas, 22 métodos, 6
+> clases. Era el objetivo que la fase 2a había dejado sin medir.
 
 Un workflow nuevo, `.github/workflows/ci.yml`, que corre en `push` a `main` y en
 todo pull request:

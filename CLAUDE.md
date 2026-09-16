@@ -24,6 +24,15 @@ course assignments, and `README.md` for setup instructions.
 > when ADR-001 was accepted (`docs/adr/ADR-001-stack.md`) and only exists in git
 > history.
 
+### Branches
+
+`main` is the only working branch and the one that deploys (Render + Vercel).
+`testing` is frozen at `a25da85` for the testers — never merge into it, never
+update it. Branch off an up-to-date `main`, keep branches short-lived, and
+**add a row to `RAMAS.md` when you create one**, not later. Avoid stacking a
+PR on another PR's branch: deleting the base branch closes the stacked PR
+instead of retargeting it.
+
 ### User roles
 - **AdministradorSistema** — superuser; manages accounts and role assignment
 - **PersonalAdministrativo** — creates/edits projects, planning and materials; approves reports
@@ -55,8 +64,10 @@ cd back && composer phpstan      # PHPStan, level 5, must stay at zero errors
 ```
 
 > Checks that must stay green: `npm run typecheck` (front), `composer test` and
-> `composer phpstan` (back). Integration tests against MariaDB are phase 2b of
-> `docs/adr/PLAN-ADR-001.md` and do not exist yet.
+> `composer phpstan` (back). All three run in CI (`.github/workflows/ci.yml`).
+> Integration tests in `back/tests/Integracion/` skip locally unless the
+> `SGSO_TEST_DB_*` variables point at a disposable database (name must contain
+> "test"); CI provides one. The product roadmap is `docs/PLAN-PRODUCTO.md`.
 
 ## Architecture
 

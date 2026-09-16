@@ -1,0 +1,146 @@
+name: CI
+
+# Verificacion automatica de lo que hoy se verifica a mano (ADR-001, fase 5).
+#
+# Tres jobs independientes: el backend (PHPStan + PHPUnit contra MariaDB), el
+# frontend (tipos + build) y las cinco suites de Playwright contra la demo
+# estatica.
+#
+# NO toca la rama `testing`: esa esta congelada, la publica
+# `pages-testing.yml` y es lo que ven los testers. Este workflow corre en
+# `main` y en los pull request hacia `main`.
+#
+# Tampoco toca ninguna base real: las pruebas de integracion solo miran las
+# variables SGSO_TEST_DB_*, que aca apuntan al servicio efimero de MariaDB.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  back:
+    name: Backend (PHPStan + PHPUnit)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: back
+
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: sgso
+          MARIADB_DATABASE: sgso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql
+          # pcov mide cobertura sin el costo de xdebug.
+          coverage: pcov
+
+      - name: Instalar dependencias
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Analisis estatico
+        run: composer phpstan
+
+      - name: Pruebas
+        env:
+          SGSO_TEST_DB_HOST: 127.0.0.1
+          SGSO_TEST_DB_PORT: '3306'
+          SGSO_TEST_DB_NAME: sgso_test
+          SGSO_TEST_DB_USER: root
+          SGSO_TEST_DB_PASSWORD: sgso
+        run: composer test -- --coverage-text
+
+  front:
+    name: Frontend (tipos + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FRONT
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # --legacy-peer-deps es necesario por conflictos de peers del proyecto.
+      - name: Instalar dependencias
+        run: npm ci --legacy-peer-deps
+
+      - name: Verificar tipos
+        run: npm run typecheck
+
+      - name: Compilar
+        run: npm run build
+
+  e2e:
+    name: Playwright (demo estatica)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FRONT
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependencias
+        run: npm ci --legacy-peer-deps
+
+      - name: Instalar Playwright con Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      # Mismos parametros que pages-testing.yml: la demo se sirve bajo
+      # /<repo>/ y rutea por fragmento.
+      - name: Compilar el modo estatico
+        env:
+          BASE_PATH: './'
+          VITE_HASH_ROUTER: '1'
+          VITE_MOCK: '1'
+        run: npm run build
+
+      # Las suites esperan el sitio colgando de un subdirectorio con el nombre
+      # del repositorio, que es como lo sirve GitHub Pages.
+      - name: Servir la demo
+        run: |
+          mkdir -p /tmp/sgso
+          ln -sfn "$PWD/dist" /tmp/sgso/ingenieria-en-software-proyecto
+          npx --yes http-server /tmp/sgso -p 8123 -c-1 --silent &
+          npx --yes wait-on -t 60000 http://127.0.0.1:8123/ingenieria-en-software-proyecto/
+
+      - name: Correr las cinco suites
+        run: |
+          node scripts/pruebas/humo.mjs
+          node scripts/pruebas/inactividad.mjs
+          node scripts/pruebas/validaciones.mjs
+          node scripts/pruebas/persistencia.mjs
+          node scripts/pruebas/contrato.mjs
