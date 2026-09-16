@@ -11,7 +11,7 @@
 // Se corre igual que las demas, con el build estatico servido en :8123.
 import { chromium } from 'playwright';
 
-const BASE = process.env.BASE ?? 'http://127.0.0.1:8123/ingenieria-en-software-proyecto/';
+const BASE = process.env.BASE ?? 'http://127.0.0.1:8123/SCGO/';
 const ok = [], mal = [];
 const chequear = (q, c, d = '') => { (c ? ok : mal).push(q); console.log(`${c ? '  OK  ' : ' FALLA'} ${q}${d ? ' — ' + d : ''}`); };
 

@@ -39,7 +39,7 @@ decisión de ustedes, no de código.
 | **DEC-04** | Hosting pago | Abierta. Recomendación: Render sin reposo y una base con respaldos automáticos. Es lo único que hace cumplir RNF03 y RNF07. | B-01 |
 | **DEC-05** | Cómo se factura | Abierta. Condición fiscal y factura electrónica ante ARCA: consultarlo con un contador antes del primer cobro. | E-03, E-04 |
 | **DEC-06** | La rama `TP1-plan-de-testing` | **Resuelta:** borrada. Estaba vacía y el trabajo no correspondía a este repositorio. | — |
-| **DEC-07** | **El repositorio es público.** Cualquiera puede copiar el código que se le vende a Triwe, y quedaron publicados datos de producción (ya retirados, pero siguen en el historial). | Abierta. Recomendación: **pasarlo a privado**. El costo es que GitHub Pages en un repositorio privado requiere plan pago, y ahí vive la demo de los testers; la alternativa es publicar esa demo como un proyecto aparte en Vercel. | E-04 |
+| **DEC-07** | ¿El repositorio es público o privado? | **Resuelta:** sigue **público**, renombrado a `SCGO`. En GitHub Free la protección de `main` solo funciona en repositorios públicos, y se prefirió conservarla. La consecuencia es que el código es visible: **ningún dato de Triwe ni ninguna credencial puede entrar al repositorio**, lo que vuelve más importantes A-02 y A-08. Los datos de producción que se publicaron antes siguen en el historial; son de cuentas del equipo. | E-04 |
 
 ---
 
@@ -70,7 +70,7 @@ decisión de ustedes, no de código.
 | **B-03** | P1 | **Migraciones versionadas.** Hoy son scripts sueltos que alguien tiene que acordarse de correr. Hace falta una tabla `schema_migrations` y un comando que aplique las pendientes en cada deploy. | M | Claude |
 | **B-04** | P1 | **Logs y monitoreo.** Errores a un servicio tipo Sentry y un chequeo externo de disponibilidad. | M | Claude |
 | **B-05** | P1 | **`/api/health` no revisa la base.** Tiene que ejecutar un `SELECT 1` y reportarlo. | S | Codex |
-| **B-06** | **P0** | **`main` protegida y deploy condicionado al CI.** Que nada llegue a `main` sin PR y sin CI en verde. | S | Alex (configuración de GitHub y Render) |
+| **B-06** | **P0** | **`main` protegida.** **Hecho:** ruleset con PR obligatorio y los tres chequeos del CI. Falta, opcional, que Render espere al CI antes de desplegar. | S | Alex |
 | **B-07** | P2 | **PHP 8.3 → 8.4.** 8.3 terminó su soporte activo en 12/2025. | S | Codex |
 | **B-08** | P1 | **Un solo administrador activo.** Si se pierde esa cuenta, nadie gestiona usuarios. Hace falta un segundo administrador (ver [OPERACION.md](OPERACION.md)). | S | Grupo |
 
@@ -141,12 +141,11 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 
 ### Ola 1 — Cerrar agujeros
 
-1. **B-06:** proteger `main`. Todo lo que sigue entra por PR con el CI en verde.
+1. ~~**B-06:** proteger `main`.~~ Hecho.
 2. **A-01, A-02 y A-04:** los tres P0 de seguridad que son chicos. Cada uno con una
    prueba que falle antes del arreglo y pase después.
 3. **A-03:** límite de intentos de login.
 4. **A-05 a A-08 y A-10:** el resto de los ajustes de seguridad.
-5. **DEC-07:** decidir si el repositorio pasa a privado.
 
 ### Ola 2 — Producción que aguante
 
@@ -182,3 +181,4 @@ del arreglo, CI en verde, el simulador al día y el número de PR anotado acá.
 |---|---|
 | 2026-09-16 | Primera versión, a partir de la auditoría del código. |
 | 2026-09-16 | Resueltas DEC-01 y DEC-06; agregadas DEC-07, C-11, D-09 y D-10; cerrado el bloque F. Las decisiones pasan a `DEC-xx` para no confundirse con los ítems del bloque D. |
+| 2026-09-16 | B-06 hecho: `main` protegida con un ruleset. DEC-07 resuelta: el repositorio sigue público y se renombra a `SCGO`. |
