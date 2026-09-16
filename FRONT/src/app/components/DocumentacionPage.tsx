@@ -5,8 +5,9 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Badge } from "./ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { FileText, Plus, ExternalLink, Trash2 } from "lucide-react";
+import { FileText, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { EnlaceDocumento } from "./EnlaceDocumento";
 import {
   listarProyectos, listarDocumentos, crearDocumento, eliminarDocumento,
   type Proyecto, type Documento, type TipoDocumento,
@@ -72,7 +73,7 @@ export default function DocumentacionPage() {
                 <div key={d.id_documento} className="flex items-center gap-3 border rounded-md px-4 py-2 text-sm">
                   <span className="text-muted-foreground w-24">{fmtFecha(d.fecha_carga)}</span>
                   <span className="font-medium">{d.nombre}</span><Badge variant="secondary">{d.categoria}</Badge>
-                  <a href={d.url} target="_blank" rel="noopener noreferrer" className="text-primary inline-flex items-center gap-1 ml-auto">Abrir <ExternalLink className="w-3 h-3" /></a>
+                  <EnlaceDocumento url={d.url} />
                   {carga && <Button size="sm" variant="ghost" onClick={() => eliminarDocumento(d.id_documento).then(() => setDocs((p) => p.filter((x) => x.id_documento !== d.id_documento))).catch(() => toast.error("Error"))}><Trash2 className="w-4 h-4" style={{ color: "#ef4444" }} /></Button>}
                 </div>
               ))}</div>

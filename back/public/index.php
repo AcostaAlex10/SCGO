@@ -14,6 +14,7 @@ use Sgso\Database;
 use Sgso\DocumentoController;
 use Sgso\Env;
 use Sgso\EtapaPlanificacionController;
+use Sgso\Http\ManejadorErrores;
 use Sgso\InactividadController;
 use Sgso\IncidenciaController;
 use Sgso\ItemExcedenteController;
@@ -28,9 +29,26 @@ use Sgso\ReporteController;
 use Sgso\Ruteo\Despachador;
 use Sgso\Ruteo\Resolucion;
 use Sgso\Ruteo\Tabla;
+use Sgso\Seguridad\SecretoJwt;
 use Sgso\UsuarioController;
 
+// Cualquier error sin atrapar termina acá: el detalle va al log del servidor y
+// el cliente recibe un 500 genérico con un código de referencia (A-04). Va
+// primero para cubrir también los fallos de configuración y de conexión.
+set_exception_handler(static function (Throwable $error): void {
+    $cuerpo = ManejadorErrores::atender($error, 'error_log');
+    if (!headers_sent()) {
+        http_response_code(500);
+        header('Content-Type: application/json; charset=utf-8');
+    }
+    echo json_encode($cuerpo, JSON_UNESCAPED_UNICODE);
+});
+
 Env::cargar(__DIR__ . '/../.env');
+
+// Los errores de PHP nunca se muestran al cliente, salvo en desarrollo local
+// con APP_DEBUG=1.
+ini_set('display_errors', Env::get('APP_DEBUG') === '1' ? '1' : '0');
 
 // El servidor (ej. Render) suele correr en UTC. Fijamos la zona horaria local
 // para que las validaciones de fecha (ej. "no anterior a hoy") usen la fecha
@@ -55,7 +73,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 header('Content-Type: application/json; charset=utf-8');
 
 // --- Configuracion / dependencias ---
-$jwtSecreto = Env::get('JWT_SECRET', 'cambiar_esta_clave');
+// Sin un secreto aceptable no se atiende ningún pedido: es preferible una caída
+// visible a una API que acepta tokens fabricados (A-02).
+$jwtSecreto = SecretoJwt::validar(Env::get('JWT_SECRET'));
 $jwtSegundos = (int) Env::get('JWT_SEGUNDOS', '28800'); // 8 horas por defecto
 
 $db = Database::conexion();

@@ -70,7 +70,8 @@ mysql -u root -p sgso < back/sql/schema.sql
 ```bash
 cd back
 composer install
-cp .env.example .env                                   # datos de la base y secreto de los tokens
+cp .env.example .env                                   # datos de la base
+php -r "echo bin2hex(random_bytes(32));"             # pegar el resultado en JWT_SECRET (obligatorio)
 SEED_ADMIN_PASSWORD=una-clave-larga php sql/seed.php   # primer administrador
 php -S localhost:8000 -t public
 ```

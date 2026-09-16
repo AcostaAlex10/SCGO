@@ -1,0 +1,19 @@
+# Lo que no tiene que viajar dentro de la imagen (plan de producto, A-08).
+#
+# Sin este archivo, `COPY .` del Dockerfile metía en la imagen el `.env` de quien
+# la construyera en su máquina, con las credenciales de la base adentro.
+
+# Credenciales locales
+.env
+.env.*
+!.env.example
+
+# Se regenera dentro de la imagen con `composer install --no-dev`
+vendor/
+
+# Solo para desarrollo
+tests/
+phpunit.xml
+phpstan.neon
+.phpunit.cache/
+.phpunit.result.cache

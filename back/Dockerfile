@@ -4,6 +4,18 @@
 
 FROM php:8.3-apache
 
+# Configuración de producción de PHP: registra los errores en vez de mostrarlos
+# (plan de producto, A-04). Sin esto la imagen no carga ningún php.ini y PHP
+# muestra los errores al cliente.
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
+# php.ini-production deja expose_php en On, así que cada respuesta anunciaba la
+# versión exacta de PHP. Lo mismo hace Apache con la suya. Son datos que le
+# ahorran trabajo a quien busca vulnerabilidades conocidas de esa versión.
+RUN printf 'expose_php = Off\n' > "$PHP_INI_DIR/conf.d/zz-scgo.ini" \
+ && sed -ri 's/^ServerTokens .*/ServerTokens Prod/; s/^ServerSignature .*/ServerSignature Off/' \
+      /etc/apache2/conf-available/security.conf
+
 # Extension para conectarse a MariaDB / MySQL (PDO).
 RUN docker-php-ext-install pdo_mysql
 

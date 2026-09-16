@@ -7,7 +7,7 @@ import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { Badge } from "./ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { ArrowLeft, MapPin, User, Calendar, TrendingUp, Plus, Users, CloudRain, Trash2, Package, FileText, ExternalLink, AlertTriangle, Pause, Play, Layers, Wallet, Pencil, ClipboardCheck } from "lucide-react";
+import { ArrowLeft, MapPin, User, Calendar, TrendingUp, Plus, Users, CloudRain, Trash2, Package, FileText, AlertTriangle, Pause, Play, Layers, Wallet, Pencil, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
 import {
   obtenerProyecto, obtenerPlanificacion, crearPlanificacion,
@@ -29,6 +29,7 @@ import {
 } from "../api/proyectos";
 import { puedeGestionarObras, puedeRegistrarAvance, puedeCargarDocumentos, puedeVerCostos } from "../auth/permisos";
 import { etiquetaEstado } from "../estadosObra";
+import { EnlaceDocumento } from "./EnlaceDocumento";
 
 // Fecha de HOY en zona horaria LOCAL (no UTC), para que de noche en Argentina
 // no muestre el día siguiente.
@@ -1047,9 +1048,7 @@ export default function ProyectoDetallePage() {
                   <span className="text-muted-foreground w-24">{fmtFecha(d.fecha_carga)}</span>
                   <span className="font-medium">{d.nombre}</span>
                   <Badge variant="secondary">{d.categoria}</Badge>
-                  <a href={d.url} target="_blank" rel="noopener noreferrer" className="text-primary inline-flex items-center gap-1 ml-auto">
-                    Abrir <ExternalLink className="w-3 h-3" />
-                  </a>
+                  <EnlaceDocumento url={d.url} />
                   {cargaDocs && (
                     <Button size="sm" variant="ghost" onClick={() => borrarDoc(d.id_documento)} title="Eliminar">
                       <Trash2 className="w-4 h-4" style={{ color: "#ef4444" }} />

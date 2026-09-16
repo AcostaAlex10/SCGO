@@ -3,7 +3,7 @@
 // Las otras cuatro suites manejan la pantalla, que es como lo usa una persona.
 // Pero varias reglas viven solo en la capa de API: no hay boton para borrar un
 // reporte ya enviado, ni para mandar un estado vacio. Sin estas pruebas, los
-// cuatro defectos que cubren se arreglaron y nadie se enteraria si vuelven.
+// defectos que cubren se arreglaron y nadie se enteraria si vuelven.
 //
 // Por eso el simulador expone `window.sgsoMockFetch` (ver servidor.ts): se le
 // habla directo, con el mismo token que usa la app.
@@ -118,6 +118,23 @@ const avance = await api('POST', '/planificacion/4/avances', {
 });
 chequear('cargar avance en una obra cancelada devuelve 409', avance.estado === 409, `dio ${avance.estado}`);
 chequear('la obra sigue cancelada', await estadoObra('1') === 'cancelada');
+
+// ---- 5. Un documento no puede ser un enlace que ejecuta codigo (A-01) ----
+// La interfaz muestra la URL como un enlace: con el esquema javascript:, abrirlo
+// ejecuta codigo en la sesion de quien hace clic. PHP lo rechaza con 422 y el
+// simulador tiene que hacer lo mismo. La obra 2 no se toca en los casos de arriba.
+const malicioso = await api('POST', '/proyectos/2/documentos', {
+  nombre: 'Plano de planta', tipo: 'pdf', url: 'javascript://x%0Aalert(document.cookie)',
+});
+chequear('un enlace javascript: devuelve 422', malicioso.estado === 422, `dio ${malicioso.estado}`);
+const guardados = (await api('GET', '/proyectos/2/documentos')).datos ?? [];
+chequear('y no queda guardado',
+  !guardados.some((d) => String(d.url).toLowerCase().startsWith('javascript')));
+
+const valido = await api('POST', '/proyectos/2/documentos', {
+  nombre: 'Plano de planta', tipo: 'pdf', url: 'https://drive.google.com/file/d/abc123/view',
+});
+chequear('un enlace https se guarda', valido.estado === 201, `dio ${valido.estado}`);
 
 await nav.close();
 console.log(`\n${ok.length}/${ok.length + mal.length} OK`);

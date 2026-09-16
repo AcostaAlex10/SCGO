@@ -144,3 +144,51 @@ jobs:
           node scripts/pruebas/validaciones.mjs
           node scripts/pruebas/persistencia.mjs
           node scripts/pruebas/contrato.mjs
+
+  docker:
+    name: Imagen Docker (arranque seguro)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Construye la misma imagen que despliega Render.
+      - name: Construir la imagen
+        run: docker build -t scgo-api back
+
+      # Sin JWT_SECRET la API no atiende pedidos (A-02).
+      - name: Sin secreto, falla cerrado
+        run: |
+          docker run -d --name sin-secreto -p 8081:80 scgo-api
+          npx --yes wait-on -t 60000 tcp:127.0.0.1:8081
+          codigo=$(curl -s -o cuerpo.json -w '%{http_code}' http://127.0.0.1:8081/api/health)
+          echo "HTTP $codigo"; cat cuerpo.json; echo
+          test "$codigo" = "500"
+          grep -q '"referencia"' cuerpo.json
+          sleep 2
+          docker logs sin-secreto 2>&1 | grep -q 'JWT_SECRET no est'
+
+      # Con la base caída, el cliente no ve nada interno (A-04).
+      - name: Con la base caída, no filtra detalles
+        run: |
+          docker run -d --name sin-base -p 8082:80 \
+            -e JWT_SECRET="$(openssl rand -hex 32)" \
+            -e DB_HOST=127.0.0.1 -e DB_PORT=1 \
+            -e DB_USER=usuario_de_prueba -e DB_NAME=base_de_prueba \
+            scgo-api
+          npx --yes wait-on -t 60000 tcp:127.0.0.1:8082
+          codigo=$(curl -s -D cabeceras.txt -o cuerpo.json -w '%{http_code}' http://127.0.0.1:8082/api/health)
+          echo "HTTP $codigo"; cat cuerpo.json; echo
+          test "$codigo" = "500"
+          grep -q '"referencia"' cuerpo.json
+          if grep -Eiq 'SQLSTATE|PDO|usuario_de_prueba|base_de_prueba|/var/www|Stack trace|Fatal error' cuerpo.json; then
+            echo "La respuesta filtra detalles internos"; exit 1
+          fi
+          if grep -qi '^X-Powered-By' cabeceras.txt; then
+            echo "La respuesta anuncia la versión de PHP"; exit 1
+          fi
+          if grep -Eiq '^Server:.*[0-9]' cabeceras.txt; then
+            echo "La respuesta anuncia la versión del servidor"; exit 1
+          fi
+          sleep 2
+          docker logs sin-base 2>&1 | grep -q 'SQLSTATE'

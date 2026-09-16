@@ -19,7 +19,8 @@ para levantar todo el stack, [`../README.md`](../README.md).
 
 ```bash
 composer install          # genera vendor/autoload.php (sin esto no arranca)
-cp .env.example .env      # datos de la base, JWT_SECRET, credenciales de Brevo
+cp .env.example .env      # datos de la base y credenciales de Brevo
+php -r "echo bin2hex(random_bytes(32));"   # pegarlo en JWT_SECRET: sin él la API no arranca
 php sql/migrar.php        # crea las tablas (idempotente)
 SEED_ADMIN_PASSWORD=una-clave-larga php sql/seed.php   # administrador inicial
 
