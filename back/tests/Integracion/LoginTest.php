@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Sgso\Tests\Integracion;
 
+use Closure;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Sgso\AuthController;
+use Sgso\Seguridad\IntentosLogin;
+use Sgso\Seguridad\PoliticaIntentos;
 
 /**
  * Login contra la base real (plan de producto, A-03).
@@ -90,7 +93,59 @@ final class LoginTest extends CasoConBase
         self::assertSame(403, $this->entrar($email, self::CONTRASENA)['codigo']);
     }
 
+    public function testCumplidaLaEsperaSePuedeVolverAEntrar(): void
+    {
+        $email = $this->crearCuenta();
+        $reloj = new RelojDePrueba();
+        $entrar = $this->entradaConReloj($email, $reloj);
+
+        $this->repetir(5, fn () => $entrar('contrasena-equivocada'));
+        self::assertSame(429, $entrar(self::CONTRASENA));
+
+        $reloj->avanzar(PoliticaIntentos::ESPERA_INICIAL);
+        self::assertSame(200, $entrar(self::CONTRASENA));
+    }
+
+    public function testCadaFalloDespuesDelBloqueoDuplicaLaEspera(): void
+    {
+        $email = $this->crearCuenta();
+        $reloj = new RelojDePrueba();
+        $entrar = $this->entradaConReloj($email, $reloj);
+
+        $this->repetir(5, fn () => $entrar('contrasena-equivocada'));
+        $reloj->avanzar(60);
+        self::assertSame(401, $entrar('otra-equivocada'), 'cumplido el minuto se puede probar, y falla');
+
+        // Seis fallos: ahora la espera es de 120 s.
+        $reloj->avanzar(60);
+        self::assertSame(429, $entrar(self::CONTRASENA));
+        $reloj->avanzar(60);
+        self::assertSame(200, $entrar(self::CONTRASENA));
+    }
+
     // ----------------------------------------------------------------
+
+    /** @return Closure(string): int  intenta entrar y devuelve el código HTTP */
+    private function entradaConReloj(string $email, RelojDePrueba $reloj): Closure
+    {
+        $auth = new AuthController(
+            $this->base(),
+            self::SECRETO,
+            3600,
+            new IntentosLogin($this->base(), $reloj->comoClosure())
+        );
+
+        return fn (string $contrasena): int => $this->capturar(
+            fn () => $auth->login(['email' => $email, 'contrasena' => $contrasena])
+        )['codigo'];
+    }
+
+    private function repetir(int $veces, callable $accion): void
+    {
+        for ($i = 0; $i < $veces; $i++) {
+            $accion();
+        }
+    }
 
     private function crearCuenta(bool $activa = true): string
     {

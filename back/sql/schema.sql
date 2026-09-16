@@ -23,6 +23,16 @@ CREATE TABLE IF NOT EXISTS usuario (
   fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Logins fallidos por cuenta, para limitar los intentos (A-03). La clave es
+-- 'cuenta:' + SHA-256 del email en minusculas: vale igual para emails sin
+-- cuenta y no guarda en claro los que alguien probo. Los tiempos son
+-- segundos Unix, para no depender de la zona horaria de la base.
+CREATE TABLE IF NOT EXISTS intento_login (
+  clave         VARCHAR(191) NOT NULL PRIMARY KEY,
+  fallos        INT UNSIGNED NOT NULL,
+  ultimo_fallo  INT UNSIGNED NOT NULL
+);
+
 -- Tabla de proyectos de obra (RF01: registrar, modificar, eliminar, listar).
 -- Los campos coinciden con el contrato que consume el frontend.
 CREATE TABLE IF NOT EXISTS proyecto (
