@@ -25,7 +25,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/seguridad-a03` | `main` @ `a346440` (2026-09-16) | Límite de intentos de login y dos filtraciones del login (A-03) | pendiente |
+| `claude/seguridad-a03` | `main` @ `a346440` (2026-09-16) | Límite de intentos de login y dos filtraciones del login (A-03) | [#11](https://github.com/AcostaAlex10/SCGO/pull/11) |
 
 ### Reglas
 

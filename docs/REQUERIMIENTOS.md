@@ -168,7 +168,7 @@ La columna **Estado** dice si el sistema los cumple hoy.
 | RNF03 | responder las consultas principales en menos de 5 segundos en el 90 % de los casos | Crítica | **No se cumple.** En el plan gratuito, Render suspende la API y la primera consulta puede tardar cerca de un minuto (plan: B-01). |
 | RNF04 | permitir el acceso en tiempo real desde distintas ubicaciones con internet | Importante | Cumple. Es una aplicación web publicada. |
 | RNF05 | almacenar la información de forma persistente e inmediata | Crítica | Cumple. Cada registro se escribe en la base en el momento. |
-| RNF06 | exigir usuario y contraseña para acceder | Crítica | Cumple, con debilidades a corregir: sin límite de intentos y contraseñas de 6 caracteres (plan: A-03, A-05). |
+| RNF06 | exigir usuario y contraseña para acceder | Crítica | Cumple, con límite de intentos por cuenta. Falta subir el mínimo de las contraseñas, que hoy es de 6 caracteres (plan: A-05). |
 | RNF07 | hacer respaldos automáticos diarios | Importante | **Sin verificar.** Depende del plan contratado en Aiven, y nunca se probó restaurar un respaldo (plan: B-01). |
 | RNF08 | soportar al menos 10 obras activas sin degradarse | Importante | **Sin verificar.** Con el volumen actual anda, pero ningún listado está paginado y no hubo prueba de carga (plan: C-03). |
 | RNF09 | minimizar el texto a tipear en obra: listas, selección rápida y carga numérica | Importante | **Parcial.** Hay listas para materiales y etapas; falta revisar el resto de los formularios de campo. |

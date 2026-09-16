@@ -11,6 +11,7 @@
  * la autorizacion real del servidor. Es un doble de prueba de la interfaz.
  */
 import base from "./datos.json";
+import { VENTANA, segundosDeEspera } from "./politicaIntentos";
 import { ESTADOS_CANCELABLES } from "../estadosObra";
 import { esEnlaceSeguro } from "../enlaces";
 
@@ -82,6 +83,15 @@ function purgarCopiasViejas(): void {
 
 let db: BaseDatos = cargar();
 
+interface IntentosDeCuenta {
+  fallos: number;
+  ultimoFallo: number;
+}
+
+// Los intentos no se persisten: en la demo una recarga empieza de cero, como
+// corresponde a un doble de prueba sin datos sensibles en localStorage.
+const intentosLogin = new Map<string, IntentosDeCuenta>();
+
 function guardar(): void {
   try {
     localStorage.setItem(CLAVE_ALMACEN, JSON.stringify(db));
@@ -93,6 +103,7 @@ function guardar(): void {
 /** Vuelve a los datos originales. Disponible como window.sgsoMockReset(). */
 export function reiniciar(): void {
   db = JSON.parse(JSON.stringify(base)) as BaseDatos;
+  intentosLogin.clear();
   guardar();
 }
 
@@ -104,10 +115,10 @@ function proximoId(filas: Fila[], campo: string): number {
 
 const esperar = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-function json(estado: number, cuerpo: unknown): Response {
+function json(estado: number, cuerpo: unknown, cabeceras?: HeadersInit): Response {
   return new Response(JSON.stringify(cuerpo), {
     status: estado,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...cabeceras },
   });
 }
 
@@ -125,6 +136,24 @@ const num = (v: unknown, def = 0): number => {
 const texto = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
 const hoy = () => new Date().toISOString().slice(0, 10);
 const redondear = (n: number, dec = 2) => Math.round(n * 10 ** dec) / 10 ** dec;
+
+/** La API usa el email recortado y en minúsculas como identidad del contador. */
+const claveDeCuenta = (email: string) => email.trim().toLowerCase();
+const ahoraEnSegundos = () => Math.floor(Date.now() / 1000);
+
+function esperaDeCuenta(clave: string): number {
+  const intento = intentosLogin.get(clave);
+  if (!intento) return 0;
+  return segundosDeEspera(intento.fallos, Math.max(0, ahoraEnSegundos() - intento.ultimoFallo));
+}
+
+function registrarFallo(clave: string): void {
+  const ahora = ahoraEnSegundos();
+  const anterior = intentosLogin.get(clave);
+  // Un fallo viejo no debe prolongar un bloqueo nuevo: PHP vuelve a contar en 1.
+  const fallos = !anterior || ahora - anterior.ultimoFallo >= VENTANA ? 1 : anterior.fallos + 1;
+  intentosLogin.set(clave, { fallos, ultimoFallo: ahora });
+}
 
 // ---------------------------------------------------------------- roles
 
@@ -539,11 +568,32 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
   // ----- /auth (rutas publicas + sesion)
   if (s[0] === "auth") {
     if (metodo === "POST" && s[1] === "login") {
-      const email = texto(cuerpo.email).toLowerCase();
-      const u = db.usuarios.find((x) => String(x.email).toLowerCase() === email);
-      if (!u || u.contrasena !== cuerpo.contrasena || u.activo === false) {
+      const email = texto(cuerpo.email);
+      const contrasena = String(cuerpo.contrasena ?? "");
+      if (email === "" || contrasena === "") {
+        return json(400, { error: "Email y contrasena son obligatorios" });
+      }
+
+      const clave = claveDeCuenta(email);
+      const espera = esperaDeCuenta(clave);
+      // Se consulta antes de validar la clave, para que ni la correcta saltee el bloqueo.
+      if (espera > 0) {
+        const minutos = Math.ceil(espera / 60);
+        return json(429, {
+          error: `Demasiados intentos fallidos. Esperá ${minutos} ${minutos === 1 ? "minuto" : "minutos"} y volvé a probar.`,
+          reintentar_en_segundos: espera,
+        }, { "Retry-After": String(espera) });
+      }
+
+      const u = db.usuarios.find((x) => String(x.email).toLowerCase() === clave);
+      if (!u || u.contrasena !== contrasena) {
+        registrarFallo(clave);
         return json(401, { error: "Credenciales invalidas" });
       }
+      // Revelar la baja solo después de conocer la contraseña evita enumerar cuentas.
+      if (u.activo === false) return json(403, { error: "Usuario inactivo" });
+
+      intentosLogin.delete(clave);
       return ok({
         token: `mock.${u.id_usuario}`,
         usuario: {
