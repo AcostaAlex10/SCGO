@@ -4,12 +4,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**TriweProjectManagement (SGSO)** — Sistema de Gestión y Seguimiento Operativo de Obras de Construcción.
-Academic project for IC-413 (Ingeniería del Software I, UNaM), Grupo 2.
+**SCGO — Sistema de Control y Gestión de Obras de construcción.** A product built
+for **Triwe**, a construction company, and meant to be sold: quality and security
+come first. It started as a university project, which is why the PHP namespace
+(`Sgso\`) and some URLs keep the old name, SGSO.
 
 The repository contains the full system: React SPA, PHP REST API and relational
-schema. See `DOCUMENTACION.md` for domain context and traceability with the
-course assignments, and `README.md` for setup instructions.
+schema. Start here:
+
+- `docs/REQUERIMIENTOS.md` — **the single source of truth for scope**: user
+  stories, RF01–RF28, RNF01–RNF10 and the real status of each. Check it before
+  building anything, and update it when a requirement or its status changes.
+- `docs/ARQUITECTURA.md` — how the system is built.
+- `docs/PLAN-PRODUCTO.md` — the prioritized roadmap. Work is picked from here.
+- `docs/OPERACION.md` — environments, where credentials live, known pitfalls.
+- `CONTRIBUTING.md` — branch and pull request rules.
 
 ### Implemented architecture
 | Layer | Folder | Technology | Deployment |
@@ -29,7 +38,7 @@ course assignments, and `README.md` for setup instructions.
 `main` is the only working branch and the one that deploys (Render + Vercel).
 `testing` is frozen at `a25da85` for the testers — never merge into it, never
 update it. Branch off an up-to-date `main`, keep branches short-lived, and
-**add a row to `RAMAS.md` when you create one**, not later. Avoid stacking a
+**add a row to `CONTRIBUTING.md` when you create one**, not later. Avoid stacking a
 PR on another PR's branch: deleting the base branch closes the stacked PR
 instead of retargeting it.
 
@@ -40,9 +49,8 @@ instead of retargeting it.
 - **Gerente** — read-only: monitors advance, consults comparative reports
 
 Role groups live in `Sgso\Reglas\Permisos` (`GESTION_OBRA`, `AVANCE`, `DOC`,
-`REPORTE_APROBAR`, `ADMIN`). `back/public/index.php` re-exposes them as the
-`ROLES_*` constants its routing uses, but the list itself is defined — and
-tested — in that class.
+`REPORTE_APROBAR`, `ADMIN`). Each route in `Sgso\Ruteo\Tabla` declares which
+group it requires, and `TablaTest` walks every route to check the guards.
 
 ## Commands
 
@@ -140,7 +148,7 @@ Seventeen tables in `back/sql/schema.sql`. `proyecto` is the core entity:
 - **usuario** — `rol` enum + `activo` flag, bcrypt password hash, password-reset token
 
 #### State values (as stored, lowercase)
-- Project (`proyecto.estado`, default `planificacion`): `planificacion` → `en_ejecucion` ⇄ `pausada` → `finalizada`
+- Project (`proyecto.estado`, default `planificacion`): seven states — `creada`, `planificacion`, `en_ejecucion`, `pausada`, `en_revision`, `finalizada`, `cancelada`. Legal transitions live in `Sgso\Reglas\CicloDeVida`; the full table is in `docs/ARQUITECTURA.md` §4
 - Report (`reporte.estado`, default `borrador`): `borrador` → `en_revision` → `aprobado` | `rechazado`
 - Attendance (`asistencia.estado`): `presente` | `ausente` | `tarde`
 - Incident (`incidencia`): type `clima` | `falla_maquinaria` | `proveedor` | `otro`; severity `baja` | `media` | `alta`

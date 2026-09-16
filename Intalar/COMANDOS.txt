@@ -1,5 +1,0 @@
-Ejecutar esto en la consola desde la carpeta donde descomprimieron el front, antes de ejecutar
-instalar https://nodejs.org/es 
-npm.cmd install --legacy-peer-deps
-npm.cmd install react@18.3.1 react-dom@18.3.1 --save
-npm.cmd run dev

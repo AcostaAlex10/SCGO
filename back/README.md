@@ -1,10 +1,11 @@
-# Backend SGSO — API REST en PHP
+# SCGO — API REST
 
 API REST en PHP sin framework (acceso a datos con PDO) sobre MariaDB / MySQL.
 Es el backend del proyecto: el que está desplegado en Render y el que consume el
 frontend.
 
-Para el contexto del sistema ver [`../DOCUMENTACION.md`](../DOCUMENTACION.md);
+Para el diseño del sistema ver [`../docs/ARQUITECTURA.md`](../docs/ARQUITECTURA.md)
+y, para su alcance, [`../docs/REQUERIMIENTOS.md`](../docs/REQUERIMIENTOS.md);
 para levantar todo el stack, [`../README.md`](../README.md).
 
 ## Requisitos
@@ -20,7 +21,7 @@ para levantar todo el stack, [`../README.md`](../README.md).
 composer install          # genera vendor/autoload.php (sin esto no arranca)
 cp .env.example .env      # datos de la base, JWT_SECRET, credenciales de Brevo
 php sql/migrar.php        # crea las tablas (idempotente)
-php sql/seed.php          # crea el usuario administrador inicial
+SEED_ADMIN_PASSWORD=una-clave-larga php sql/seed.php   # administrador inicial
 
 # Sobre una base que YA existe, migrar.php no cambia columnas: sus tablas usan
 # CREATE TABLE IF NOT EXISTS. Los cambios de tipo van en scripts aparte:
@@ -38,10 +39,15 @@ composer test       # PHPUnit sobre back/tests/
 composer phpstan    # PHPStan nivel 5; tiene que quedar en 0 errores
 ```
 
-Lo que está probado son las reglas puras de `src/Reglas/`: `CicloDeVida` (el
-ciclo de vida de la obra del TP3) y `Permisos` (los grupos de roles de RF19).
-Los controladores todavía no tienen pruebas: eso es la fase 2b del
-[plan de ADR-001](../docs/adr/PLAN-ADR-001.md) y necesita una base MariaDB en CI.
+Hay dos niveles:
+
+- **Unitarias**, sin base: las reglas de `src/Reglas/` (ciclo de vida de la obra y
+  permisos por rol) y el ruteo de `src/Ruteo/`, que se recorre endpoint por
+  endpoint.
+- **De integración**, en `tests/Integracion/`, contra una MariaDB descartable.
+  Vacían las tablas en cada prueba, así que solo leen las variables
+  `SGSO_TEST_DB_*`, nunca `.env`, y abortan si el nombre de la base no contiene
+  `test`. Sin esas variables se saltean; en el CI las provee el workflow.
 
 ## Estructura
 
@@ -69,7 +75,7 @@ back/
   sql/
     schema.sql    <- modelo relacional (17 tablas)
     migrar.php    <- aplica schema.sql (solo crea lo que falte)
-    migracion-estado-enum.php  <- altera proyecto.estado en bases ya creadas
+    migracion-*.php            <- cambios de esquema sobre bases ya creadas, uno por cambio
     seed.php      <- usuario administrador inicial
   data/
     proyectos.seed.json   <- datos de ejemplo del prototipo (ya no se usan en runtime)
@@ -81,8 +87,8 @@ El login devuelve un **JWT** que hay que enviar en `Authorization: Bearer <token
 Las contraseñas se guardan hasheadas con bcrypt, nunca en texto plano.
 
 Los grupos de roles viven en `Sgso\Reglas\Permisos` (`GESTION_OBRA`, `AVANCE`,
-`DOC`, `REPORTE_APROBAR`, `ADMIN`), que es donde se prueban. `public/index.php`
-los reexpone con los nombres `ROLES_*` que usan sus rutas.
+`DOC`, `REPORTE_APROBAR`, `ADMIN`). Cada ruta de `Sgso\Ruteo\Tabla` declara qué
+grupo exige.
 
 | Método | Ruta | Protección |
 |---|---|---|
@@ -141,7 +147,7 @@ curl http://localhost:8000/api/proyectos -H "Authorization: Bearer $TOKEN"
 
 - Las columnas usan snake_case (`fecha_inicio`) y el frontend espera camelCase
   (`fechaInicio`); el mapeo lo resuelve `MySqlProyectoRepository`.
-- `proyecto.encargado` es un texto libre. En el modelo relacional del TP3 estaba
-  previsto como una referencia a `usuario`; la normalización quedó pendiente.
-- `proyecto.avance` se guarda como campo plano aunque en el diagrama de clases del
-  TP3 se calcula a partir de `avance_fisico`.
+- `proyecto.encargado` es texto libre; debería ser una referencia a `usuario`.
+- `proyecto.avance` se guarda en vez de calcularse desde `avance_fisico`.
+
+Ambas están en el [plan de producto](../docs/PLAN-PRODUCTO.md) (C-09).

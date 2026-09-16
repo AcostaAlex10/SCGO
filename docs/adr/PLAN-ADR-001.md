@@ -285,7 +285,7 @@ prueba de integración necesita el CI para tener base.
 
 ## Lo que queda pendiente y NO es de ADR-001
 
-Para que no se mezcle: estas tareas están en `HANDOFF.md` §5 y son de producto,
+Para que no se mezcle: estas tareas están ahora en `docs/PLAN-PRODUCTO.md` y son de producto,
 no de infraestructura.
 
 | Tema | Qué falta |

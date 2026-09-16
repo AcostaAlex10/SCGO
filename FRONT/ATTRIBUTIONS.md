@@ -1,3 +1,8 @@
-This Figma Make file includes components from [shadcn/ui](https://ui.shadcn.com/) used under [MIT license](https://github.com/shadcn-ui/ui/blob/main/LICENSE.md).
+# Componentes de terceros
 
-This Figma Make file includes photos from [Unsplash](https://unsplash.com) used under [license](https://unsplash.com/license).
+Los primitivos de interfaz de `src/app/components/ui/` provienen de
+[shadcn/ui](https://ui.shadcn.com/) y se usan bajo la
+[licencia MIT](https://github.com/shadcn-ui/ui/blob/main/LICENSE.md), que exige
+conservar este aviso.
+
+El resto de las dependencias y sus licencias están declaradas en `package.json`.
