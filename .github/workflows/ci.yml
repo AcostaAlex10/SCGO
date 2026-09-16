@@ -187,5 +187,8 @@ jobs:
           if grep -qi '^X-Powered-By' cabeceras.txt; then
             echo "La respuesta anuncia la versión de PHP"; exit 1
           fi
+          if grep -Eiq '^Server:.*[0-9]' cabeceras.txt; then
+            echo "La respuesta anuncia la versión del servidor"; exit 1
+          fi
           sleep 2
           docker logs sin-base 2>&1 | grep -q 'SQLSTATE'

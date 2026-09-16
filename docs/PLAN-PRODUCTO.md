@@ -72,6 +72,7 @@ decisión de ustedes, no de código.
 | **B-05** | P1 | **`/api/health` no revisa la base.** Tiene que ejecutar un `SELECT 1` y reportarlo. | S | Codex |
 | **B-06** | **P0** | **`main` protegida y deploy condicionado al CI.** Que nada llegue a `main` sin PR y sin CI en verde. | S | Alex (configuración de GitHub y Render) |
 | **B-07** | P2 | **PHP 8.3 → 8.4.** 8.3 terminó su soporte activo en 12/2025. | S | Codex |
+| **B-09** | P2 | **Actions del CI desactualizadas.** `actions/checkout` y `actions/setup-node` están en v4, que usa Node 20 (deprecado); la última es v7. Actualizarlas leyendo los cambios de cada versión mayor. | S | Codex |
 | **B-08** | P1 | **Un solo administrador activo.** Si se pierde esa cuenta, nadie gestiona usuarios. Hace falta un segundo administrador (ver [OPERACION.md](OPERACION.md)). | S | Grupo |
 
 ---
