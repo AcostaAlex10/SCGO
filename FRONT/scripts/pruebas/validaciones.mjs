@@ -1,5 +1,5 @@
 import { chromium } from 'playwright';
-const BASE = process.env.SGSO_URL || 'http://127.0.0.1:8123/ingenieria-en-software-proyecto/';
+const BASE = process.env.SGSO_URL || 'http://127.0.0.1:8123/SCGO/';
 const ok = [], mal = [];
 const chequear = (q, c, d = '') => { (c ? ok : mal).push(q); console.log(`${c ? '  OK  ' : ' FALLA'} ${q}${d ? ' — ' + d : ''}`); };
 

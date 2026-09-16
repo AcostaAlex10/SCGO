@@ -16,7 +16,7 @@ Hay dos entornos y conviene saber cuál usar, porque no son equivalentes.
 
 | | Demo estática | Sistema real |
 |---|---|---|
-| URL | https://acostaalex10.github.io/ingenieria-en-software-proyecto/ | https://ingenieria-en-software-proyecto.vercel.app/ |
+| URL | https://acostaalex10.github.io/SCGO/ | https://ingenieria-en-software-proyecto.vercel.app/ |
 | Backend | ninguno: se simula en el navegador | PHP sobre MariaDB |
 | Datos | completos, ficticios | reales del equipo, varias secciones vacías |
 | Tus cambios | quedan solo en tu navegador | los ven todos |

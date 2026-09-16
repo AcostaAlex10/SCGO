@@ -12,7 +12,7 @@ costaron tiempo.
 | Producción — sistema | https://ingenieria-en-software-proyecto.vercel.app/ | La aplicación contra la API real | `main` |
 | Producción — API | https://ingenieria-en-software-proyecto.onrender.com/api | PHP + Apache en Docker | `main` |
 | Producción — base | Aiven | MariaDB / MySQL gestionada, con SSL | — |
-| Demo para testers | https://acostaalex10.github.io/ingenieria-en-software-proyecto/ | Frontend sin backend, con datos simulados | `testing` (congelada) |
+| Demo para testers | https://acostaalex10.github.io/SCGO/ | Frontend sin backend, con datos simulados | `testing` (congelada) |
 
 Todo lo que llega a `main` se despliega. Por eso `main` solo cambia por pull
 request con el CI en verde (ver [CONTRIBUTING.md](../CONTRIBUTING.md)).
@@ -25,7 +25,7 @@ La demo se publica con `.github/workflows/pages-testing.yml` en cada push a
 
 ```bash
 curl -s https://ingenieria-en-software-proyecto.onrender.com/api/health
-curl -s -o /dev/null -w "%{http_code}\n" https://acostaalex10.github.io/ingenieria-en-software-proyecto/
+curl -s -o /dev/null -w "%{http_code}\n" https://acostaalex10.github.io/SCGO/
 ```
 
 La API puede tardar cerca de un minuto la primera vez: el plan gratuito de Render

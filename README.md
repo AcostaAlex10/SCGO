@@ -1,6 +1,6 @@
 # SCGO — Sistema de Control y Gestión de Obras
 
-[![CI](https://github.com/AcostaAlex10/ingenieria-en-software-proyecto/actions/workflows/ci.yml/badge.svg)](https://github.com/AcostaAlex10/ingenieria-en-software-proyecto/actions/workflows/ci.yml)
+[![CI](https://github.com/AcostaAlex10/SCGO/actions/workflows/ci.yml/badge.svg)](https://github.com/AcostaAlex10/SCGO/actions/workflows/ci.yml)
 
 Sistema web para que una empresa constructora controle sus obras en un solo lugar:
 planificación, avance físico, asistencia, materiales, maquinaria, documentación,
