@@ -12,6 +12,7 @@
  */
 import base from "./datos.json";
 import { ESTADOS_CANCELABLES } from "../estadosObra";
+import { esEnlaceSeguro } from "../enlaces";
 
 /**
  * Hash FNV-1a de 32 bits, en base 36. No es criptografico: solo sirve para
@@ -1264,6 +1265,16 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
           const errores: Record<string, string> = {};
           validarRango(texto(cuerpo.fecha_inicio), texto(cuerpo.fecha_fin), errores);
           if (!texto(cuerpo.motivo)) errores.motivo = "Obligatorio";
+          if (Object.keys(errores).length) return json(422, { errors: errores });
+        }
+        if (sub === "documentos") {
+          // Mismas validaciones que DocumentoController::crear(). La URL tiene que
+          // ser http o https: un enlace javascript: ejecuta código al abrirlo (A-01).
+          const errores: Record<string, string> = {};
+          const tipo = cuerpo.tipo === undefined ? "otro" : String(cuerpo.tipo);
+          if (!texto(cuerpo.nombre)) errores.nombre = "Obligatorio";
+          if (!esEnlaceSeguro(texto(cuerpo.url))) errores.url = "Ingresá un enlace válido que empiece con http:// o https://";
+          if (!["pdf", "imagen", "otro"].includes(tipo)) errores.tipo = "Tipo inválido";
           if (Object.keys(errores).length) return json(422, { errors: errores });
         }
         const nuevo = { [campoId]: proximoId(coleccion, campoId), ...construir(cuerpo) };

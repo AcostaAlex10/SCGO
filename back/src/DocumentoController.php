@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sgso;
 
 use PDO;
+use Sgso\Reglas\Enlaces;
 
 /**
  * Documentacion de la obra (RF16). Se guarda el dato del documento y un
@@ -42,7 +43,9 @@ final class DocumentoController
 
         $errores = [];
         if ($nombre === '') { $errores['nombre'] = 'Obligatorio'; }
-        if (!filter_var($url, FILTER_VALIDATE_URL)) { $errores['url'] = 'Ingresá un enlace válido (http...)'; }
+        // Solo http o https: un enlace javascript: pasa FILTER_VALIDATE_URL y, al
+        // abrirlo, ejecuta código en la sesión de quien hace clic (A-01).
+        if (!Enlaces::esSeguro($url)) { $errores['url'] = 'Ingresá un enlace válido que empiece con http:// o https://'; }
         if (!in_array($tipo, self::TIPOS, true)) { $errores['tipo'] = 'Tipo inválido'; }
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) { $fecha = date('Y-m-d'); }
         if (!empty($errores)) { $this->json(422, ['errors' => $errores]); return; }

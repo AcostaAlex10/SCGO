@@ -44,6 +44,17 @@ cumple el RNF03 (ver [REQUERIMIENTOS.md](REQUERIMIENTOS.md)).
 | Cuentas del sistema | se administran desde la pantalla de Usuarios |
 | Cuenta para testers | la entrega el equipo por separado |
 
+**`JWT_SECRET` es obligatorio y tiene que tener al menos 32 caracteres.** Sin un
+valor válido la API no atiende ningún pedido: contesta 500 y el log dice por
+qué. También rechaza los dos valores de ejemplo que figuran en el repositorio.
+Para generar uno:
+
+```bash
+php -r "echo bin2hex(random_bytes(32));"
+```
+
+Cambiarlo cierra todas las sesiones abiertas: cada usuario vuelve a entrar una vez.
+
 El seed no trae contraseña en el código: la toma de `SEED_ADMIN_PASSWORD` y aborta
 si no está definida.
 
@@ -65,7 +76,23 @@ volver a gestionar usuarios.
 
 ---
 
-## 3. Cómo verificar que todo anda
+## 3. Cuando la API devuelve un error 500
+
+El usuario no ve ningún detalle interno, solo esto:
+
+```json
+{"error": "Error interno del servidor", "referencia": "21b4bf58abf2"}
+```
+
+El detalle completo (tipo de error, mensaje, archivo y línea) queda en el log con
+**la misma referencia**. En Render: servicio → *Logs* → buscar el código.
+
+Para ver los errores en pantalla mientras se desarrolla en local, poner
+`APP_DEBUG=1` en `back/.env`. En producción queda en `0`.
+
+---
+
+## 4. Cómo verificar que todo anda
 
 ```bash
 # Backend: pruebas y análisis estático
@@ -100,7 +127,7 @@ node scripts/demo-un-archivo.mjs      # deja dist/demo.html
 
 ---
 
-## 4. Problemas conocidos
+## 5. Problemas conocidos
 
 Cosas que ya costaron tiempo. Conviene leerlas antes de repetirlas.
 

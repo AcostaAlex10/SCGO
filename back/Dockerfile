@@ -4,6 +4,11 @@
 
 FROM php:8.3-apache
 
+# Configuración de producción de PHP: registra los errores en vez de mostrarlos
+# y no anuncia la versión en las respuestas (plan de producto, A-04). Sin esto
+# la imagen no carga ningún php.ini y PHP muestra los errores al cliente.
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
 # Extension para conectarse a MariaDB / MySQL (PDO).
 RUN docker-php-ext-install pdo_mysql
 
