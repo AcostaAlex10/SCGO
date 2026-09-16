@@ -1,9 +1,9 @@
 # Pruebas del modo estático
 
-Cuatro guiones que manejan un navegador real contra el build estático y verifican
-lo que más se rompe. No son pruebas unitarias del backend —eso sigue siendo deuda
-pendiente, ver `DOCUMENTACION.md`— pero cubren de punta a punta el frontend y el
-simulador, que es donde vive la mayor parte del comportamiento por rol.
+Cinco guiones que manejan un navegador real contra el build estático y verifican
+lo que más se rompe. Cubren de punta a punta el frontend y el simulador, que es
+donde vive la mayor parte del comportamiento por rol. Las pruebas del backend
+están en `back/tests/`, y todo corre en el CI en cada pull request.
 
 | Guion | Qué cubre |
 |---|---|

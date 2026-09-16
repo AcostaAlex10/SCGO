@@ -63,9 +63,6 @@ cronograma completo para la Obra Vial Ruta 14, un consumo que excede lo asignado
 (RF12), reportes en los cuatro estados, los roles que la base no tiene y una
 cuenta dada de baja. Así queda cubierta cada pantalla del sistema.
 
-El inventario de lo que hay en la base, y su comparación con estos datos, está
-en `src/app/mock/DATOS-PRODUCCION.md`.
-
 Los cambios que hagas (crear una obra, registrar un avance) se guardan en
 `localStorage`, así que sobreviven a una recarga. Para volver al punto de
 partida, ejecutar en la consola del navegador:

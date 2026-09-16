@@ -1,4 +1,4 @@
-// Recorrido de humo sobre la demo estatica, segun HANDOFF.md seccion 8.
+// Recorrido de humo sobre la demo estatica: los cuatro roles y sus pantallas.
 import { chromium } from 'playwright';
 
 const BASE = process.env.SGSO_URL || 'http://127.0.0.1:8123/ingenieria-en-software-proyecto/';
