@@ -25,7 +25,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/renombre-scgo` | `main` @ `9c1cef8` (2026-09-16) | Actualizar las referencias al nuevo nombre del repositorio | pendiente |
+| `claude/seguridad-ola-1` | `main` @ `9c1cef8` (2026-09-16) | Ola 1 de seguridad del plan: A-01, A-02, A-04 y A-08 | [#10](https://github.com/AcostaAlex10/SCGO/pull/10) |
 
 ### Reglas
 
@@ -85,6 +85,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/adr-001-fase-4` | Tabla de rutas declarativa (`Sgso\Ruteo`) | PR #6 |
 | `claude/adr-001-fase-2b-5` | Pruebas de integración, CI y plan de producto | PR #7 |
 | `claude/limpieza-docs` | Requerimientos recuperados, documentación ordenada y producto renombrado a SCGO | PR #8 |
+| `claude/renombre-scgo` | Referencias actualizadas al nuevo nombre del repositorio | PR #9 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
