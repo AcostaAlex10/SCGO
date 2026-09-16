@@ -153,7 +153,7 @@ El workflow `.github/workflows/pages-testing.yml` publica la demo en cada push a
 **`testing`**, que es la rama del sitio estático. Compila con las tres variables
 de arriba y el resultado queda en
 
-`https://acostaalex10.github.io/ingenieria-en-software-proyecto/`
+`https://acostaalex10.github.io/SCGO/`
 
 **`main` no dispara este workflow.** Lleva la aplicación real, la que consume la
 API PHP. Pages sirve un único sitio por repositorio, así que si las dos ramas

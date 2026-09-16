@@ -14,6 +14,10 @@ Reglas del equipo para que `main` esté siempre en condiciones de desplegarse.
 > `testing` no se toca. Si alguna vez hay que actualizarla, es una decisión
 > explícita del equipo.
 
+El repositorio se llamaba `ingenieria-en-software-proyecto` hasta el 2026-09-16.
+GitHub redirige las URLs viejas, **salvo la de la demo**, que ahora es
+https://acostaalex10.github.io/SCGO/.
+
 ### Ramas de trabajo abiertas
 
 **Cada rama nueva se anota acá en el momento en que se crea**, no después: una
@@ -21,7 +25,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/limpieza-docs` | `main` @ `b4f93c2` (2026-09-16) | Ordenar la documentación, recuperar los requerimientos y renombrar el producto a SCGO | [#8](https://github.com/AcostaAlex10/ingenieria-en-software-proyecto/pull/8) |
+| `claude/renombre-scgo` | `main` @ `9c1cef8` (2026-09-16) | Actualizar las referencias al nuevo nombre del repositorio | pendiente |
 
 ### Reglas
 
@@ -80,6 +84,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/adr-001-fase-2a-3` | `Sgso\Reglas` (ciclo de vida y permisos) y PHPStan nivel 5 | Entró por el PR #6 |
 | `claude/adr-001-fase-4` | Tabla de rutas declarativa (`Sgso\Ruteo`) | PR #6 |
 | `claude/adr-001-fase-2b-5` | Pruebas de integración, CI y plan de producto | PR #7 |
+| `claude/limpieza-docs` | Requerimientos recuperados, documentación ordenada y producto renombrado a SCGO | PR #8 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir

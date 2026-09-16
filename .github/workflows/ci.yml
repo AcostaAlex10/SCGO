@@ -132,10 +132,10 @@ jobs:
       # del repositorio, que es como lo sirve GitHub Pages.
       - name: Servir la demo
         run: |
-          mkdir -p /tmp/sgso
-          ln -sfn "$PWD/dist" /tmp/sgso/ingenieria-en-software-proyecto
-          npx --yes http-server /tmp/sgso -p 8123 -c-1 --silent &
-          npx --yes wait-on -t 60000 http://127.0.0.1:8123/ingenieria-en-software-proyecto/
+          mkdir -p /tmp/scgo
+          ln -sfn "$PWD/dist" /tmp/scgo/SCGO
+          npx --yes http-server /tmp/scgo -p 8123 -c-1 --silent &
+          npx --yes wait-on -t 60000 http://127.0.0.1:8123/SCGO/
 
       - name: Correr las cinco suites
         run: |
