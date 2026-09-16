@@ -64,8 +64,10 @@ cd back && composer phpstan      # PHPStan, level 5, must stay at zero errors
 ```
 
 > Checks that must stay green: `npm run typecheck` (front), `composer test` and
-> `composer phpstan` (back). Integration tests against MariaDB are phase 2b of
-> `docs/adr/PLAN-ADR-001.md` and do not exist yet.
+> `composer phpstan` (back). All three run in CI (`.github/workflows/ci.yml`).
+> Integration tests in `back/tests/Integracion/` skip locally unless the
+> `SGSO_TEST_DB_*` variables point at a disposable database (name must contain
+> "test"); CI provides one. The product roadmap is `docs/PLAN-PRODUCTO.md`.
 
 ## Architecture
 

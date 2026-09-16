@@ -78,7 +78,8 @@ npm run dev
 Copiar `FRONT/.env.example` a `FRONT/.env` y ajustar `VITE_API_URL` si la API no
 está en la URL por defecto.
 
-No hay scripts de test ni de lint configurados.
+Las pruebas del front son `npm run typecheck` y las cinco suites de Playwright
+(`FRONT/scripts/pruebas/`). No hay linter configurado todavía. El CI corre todo en cada PR.
 
 ---
 
