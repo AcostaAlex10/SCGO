@@ -136,6 +136,30 @@ const valido = await api('POST', '/proyectos/2/documentos', {
 });
 chequear('un enlace https se guarda', valido.estado === 201, `dio ${valido.estado}`);
 
+// ---- 6. Los fallos de login se limitan por cuenta (A-03) ----
+for (let i = 0; i < 5; i++) {
+  r = await api('POST', '/auth/login', { email: 'tecnico@sgso.test', contrasena: 'equivocada' });
+  chequear(`el fallo ${i + 1} de tecnico devuelve 401`,
+    r.estado === 401 && r.datos?.error === 'Credenciales invalidas', `dio ${r.estado}`);
+}
+const bloqueado = await api('POST', '/auth/login', {
+  email: 'tecnico@sgso.test', contrasena: 'tecnico123',
+});
+chequear('el sexto intento de tecnico bloquea incluso la clave correcta',
+  bloqueado.estado === 429 && !bloqueado.datos?.token && bloqueado.datos?.reintentar_en_segundos > 0,
+  `dio ${bloqueado.estado}`);
+
+const otraCuenta = await api('POST', '/auth/login', {
+  email: 'administrativo@sgso.test', contrasena: 'admin123',
+});
+chequear('el bloqueo de tecnico no afecta a administrativo', otraCuenta.estado === 200, `dio ${otraCuenta.estado}`);
+
+r = await api('POST', '/auth/login', { email: 'tecnico2@sgso.test', contrasena: 'equivocada' });
+chequear('la cuenta inactiva con clave incorrecta responde credenciales invalidas',
+  r.estado === 401 && r.datos?.error === 'Credenciales invalidas', `dio ${r.estado}`);
+r = await api('POST', '/auth/login', { email: 'tecnico2@sgso.test', contrasena: 'tecnico123' });
+chequear('la cuenta inactiva con clave correcta responde 403', r.estado === 403, `dio ${r.estado}`);
+
 await nav.close();
 console.log(`\n${ok.length}/${ok.length + mal.length} OK`);
 if (mal.length) process.exit(1);

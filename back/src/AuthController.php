@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sgso;
 
 use PDO;
+use Sgso\Seguridad\IntentosLogin;
 
 
 /**
@@ -27,11 +28,22 @@ final class AuthController
         'AdministradorSistema',
     ];
 
+    /**
+     * Hash bcrypt de una contraseña que nadie conoce. Cuando el email no existe
+     * se verifica contra este hash igual: sin eso, la respuesta sale más rápido y
+     * el tiempo delata qué emails tienen cuenta.
+     */
+    private const HASH_FICTICIO = '$2y$10$j/7xecvBAaFbF18R2vNRYuRCkmKw.1FR7QNqT80xPEcK6Bx6QnUBS';
+
+    private IntentosLogin $intentos;
+
     public function __construct(
         private PDO $db,
         private string $jwtSecreto,
-        private int $jwtSegundosValidez
+        private int $jwtSegundosValidez,
+        ?IntentosLogin $intentos = null
     ) {
+        $this->intentos = $intentos ?? new IntentosLogin($db);
     }
 
     /** @param array<string, mixed> $datos */
@@ -45,24 +57,49 @@ final class AuthController
             return;
         }
 
+        // Límite de intentos (A-03). Se revisa antes de mirar la contraseña: durante
+        // el bloqueo no se puede probar ninguna, ni siquiera la correcta.
+        $clave = IntentosLogin::claveDeCuenta($email);
+        $espera = $this->intentos->segundosDeEspera($clave);
+        if ($espera > 0) {
+            if (!headers_sent()) {
+                header('Retry-After: ' . $espera);
+            }
+            $minutos = (int) ceil($espera / 60);
+            $this->json(429, [
+                'error' => sprintf(
+                    'Demasiados intentos fallidos. Esperá %d %s y volvé a probar.',
+                    $minutos,
+                    $minutos === 1 ? 'minuto' : 'minutos'
+                ),
+                'reintentar_en_segundos' => $espera,
+            ]);
+            return;
+        }
+
         $stmt = $this->db->prepare('SELECT * FROM usuario WHERE email = ?');
         $stmt->execute([$email]);
         $usuario = $stmt->fetch();
 
-        if ($usuario === false) {
+        // Se verifica siempre, exista o no la cuenta, para que el tiempo de
+        // respuesta no delate cuáles existen.
+        $hash = $usuario === false ? self::HASH_FICTICIO : (string) $usuario['contrasena'];
+        $contrasenaValida = password_verify($contrasena, $hash) && $usuario !== false;
+
+        if (!$contrasenaValida) {
+            $this->intentos->registrarFallo($clave);
             $this->json(401, ['error' => 'Credenciales invalidas']);
             return;
         }
 
+        // Que la cuenta está inactiva se informa recién con la contraseña
+        // correcta: antes, cualquiera podía confirmar que un email existía.
         if ((int) $usuario['activo'] !== 1) {
             $this->json(403, ['error' => 'Usuario inactivo']);
             return;
         }
 
-        if (!password_verify($contrasena, $usuario['contrasena'])) {
-            $this->json(401, ['error' => 'Credenciales invalidas']);
-            return;
-        }
+        $this->intentos->limpiar($clave);
 
         // Sesion unica: generamos un id de sesion nuevo y lo guardamos. Esto
         // invalida cualquier sesion anterior del usuario (el ultimo login gana).

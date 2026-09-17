@@ -76,7 +76,28 @@ volver a gestionar usuarios.
 
 ---
 
-## 3. Cuando la API devuelve un error 500
+## 3. Cuando una cuenta queda bloqueada
+
+Después de cinco contraseñas equivocadas seguidas, la cuenta exige esperar
+antes de cada intento nuevo: primero 1 minuto, y la espera se duplica con cada
+fallo hasta un máximo de 15. El usuario ve cuánto le falta. Pasados 15 minutos
+sin fallos el contador se reinicia solo, y un login correcto lo borra.
+
+Si hace falta desbloquear una cuenta antes, se borra su fila de
+`intento_login`. La clave no es el email sino su hash, así que se busca así:
+
+```sql
+DELETE FROM intento_login
+WHERE clave = CONCAT('cuenta:', SHA2(LOWER(TRIM('usuario@empresa.com')), 256));
+```
+
+Cualquiera que conozca un email puede bloquear esa cuenta a propósito, como con
+cualquier límite por cuenta. Por eso la espera tiene tope: en el peor caso, el
+dueño espera 15 minutos.
+
+---
+
+## 4. Cuando la API devuelve un error 500
 
 El usuario no ve ningún detalle interno, solo esto:
 
@@ -92,7 +113,7 @@ Para ver los errores en pantalla mientras se desarrolla en local, poner
 
 ---
 
-## 4. Cómo verificar que todo anda
+## 5. Cómo verificar que todo anda
 
 ```bash
 # Backend: pruebas y análisis estático
@@ -127,7 +148,7 @@ node scripts/demo-un-archivo.mjs      # deja dist/demo.html
 
 ---
 
-## 5. Problemas conocidos
+## 6. Problemas conocidos
 
 Cosas que ya costaron tiempo. Conviene leerlas antes de repetirlas.
 

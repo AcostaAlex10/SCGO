@@ -49,7 +49,7 @@ decisión de ustedes, no de código.
 |---|---|---|---|---|---|
 | **A-01** | **P0** | **Hecho en el PR #10.** **XSS almacenado por enlaces de documentos. Confirmado.** `FILTER_VALIDATE_URL` acepta `javascript://x%0Aalert(1)`, y el front lo muestra como `<a href>`. Cualquier rol que carga documentos, incluido Personal Técnico, puede plantar un enlace que ejecuta código en la sesión de quien le haga clic. Como el token vive en `localStorage`, eso es robo de cuenta. El simulador ni siquiera valida la URL. | `DocumentoController.php:45`, `DocumentacionPage.tsx:75`, `mock/servidor.ts:1209` | S | Claude |
 | **A-02** | **P0** | **Hecho en el PR #10.** **El secreto de los tokens tiene un valor por defecto.** Si `JWT_SECRET` falta, la API firma con `cambiar_esta_clave` y cualquiera puede fabricarse un token de administrador. Tiene que fallar cerrado: sin secreto, o con uno corto, no arranca. | `public/index.php` | S | Claude |
-| **A-03** | **P0** | **Sin límite de intentos de login.** Se pueden probar contraseñas sin freno. Hace falta un límite por IP y por cuenta, con espera creciente. | `AuthController::login` | M | Claude |
+| **A-03** | **P0** | **Hecho en el PR #11.** **Sin límite de intentos de login.** Ahora, a partir del quinto fallo seguido, cada intento exige una espera que se duplica (de 1 a 15 minutos). El límite es por cuenta; el límite por IP quedó como A-12. En el mismo PR se cerraron dos filtraciones del login: la cuenta inactiva se delataba sin la contraseña, y el tiempo de respuesta revelaba qué emails existían. | `AuthController::login` | M | Claude |
 | **A-04** | **P0** | **Hecho en el PR #10.** **Sin manejo global de errores.** No hay `set_exception_handler` y la imagen de Docker no carga un `php.ini`, así que PHP muestra los errores. La base se conecta antes de rutear y sin `try`: si Aiven falla, el cliente ve un error crudo con la ruta interna y el host y usuario de la base. Solución: `php.ini-production`, un manejador que registre el error y conteste JSON genérico, y probar la caída de la base. | `Dockerfile`, `index.php`, `Database.php` | S | Claude |
 | **A-05** | P1 | **Contraseñas de 6 caracteres como mínimo.** Subir a 10 o 12 y rechazar las más comunes. | `AuthController.php` | S | Claude |
 | **A-06** | P1 | **`react-router` 7.13.0 con avisos de severidad alta.** La mayoría aplica al modo framework o SSR, que no usamos, pero actualizar es barato y saca la alarma. | `FRONT/package.json` | S | Codex |
@@ -57,6 +57,8 @@ decisión de ustedes, no de código.
 | **A-08** | P1 | **Hecho en el PR #10.** **Sin `.dockerignore`.** El `Dockerfile` copia todo `back/`: si alguien construye la imagen en local, se lleva su `.env` adentro. | `back/` | S | Claude |
 | **A-09** | P2 | **Token en `localStorage`.** Es lo que vuelve grave cualquier XSS. Con A-01 y A-07 el riesgo baja mucho; pasarlo a cookie `httpOnly` cambia CORS y exige protección CSRF. | `auth/session.ts` | M | Claude |
 | **A-10** | P1 | **Auditoría de dependencias en CI:** `composer audit`, `npm audit` y Dependabot. | `ci.yml` | S | Codex |
+| **A-12** | P2 | **Límite de intentos por IP.** Detrás del proxy de Render todas las conexiones llegan con la misma IP de origen: limitar por ella bloquearía a todos los usuarios a la vez. Primero hay que confirmar qué cabecera agrega Render con la IP real, y que el cliente no la pueda falsificar. | `AuthController::login` | S | Claude |
+| **A-13** | P1 | **`/auth/olvide` sin límite.** Cada pedido manda un correo: sin freno, sirve para llenarle la casilla a alguien y gastar la cuota de Brevo. La política de A-03 se puede reutilizar. | `AuthController::olvide` | S | Codex |
 | **A-11** | P1 | **Pentest antes de la entrega.** Las skills de Strix están instaladas y generan el informe que suele pedir un cliente. Necesita Docker, pendiente en esta máquina. | — | M | Claude |
 
 ---
@@ -143,10 +145,10 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 ### Ola 1 — Cerrar agujeros
 
 1. ~~**B-06:** proteger `main`.~~ Hecho.
-2. **A-01, A-02 y A-04:** los tres P0 de seguridad que son chicos. Cada uno con una
-   prueba que falle antes del arreglo y pase después.
-3. **A-03:** límite de intentos de login.
-4. **A-05 a A-08 y A-10:** el resto de los ajustes de seguridad.
+2. ~~**A-01, A-02 y A-04**~~ (PR #10) y ~~**A-03**~~ (PR #11). Hechos, cada uno
+   con una prueba que falló antes del arreglo.
+3. **A-05, A-06, A-07, A-10 y A-13:** el resto de los ajustes de seguridad. A-08
+   ya se hizo en el PR #10.
 
 ### Ola 2 — Producción que aguante
 
@@ -183,3 +185,4 @@ del arreglo, CI en verde, el simulador al día y el número de PR anotado acá.
 | 2026-09-16 | Primera versión, a partir de la auditoría del código. |
 | 2026-09-16 | Resueltas DEC-01 y DEC-06; agregadas DEC-07, C-11, D-09 y D-10; cerrado el bloque F. Las decisiones pasan a `DEC-xx` para no confundirse con los ítems del bloque D. |
 | 2026-09-16 | B-06 hecho: `main` protegida con un ruleset. DEC-07 resuelta: el repositorio sigue público y se renombra a `SCGO`. |
+| 2026-09-16 | A-01, A-02, A-04 y A-08 hechos (PR #10). A-03 hecho (PR #11); agregados A-12 y A-13. Con eso no queda ningún P0 de seguridad abierto. |

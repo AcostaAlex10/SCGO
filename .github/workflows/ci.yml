@@ -156,6 +156,11 @@ jobs:
       - name: Construir la imagen
         run: docker build -t scgo-api back
 
+      # El login normaliza el email con mb_strtolower (A-03): sin mbstring,
+      # nadie podria entrar.
+      - name: La imagen trae las extensiones que usa el codigo
+        run: docker run --rm scgo-api php -r 'foreach (["mbstring", "pdo_mysql"] as $e) { if (!extension_loaded($e)) { fwrite(STDERR, "Falta la extension $e\n"); exit(1); } } echo "ok\n";'
+
       # Sin JWT_SECRET la API no atiende pedidos (A-02).
       - name: Sin secreto, falla cerrado
         run: |
