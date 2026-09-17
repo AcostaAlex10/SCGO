@@ -95,6 +95,27 @@ Cualquiera que conozca un email puede bloquear esa cuenta a propósito, como con
 cualquier límite por cuenta. Por eso la espera tiene tope: en el peor caso, el
 dueño espera 15 minutos.
 
+**Pedidos de recuperación de contraseña.** `/auth/olvide` manda como mucho un
+correo cada 5 minutos por cuenta. No usa `intento_login`: la condición está en el
+mismo UPDATE que guarda el token, así que no hay contador que limpiar ni forma de
+dejar a alguien sin poder entrar pidiendo recuperaciones de su cuenta.
+
+La pantalla dice lo mismo de siempre aunque el correo no salga, así que el
+síntoma es "pedí el mail y no llega". Antes de buscar un problema en Brevo,
+conviene descartar que sea esto:
+
+```sql
+SELECT email, reset_expira FROM usuario WHERE email = 'usuario@empresa.com';
+```
+
+Si `reset_expira` está dentro de los próximos 55 a 60 minutos, el pedido es
+reciente y el correo ya salió: hay que buscarlo en la casilla, no volver a
+pedirlo. Para permitir un pedido nuevo en el acto:
+
+```sql
+UPDATE usuario SET reset_expira = NULL WHERE email = 'usuario@empresa.com';
+```
+
 ---
 
 ## 4. Cuando la API devuelve un error 500
@@ -163,6 +184,17 @@ pueden no coincidir.
 **El antivirus borra los scripts PHP que se conectan a la base.** `migrar.php` y
 similares desaparecen del árbol de trabajo. Están versionados: si falta uno,
 `git checkout` sobre ese archivo, y cuidado con un `git add -A` a ciegas.
+
+### Despliegue
+
+**La CSP del frontend tiene escrita la URL de la API.** En `FRONT/vercel.json`,
+la directiva `connect-src` nombra a
+`https://ingenieria-en-software-proyecto.onrender.com`. Es a propósito: el sentido
+de la CSP es decir exactamente a dónde puede hablar la aplicación. Pero si alguna
+vez cambia la URL del backend, **no alcanza con cambiar `VITE_API_URL` en
+Vercel**: hay que cambiar también esa línea, o el navegador bloquea todos los
+pedidos y la aplicación queda muda sin ningún error del servidor. El síntoma es
+un error de CSP en la consola del navegador, no un 500.
 
 ### Sesión
 

@@ -6,6 +6,7 @@ namespace Sgso;
 
 use PDO;
 use Sgso\Seguridad\IntentosLogin;
+use Sgso\Seguridad\PoliticaContrasena;
 
 
 /**
@@ -34,6 +35,17 @@ final class AuthController
      * el tiempo delata qué emails tienen cuenta.
      */
     private const HASH_FICTICIO = '$2y$10$j/7xecvBAaFbF18R2vNRYuRCkmKw.1FR7QNqT80xPEcK6Bx6QnUBS';
+
+    /** Cuánto vale el enlace de recuperación que llega por correo. */
+    private const VALIDEZ_TOKEN = 3600;
+
+    /**
+     * Mínimo entre dos correos de recuperación para la misma cuenta (A-13).
+     *
+     * Cinco minutos alcanzan para que un correo llegue: si el usuario vuelve a
+     * pedirlo porque no lo ve, casi siempre es que todavía está en camino.
+     */
+    private const ESPERA_ENTRE_PEDIDOS = 300;
 
     private IntentosLogin $intentos;
 
@@ -153,8 +165,9 @@ final class AuthController
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errores['email'] = 'Email invalido';
         }
-        if (strlen($contrasena) < 6) {
-            $errores['contrasena'] = 'Debe tener al menos 6 caracteres';
+        $problema = PoliticaContrasena::validar($contrasena);
+        if ($problema !== null) {
+            $errores['contrasena'] = $problema;
         }
         if (!in_array($rol, self::ROLES, true)) {
             $errores['rol'] = 'Rol invalido';
@@ -216,18 +229,38 @@ final class AuthController
             return;
         }
 
-        $stmt = $this->db->prepare('SELECT id_usuario, nombre FROM usuario WHERE email = ?');
-        $stmt->execute([$email]);
-        $usuario = $stmt->fetch();
+        $token = bin2hex(random_bytes(16));
+        // Vencimiento en UTC (1 hora) para que coincida con el NOW() de la
+        // base (que esta en UTC). gmdate siempre devuelve UTC, sin importar
+        // la zona horaria por defecto de PHP.
+        $expira = gmdate('Y-m-d H:i:s', time() + self::VALIDEZ_TOKEN);
 
-        if ($usuario !== false) {
-            $token = bin2hex(random_bytes(16));
-            // Vencimiento en UTC (1 hora) para que coincida con el NOW() de la
-            // base (que esta en UTC). gmdate siempre devuelve UTC, sin importar
-            // la zona horaria por defecto de PHP.
-            $expira = gmdate('Y-m-d H:i:s', time() + 3600);
-            $this->db->prepare('UPDATE usuario SET reset_token = ?, reset_expira = ? WHERE id_usuario = ?')
-                ->execute([$token, $expira, (int) $usuario['id_usuario']]);
+        // Límite de pedidos (A-13). Cada pedido manda un correo: sin freno, alguien
+        // que conozca un email le llena la casilla y gasta la cuota de Brevo.
+        //
+        // El límite y la reserva son la MISMA sentencia, a propósito. Preguntar
+        // primero "¿puedo?" y escribir después deja una ventana en la que veinte
+        // pedidos simultáneos contestan que sí todos juntos, que es exactamente el
+        // ataque que esto tiene que frenar. Acá gana uno solo: los demás no tocan
+        // ninguna fila.
+        //
+        // La condición es "el token anterior se emitió hace más de ESPERA_ENTRE_PEDIDOS".
+        // Como `reset_expira` es el momento de emisión más VALIDEZ_TOKEN, esa cuenta
+        // se hace restando.
+        $emitidoHaceRato = gmdate('Y-m-d H:i:s', time() + self::VALIDEZ_TOKEN - self::ESPERA_ENTRE_PEDIDOS);
+        $reserva = $this->db->prepare(
+            'UPDATE usuario SET reset_token = ?, reset_expira = ?
+             WHERE email = ? AND (reset_expira IS NULL OR reset_expira <= ?)'
+        );
+        $reserva->execute([$token, $expira, $email, $emitidoHaceRato]);
+
+        // Cero filas es el email que no existe y también el que ya pidió hace un
+        // rato: los dos casos salen por acá con la misma respuesta de siempre. Un
+        // 429 convertiría este endpoint en un delator de qué emails tienen cuenta.
+        if ($reserva->rowCount() === 1) {
+            $stmt = $this->db->prepare('SELECT nombre FROM usuario WHERE email = ?');
+            $stmt->execute([$email]);
+            $usuario = $stmt->fetch();
 
             $base = rtrim(getenv('APP_URL') ?: (getenv('CORS_ORIGIN') ?: ''), '/');
             $enlace = $base . '/restablecer?token=' . $token;
@@ -257,8 +290,9 @@ final class AuthController
             $this->json(400, ['error' => 'Falta el token']);
             return;
         }
-        if (strlen($contrasena) < 6) {
-            $this->json(422, ['errors' => ['contrasena' => 'Debe tener al menos 6 caracteres']]);
+        $problema = PoliticaContrasena::validar($contrasena);
+        if ($problema !== null) {
+            $this->json(422, ['errors' => ['contrasena' => $problema]]);
             return;
         }
 

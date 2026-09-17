@@ -25,7 +25,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/seguridad-ola-2` | `main` @ `9cef619` (2026-09-17) | Contraseñas más largas (A-05), headers de seguridad (A-07) y límite en `/auth/olvide` (A-13) | pendiente |
+| `claude/seguridad-ola-2` | `main` @ `9cef619` (2026-09-17) | Contraseñas más largas (A-05), headers de seguridad (A-07) y límite en `/auth/olvide` (A-13) | [#12](https://github.com/AcostaAlex10/SCGO/pull/12) |
 
 ### Reglas
 

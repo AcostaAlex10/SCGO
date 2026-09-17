@@ -58,9 +58,9 @@ export default function RestablecerPage() {
         ) : (
           <form onSubmit={handleSubmit}>
             <label style={{ display: "block", fontSize: "12px", color: "var(--muted-foreground)", marginBottom: "6px" }}>Nueva contraseña</label>
-            <input type="password" value={contrasena} onChange={(e) => setContrasena(e.target.value)} required minLength={6} autoFocus placeholder="Mínimo 6 caracteres" style={inputStyle} />
+            <input type="password" value={contrasena} onChange={(e) => setContrasena(e.target.value)} required minLength={10} autoFocus placeholder="Mínimo 10 caracteres" style={inputStyle} />
             <label style={{ display: "block", fontSize: "12px", color: "var(--muted-foreground)", margin: "16px 0 6px" }}>Repetir contraseña</label>
-            <input type="password" value={repetir} onChange={(e) => setRepetir(e.target.value)} required minLength={6} placeholder="••••••••" style={inputStyle} />
+            <input type="password" value={repetir} onChange={(e) => setRepetir(e.target.value)} required minLength={10} placeholder="••••••••" style={inputStyle} />
 
             {error && (
               <div style={{ marginTop: "16px", fontSize: "12px", color: "#fca5a5", background: "rgba(192,57,43,0.12)", border: "1px solid rgba(192,57,43,0.4)", borderRadius: "4px", padding: "8px 10px" }}>{error}</div>
