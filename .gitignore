@@ -1,2 +1,4 @@
 **/node_modules/
 **/dist/
+# Caché del grafo de conocimiento (herramienta externa, no es del proyecto).
+graphify-out/
