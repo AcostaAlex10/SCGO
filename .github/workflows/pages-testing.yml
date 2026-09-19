@@ -38,11 +38,13 @@ jobs:
       run:
         working-directory: FRONT
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      # La versión de Node sale de "engines" en FRONT/package.json, la misma que
+      # usa Vercel: así el CI compila con lo que compila producción.
+      - uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version-file: FRONT/package.json
 
       - name: Instalar dependencias
         run: npm install --legacy-peer-deps
@@ -65,7 +67,7 @@ jobs:
       - name: Desactivar el procesado Jekyll
         run: touch dist/.nojekyll
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: FRONT/dist
 
@@ -77,4 +79,4 @@ jobs:
       url: ${{ steps.despliegue.outputs.page_url }}
     steps:
       - id: despliegue
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

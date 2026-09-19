@@ -56,7 +56,7 @@ group it requires, and `TablaTest` walks every route to check the guards.
 
 ### Frontend (`FRONT/`)
 ```bash
-npm install --legacy-peer-deps   # --legacy-peer-deps is required due to peer conflicts
+npm install                      # FRONT/.npmrc sets legacy-peer-deps (peer conflicts from the Figma export)
 npm run dev                      # Vite dev server
 npm run build                    # production build
 ```

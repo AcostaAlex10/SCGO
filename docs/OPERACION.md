@@ -196,6 +196,13 @@ Vercel**: hay que cambiar también esa línea, o el navegador bloquea todos los
 pedidos y la aplicación queda muda sin ningún error del servidor. El síntoma es
 un error de CSP en la consola del navegador, no un 500.
 
+**Los PR de Dependabot se despliegan como cualquier otro.** Los lunes abre PRs
+con actualizaciones de dependencias (y una vez por mes, de las actions). Que los
+abra un bot no los vuelve seguros: al mergearlos van a producción. Los de
+versiones menores y parches vienen agrupados y alcanza con que el CI esté en
+verde. Los de una versión mayor vienen sueltos, y antes de mergearlos hay que
+leer qué rompe, como se hizo con las actions en el PR #13.
+
 ### Sesión
 
 **Una cuenta tiene una sola sesión.** Entrar desde otro lado cierra la anterior.

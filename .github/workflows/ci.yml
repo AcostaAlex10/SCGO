@@ -49,7 +49,7 @@ jobs:
           --health-retries=10
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -60,6 +60,12 @@ jobs:
 
       - name: Instalar dependencias
         run: composer install --no-interaction --prefer-dist
+
+      # Solo las dependencias de producción frenan el CI: son las que corren en
+      # Render. Hoy no hay ninguna, pero el día que se agregue una ya queda
+      # vigilada. Las de desarrollo las cubre Dependabot (A-10).
+      - name: Dependencias sin vulnerabilidades conocidas
+        run: composer audit --no-dev
 
       - name: Analisis estatico
         run: composer phpstan
@@ -81,15 +87,24 @@ jobs:
         working-directory: FRONT
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      # La versión de Node sale de "engines" en FRONT/package.json, la misma que
+      # usa Vercel: así el CI compila con lo que compila producción.
+      - uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version-file: FRONT/package.json
 
       # --legacy-peer-deps es necesario por conflictos de peers del proyecto.
       - name: Instalar dependencias
         run: npm ci --legacy-peer-deps
+
+      # Frena el CI un aviso alto o crítico en lo que llega al navegador. Las
+      # herramientas de desarrollo no: un aviso nuevo en una de ellas dejaría sin
+      # poder mergear ningún PR, aunque no tuviera nada que ver. Esas las cubre
+      # Dependabot (A-10).
+      - name: Dependencias sin vulnerabilidades conocidas
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Verificar tipos
         run: npm run typecheck
@@ -110,11 +125,13 @@ jobs:
         working-directory: FRONT
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      # La versión de Node sale de "engines" en FRONT/package.json, la misma que
+      # usa Vercel: así el CI compila con lo que compila producción.
+      - uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version-file: FRONT/package.json
 
       - name: Instalar dependencias
         run: npm ci --legacy-peer-deps
@@ -155,7 +172,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Construye la misma imagen que despliega Render.
       - name: Construir la imagen

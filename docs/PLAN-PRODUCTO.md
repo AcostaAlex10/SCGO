@@ -52,11 +52,11 @@ decisión de ustedes, no de código.
 | **A-03** | **P0** | **Hecho en el PR #11.** **Sin límite de intentos de login.** Ahora, a partir del quinto fallo seguido, cada intento exige una espera que se duplica (de 1 a 15 minutos). El límite es por cuenta; el límite por IP quedó como A-12. En el mismo PR se cerraron dos filtraciones del login: la cuenta inactiva se delataba sin la contraseña, y el tiempo de respuesta revelaba qué emails existían. | `AuthController::login` | M | Claude |
 | **A-04** | **P0** | **Hecho en el PR #10.** **Sin manejo global de errores.** No hay `set_exception_handler` y la imagen de Docker no carga un `php.ini`, así que PHP muestra los errores. La base se conecta antes de rutear y sin `try`: si Aiven falla, el cliente ve un error crudo con la ruta interna y el host y usuario de la base. Solución: `php.ini-production`, un manejador que registre el error y conteste JSON genérico, y probar la caída de la base. | `Dockerfile`, `index.php`, `Database.php` | S | Claude |
 | **A-05** | P1 | **Hecho en el PR #12.** **Contraseñas de 6 caracteres como mínimo.** Ahora el mínimo es de 10 y se rechazan las más usadas, en `Sgso\Seguridad\PoliticaContrasena`. No se exigen mayúsculas ni símbolos a propósito: esa regla empuja a contraseñas cortas y previsibles. | `AuthController.php` | S | Claude |
-| **A-06** | P1 | **`react-router` 7.13.0 con avisos de severidad alta.** La mayoría aplica al modo framework o SSR, que no usamos, pero actualizar es barato y saca la alarma. | `FRONT/package.json` | S | Codex |
+| **A-06** | P1 | **Hecho en el PR #13.** **`react-router` 7.13.0 con avisos de severidad alta.** Doce avisos; la mayoría del modo framework o SSR, pero dos open redirects vía `<Link>` y `useNavigate` sí nos tocaban. Pasó a 7.18.4, y con las herramientas de build al día `npm audit` quedó en cero. | `FRONT/package.json` | S | Claude |
 | **A-07** | P1 | **Hecho en el PR #12.** **Sin headers de seguridad.** El front manda CSP, HSTS, `Permissions-Policy`, `X-Content-Type-Options` y `Referrer-Policy`; la API, la CSP más cerrada que existe (`default-src 'none'`) más las otras dos. El CI falla si alguno desaparece. | `FRONT/vercel.json`, API | S | Claude |
 | **A-08** | P1 | **Hecho en el PR #10.** **Sin `.dockerignore`.** El `Dockerfile` copia todo `back/`: si alguien construye la imagen en local, se lleva su `.env` adentro. | `back/` | S | Claude |
 | **A-09** | P2 | **Token en `localStorage`.** Es lo que vuelve grave cualquier XSS. Con A-01 y A-07 el riesgo baja mucho; pasarlo a cookie `httpOnly` cambia CORS y exige protección CSRF. | `auth/session.ts` | M | Claude |
-| **A-10** | P1 | **Auditoría de dependencias en CI:** `composer audit`, `npm audit` y Dependabot. | `ci.yml` | S | Codex |
+| **A-10** | P1 | **Hecho en el PR #13.** **Auditoría de dependencias en CI.** El CI falla por un aviso alto o crítico en las dependencias de producción; las de desarrollo no lo frenan, para que un aviso en una herramienta no deje sin mergear ningún PR. Esas, y las actions, las vigila Dependabot, agrupado por semana. | `ci.yml`, `dependabot.yml` | S | Claude |
 | **A-12** | P2 | **Límite de intentos por IP.** Detrás del proxy de Render todas las conexiones llegan con la misma IP de origen: limitar por ella bloquearía a todos los usuarios a la vez. Primero hay que confirmar qué cabecera agrega Render con la IP real, y que el cliente no la pueda falsificar. | `AuthController::login` | S | Claude |
 | **A-13** | P1 | **Hecho en el PR #12.** **`/auth/olvide` sin límite.** Como mucho un correo cada 5 minutos por cuenta. El límite es la condición del mismo UPDATE que guarda el token: preguntar primero y escribir después dejaba pasar juntos a veinte pedidos simultáneos, que es justo el ataque. Pasado el límite responde lo mismo de siempre, sin mandar el correo: un 429 delataría qué emails tienen cuenta. | `AuthController::olvide` | S | Claude |
 | **A-11** | P1 | **Pentest antes de la entrega.** Las skills de Strix están instaladas y generan el informe que suele pedir un cliente. Necesita Docker, pendiente en esta máquina. | — | M | Claude |
@@ -74,7 +74,8 @@ decisión de ustedes, no de código.
 | **B-05** | P1 | **`/api/health` no revisa la base.** Tiene que ejecutar un `SELECT 1` y reportarlo. | S | Codex |
 | **B-06** | **P0** | **`main` protegida.** **Hecho:** ruleset con PR obligatorio y los tres chequeos del CI. Falta, opcional, que Render espere al CI antes de desplegar. | S | Alex |
 | **B-07** | P2 | **PHP 8.3 → 8.4.** 8.3 terminó su soporte activo en 12/2025. | S | Codex |
-| **B-09** | P2 | **Actions del CI desactualizadas.** `actions/checkout` y `actions/setup-node` están en v4, que usa Node 20 (deprecado); la última es v7. Actualizarlas leyendo los cambios de cada versión mayor. | S | Codex |
+| **B-09** | P2 | **Hecho en el PR #13.** **Actions del CI desactualizadas.** Todas en su última versión mayor, leídos los cambios de cada una. De paso el CI compilaba con Node 20, sin soporte desde abril de 2026: ahora la versión sale de `engines` en `package.json`, la misma que usa Vercel. | S | Claude |
+| **B-10** | P1 | **El chequeo de Docker no es obligatorio.** El ruleset de `main` exige Backend, Frontend y Playwright, pero no "Imagen Docker (arranque seguro)", que es donde se prueba que la API falla cerrado, no filtra detalles y manda los headers. Se agrega en Settings → Rules. | S | Alex |
 | **B-08** | P1 | **Un solo administrador activo.** Si se pierde esa cuenta, nadie gestiona usuarios. Hace falta un segundo administrador (ver [OPERACION.md](OPERACION.md)). | S | Grupo |
 
 ---
@@ -147,8 +148,8 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 1. ~~**B-06:** proteger `main`.~~ Hecho.
 2. ~~**A-01, A-02 y A-04**~~ (PR #10) y ~~**A-03**~~ (PR #11). Hechos, cada uno
    con una prueba que falló antes del arreglo.
-3. ~~**A-05, A-07 y A-13**~~ (PR #12). Quedan **A-06** y **A-10**, que son
-   actualizaciones de dependencias y van con B-09. A-08 se hizo en el PR #10.
+3. ~~**A-05, A-07 y A-13**~~ (PR #12) y ~~**A-06, A-10 y B-09**~~ (PR #13). A-08 se
+   hizo en el PR #10. Falta **B-10**, que es un cambio de configuración en GitHub.
 
 ### Ola 2 — Producción que aguante
 
@@ -187,3 +188,4 @@ del arreglo, CI en verde, el simulador al día y el número de PR anotado acá.
 | 2026-09-16 | B-06 hecho: `main` protegida con un ruleset. DEC-07 resuelta: el repositorio sigue público y se renombra a `SCGO`. |
 | 2026-09-16 | A-01, A-02, A-04 y A-08 hechos (PR #10). A-03 hecho (PR #11); agregados A-12 y A-13. Con eso no queda ningún P0 de seguridad abierto. |
 | 2026-09-17 | A-05, A-07 y A-13 hechos (PR #12). De seguridad quedan A-06, A-09, A-10, A-11 y A-12, ninguno P0. |
+| 2026-09-19 | A-06, A-10 y B-09 hechos (PR #13); agregado B-10. Fuera el mapa sin usar y el PDF del TP, que tenía datos personales. De seguridad quedan A-09, A-11 y A-12. |
