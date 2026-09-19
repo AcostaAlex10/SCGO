@@ -56,7 +56,7 @@ group it requires, and `TablaTest` walks every route to check the guards.
 
 ### Frontend (`FRONT/`)
 ```bash
-npm install --legacy-peer-deps   # --legacy-peer-deps is required due to peer conflicts
+npm install                      # FRONT/.npmrc sets legacy-peer-deps (peer conflicts from the Figma export)
 npm run dev                      # Vite dev server
 npm run build                    # production build
 ```
@@ -84,7 +84,7 @@ cd back && composer phpstan      # PHPStan, level 5, must stay at zero errors
 - **Vite 6** with `@vitejs/plugin-react`
 - **Tailwind CSS v4** via `@tailwindcss/vite` (no tailwind.config.js — config is in CSS)
 - **shadcn/ui** component library (`src/app/components/ui/`)
-- **Recharts** for charts, **Leaflet / react-leaflet** for maps
+- **Recharts** for charts
 - Path alias `@` → `FRONT/src`
 
 Entry points: `FRONT/index.html` → `src/main.tsx` → `src/app/App.tsx` → `src/app/routes.tsx`
@@ -134,7 +134,7 @@ UTC and date validations depend on the local date.
 
 ### Styling system
 Styles live in `src/styles/`: `theme.css` (dark/orange theme, `--primary: #e8981e`),
-`tailwind.css`, `globals.css`, `leaflet-custom.css`. `default_shadcn_theme.css` is
+`tailwind.css`, `globals.css`. `default_shadcn_theme.css` is
 kept as a light-theme reference but is not applied.
 
 ### Domain model

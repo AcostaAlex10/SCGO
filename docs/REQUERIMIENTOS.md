@@ -8,10 +8,10 @@ cambia, se cambia acá primero.
 
 - **Fuente:** la especificación del Trabajo Práctico 2 (2026), con las historias de
   usuario, los requerimientos y el alcance relevados en las entrevistas con la
-  empresa. Está transcripta sin cambios de contenido. El original es
-  `FRONT/src/imports/TrabajoPracticoN_2_Grupo2.pdf`: de ahí salen los RF y los RNF
-  de este documento. Está en esa carpeta porque llegó junto con la exportación de
-  Figma, no porque el frontend lo use — no lo importa ningún archivo.
+  empresa. Está transcripta sin cambios de contenido: de ese trabajo salen los RF
+  y los RNF de este documento. El PDF original estuvo en el repositorio hasta el
+  2026-09-19 y se sacó porque trae datos personales de alumnos y docentes; lo
+  conserva el equipo.
 - **Estado:** contrastado contra el código el 2026-09-16. Lo que se afirma como
   cumplido está señalado en el código; lo que no se pudo verificar dice
   "sin verificar".

@@ -1,0 +1,49 @@
+# Actualizaciones automáticas de dependencias (plan de producto, A-10 y B-09).
+#
+# Dependabot abre un PR contra main cuando hay versiones nuevas. Cada PR pasa por
+# el mismo CI que cualquier otro, y como todo lo que entra a main se despliega,
+# ninguno se mergea sin revisarlo.
+#
+# Las actualizaciones van agrupadas: sin grupos, Dependabot abre un PR por
+# paquete, y con sesenta dependencias en el front eso es ruido que nadie lee.
+# Los parches de seguridad sí salen apenas se publican, fuera del calendario.
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /FRONT
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      # Menores y parches juntos: casi nunca rompen, y juntos se revisan en un
+      # solo PR. Las mayores quedan sueltas porque cada una hay que leerla.
+      front-menores:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: "Dependencias (front)"
+
+  - package-ecosystem: composer
+    directory: /back
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    groups:
+      back-menores:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: "Dependencias (back)"
+
+  # Las actions del CI. Es lo que evita que se repita B-09: quedaron en una
+  # versión que usaba Node 20 porque nadie las miraba.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "CI"
