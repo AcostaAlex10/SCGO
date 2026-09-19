@@ -28,7 +28,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/ingenieria-software-nube-2ws8jg` | `main` @ `d326aba` (2026-09-19) | Triaje de los seis PR de Dependabot y documento de traspaso; borra dos primitivos de shadcn sin uso | — |
+| `claude/ingenieria-software-nube-2ws8jg` | `main` @ `d326aba` (2026-09-19) | Triaje de los seis PR de Dependabot y documento de traspaso; borra dos primitivos de shadcn sin uso | #20 |
 
 ### Reglas
 
