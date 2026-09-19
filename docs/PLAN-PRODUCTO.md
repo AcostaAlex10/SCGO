@@ -71,7 +71,7 @@ decisión de ustedes, no de código.
 | **B-02** | P1 | **Staging de verdad.** `testing` es una demo con datos simulados; falta un entorno con backend y base propios para probar antes de producción. | M | Claude |
 | **B-03** | P1 | **Migraciones versionadas.** Hoy son scripts sueltos que alguien tiene que acordarse de correr. Hace falta una tabla `schema_migrations` y un comando que aplique las pendientes en cada deploy. | M | Claude |
 | **B-04** | P1 | **Logs y monitoreo.** Errores a un servicio tipo Sentry y un chequeo externo de disponibilidad. | M | Claude |
-| **B-05** | P1 | **`/api/health` no revisa la base.** Tiene que ejecutar un `SELECT 1` y reportarlo. | S | Codex |
+| **B-05** | P1 | **Hecho en el PR #21.** **`/api/health` no revisaba la base.** Ahora ejecuta `SELECT 1` y contesta `{"status":"ok","db":"ok"}` solo si la base devuelve 1. Si falla, el manejador global responde el 500 genérico con referencia, igual que con la base sin conexión. | S | Claude |
 | **B-06** | **P0** | **`main` protegida.** **Hecho:** ruleset con PR obligatorio y los tres chequeos del CI. Falta, opcional, que Render espere al CI antes de desplegar. | S | Alex |
 | **B-07** | P2 | **PHP 8.3 → 8.4.** 8.3 terminó su soporte activo en 12/2025. | S | Codex |
 | **B-09** | P2 | **Hecho en el PR #13.** **Actions del CI desactualizadas.** Todas en su última versión mayor, leídos los cambios de cada una. De paso el CI compilaba con Node 20, sin soporte desde abril de 2026: ahora la versión sale de `engines` en `package.json`, la misma que usa Vercel. | S | Claude |
@@ -155,7 +155,7 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 ### Ola 2 — Producción que aguante
 
 6. **DEC-04**, después **B-01** (plan pago y restauración probada).
-7. **B-03** (migraciones), **B-04** (monitoreo), **B-05** (health con base) y **B-02** (staging).
+7. **B-03** (migraciones), **B-04** (monitoreo), ~~**B-05**~~ (health con base, PR #21) y **B-02** (staging).
 
 ### Ola 3 — Calidad y funcionalidad, en paralelo
 
@@ -191,3 +191,4 @@ del arreglo, CI en verde, el simulador al día y el número de PR anotado acá.
 | 2026-09-17 | A-05, A-07 y A-13 hechos (PR #12). De seguridad quedan A-06, A-09, A-10, A-11 y A-12, ninguno P0. |
 | 2026-09-19 | A-06, A-10 y B-09 hechos (PR #13); agregado B-10. Fuera el mapa sin usar y el PDF del TP, que tenía datos personales. De seguridad quedan A-09, A-11 y A-12. |
 | 2026-09-19 | Triados los seis PR de Dependabot, en `claude/ingenieria-software-nube-2ws8jg` (PR #20): se recomiendan #14 y #15; #16 y #17 se cierran (necesitan Vite 7 y React 19, cada uno su propia tarea); #18 y #19 quedan sin objeto al borrar dos primitivos de shadcn que no usaba nadie. Avance parcial de C-10 y C-11; agregado C-12. |
+| 2026-09-19 | Mergeados #20 y #14; cerrados #16 a #19, cada uno con su motivo. C-10 anota Vite 7 y React 19 como subidas acopladas. B-05 hecho (PR #21). |

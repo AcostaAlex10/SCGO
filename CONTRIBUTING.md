@@ -28,7 +28,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/health-con-base` | `main` @ `61abb39` (2026-09-19) | B-05: `/api/health` ejecuta `SELECT 1` y reporta la base | — |
+| `claude/health-con-base` | `main` @ `61abb39` (2026-09-19) | B-05: `/api/health` ejecuta `SELECT 1` y reporta la base | #21 |
 
 ### Reglas
 
