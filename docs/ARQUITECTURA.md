@@ -10,7 +10,7 @@ Cómo está construido el sistema. Qué tiene que hacer está en
 
 | Capa | Carpeta | Tecnología | Dónde corre |
 |---|---|---|---|
-| Frontend | `FRONT/` | React 18, React Router 7, Vite 6, TypeScript, Tailwind CSS 4, shadcn/ui, Recharts, Leaflet | Vercel |
+| Frontend | `FRONT/` | React 18, React Router 7, Vite 6, TypeScript, Tailwind CSS 4, shadcn/ui, Recharts | Vercel |
 | API REST | `back/` | PHP 8.3 sin framework, PDO, Composer (PSR-4) | Render, contenedor Docker con Apache |
 | Base de datos | `back/sql/` | MariaDB / MySQL | Aiven, con SSL |
 | Seguridad | — | bcrypt para contraseñas, JWT (HS256) para la sesión | — |
@@ -114,7 +114,7 @@ Todas las rutas salvo las públicas cuelgan del layout `Root`, que exige sesión
 | Módulo | Frontend | Backend |
 |---|---|---|
 | Autenticación | `LoginPage`, `OlvidePage`, `RestablecerPage` | `AuthController`, `AuthMiddleware`, `Jwt`, `Mailer` |
-| Proyectos | `ProyectosPage`, `ProyectoDetallePage`, `MapaProyectos` | `ProyectoController`, `MySqlProyectoRepository`, `Geocoder` |
+| Proyectos | `ProyectosPage`, `ProyectoDetallePage` | `ProyectoController`, `MySqlProyectoRepository`, `Geocoder` |
 | Planificación y avance | `SeguimientoPage` | `PlanificacionController`, `EtapaPlanificacionController`, `AvanceController` |
 | Seguimiento operativo | `SeguimientoPage` | `AsistenciaController`, `IncidenciaController`, `InactividadController`, `ItemExcedenteController` |
 | Materiales | `MaterialesPage` | `MaterialController`, `MaterialObraController` |

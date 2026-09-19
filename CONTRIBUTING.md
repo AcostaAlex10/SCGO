@@ -25,7 +25,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/seguridad-ola-2` | `main` @ `9cef619` (2026-09-17) | Contraseñas más largas (A-05), headers de seguridad (A-07) y límite en `/auth/olvide` (A-13) | [#12](https://github.com/AcostaAlex10/SCGO/pull/12) |
+| `claude/dependencias` | `main` @ `f3b2373` (2026-09-19) | Dependencias al día y auditadas (A-06, A-10, B-09); fuera el mapa sin usar, la config de pnpm y el PDF del TP | pendiente |
 
 ### Reglas
 
@@ -88,6 +88,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/renombre-scgo` | Referencias actualizadas al nuevo nombre del repositorio | PR #9 |
 | `claude/seguridad-ola-1` | XSS por enlaces, secreto JWT obligatorio, errores sin detalles internos y `.dockerignore` | PR #10 |
 | `claude/seguridad-a03` | Límite de intentos de login por cuenta y dos filtraciones del login | PR #11 |
+| `claude/seguridad-ola-2` | Contraseñas de 10 caracteres, headers de seguridad y límite de `/auth/olvide` | PR #12 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
