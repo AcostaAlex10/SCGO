@@ -57,6 +57,24 @@ date_default_timezone_set('America/Argentina/Buenos_Aires');
 
 Cors::enviarHeaders();
 
+// Headers de seguridad (A-07). Van acá, antes del preflight y de cualquier
+// posible error, para que salgan en TODAS las respuestas: también en el 500 y en
+// el OPTIONS, que son las que se olvidan.
+//
+// La API solo devuelve JSON, así que puede permitirse la CSP más cerrada que
+// existe: sin permitir nada y sin dejar que ningún sitio la embeba. Es la
+// segunda barrera si alguna vez una respuesta se sirviera como HTML.
+foreach ([
+    "Content-Security-Policy: default-src 'none'; frame-ancestors 'none'",
+    // Sin esto, un navegador puede "adivinar" que un JSON es HTML y ejecutarlo.
+    'X-Content-Type-Options: nosniff',
+    // Los tokens viajan en la URL de ningún lado, pero una URL con un id de obra
+    // ya dice de más: no se manda referer a ningún destino.
+    'Referrer-Policy: no-referrer',
+] as $cabecera) {
+    header($cabecera);
+}
+
 // Bajo el servidor embebido de PHP (php -S, mono-hilo) cerramos la conexion
 // despues de cada respuesta para que no se bloquee con las conexiones del
 // navegador. En Apache/produccion no aplica (se mantiene keep-alive).

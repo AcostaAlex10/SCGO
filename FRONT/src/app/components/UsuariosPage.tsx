@@ -139,8 +139,8 @@ export default function UsuariosPage() {
                 type="password"
                 value={form.contrasena}
                 onChange={(e) => setForm({ ...form, contrasena: e.target.value })}
-                placeholder="Mínimo 6 caracteres"
-                minLength={6}
+                placeholder="Mínimo 10 caracteres"
+                minLength={10}
                 required
               />
             </div>

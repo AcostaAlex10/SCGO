@@ -8,7 +8,10 @@ cambia, se cambia acá primero.
 
 - **Fuente:** la especificación del Trabajo Práctico 2 (2026), con las historias de
   usuario, los requerimientos y el alcance relevados en las entrevistas con la
-  empresa. Está transcripta sin cambios de contenido.
+  empresa. Está transcripta sin cambios de contenido. El original es
+  `FRONT/src/imports/TrabajoPracticoN_2_Grupo2.pdf`: de ahí salen los RF y los RNF
+  de este documento. Está en esa carpeta porque llegó junto con la exportación de
+  Figma, no porque el frontend lo use — no lo importa ningún archivo.
 - **Estado:** contrastado contra el código el 2026-09-16. Lo que se afirma como
   cumplido está señalado en el código; lo que no se pudo verificar dice
   "sin verificar".
@@ -168,7 +171,7 @@ La columna **Estado** dice si el sistema los cumple hoy.
 | RNF03 | responder las consultas principales en menos de 5 segundos en el 90 % de los casos | Crítica | **No se cumple.** En el plan gratuito, Render suspende la API y la primera consulta puede tardar cerca de un minuto (plan: B-01). |
 | RNF04 | permitir el acceso en tiempo real desde distintas ubicaciones con internet | Importante | Cumple. Es una aplicación web publicada. |
 | RNF05 | almacenar la información de forma persistente e inmediata | Crítica | Cumple. Cada registro se escribe en la base en el momento. |
-| RNF06 | exigir usuario y contraseña para acceder | Crítica | Cumple, con límite de intentos por cuenta. Falta subir el mínimo de las contraseñas, que hoy es de 6 caracteres (plan: A-05). |
+| RNF06 | exigir usuario y contraseña para acceder | Crítica | Cumple: límite de intentos por cuenta, mínimo de 10 caracteres y rechazo de las contraseñas más usadas. |
 | RNF07 | hacer respaldos automáticos diarios | Importante | **Sin verificar.** Depende del plan contratado en Aiven, y nunca se probó restaurar un respaldo (plan: B-01). |
 | RNF08 | soportar al menos 10 obras activas sin degradarse | Importante | **Sin verificar.** Con el volumen actual anda, pero ningún listado está paginado y no hubo prueba de carga (plan: C-03). |
 | RNF09 | minimizar el texto a tipear en obra: listas, selección rápida y carga numérica | Importante | **Parcial.** Hay listas para materiales y etapas; falta revisar el resto de los formularios de campo. |

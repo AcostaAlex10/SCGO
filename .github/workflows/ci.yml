@@ -97,6 +97,11 @@ jobs:
       - name: Compilar
         run: npm run build
 
+      # Los headers los sirve Vercel, no el código: si alguien los saca de
+      # vercel.json, ningún build falla y nadie se entera (A-07).
+      - name: vercel.json declara los headers de seguridad
+        run: node ../.github/scripts/headers-vercel.mjs
+
   e2e:
     name: Playwright (demo estatica)
     runs-on: ubuntu-latest
@@ -197,3 +202,16 @@ jobs:
           fi
           sleep 2
           docker logs sin-base 2>&1 | grep -q 'SQLSTATE'
+
+      # La API también responde en el navegador (el front la llama por fetch), y
+      # una respuesta JSON mal interpretada es la base de varios ataques (A-07).
+      - name: La API manda los headers de seguridad
+        run: |
+          curl -s -D cabeceras-api.txt -o /dev/null http://127.0.0.1:8082/api/health
+          cat cabeceras-api.txt
+          for h in 'X-Content-Type-Options: nosniff' 'Referrer-Policy: no-referrer' \
+                   "Content-Security-Policy: default-src 'none'; frame-ancestors 'none'"; do
+            if ! grep -qi "^${h}" cabeceras-api.txt; then
+              echo "Falta el header: ${h}"; exit 1
+            fi
+          done

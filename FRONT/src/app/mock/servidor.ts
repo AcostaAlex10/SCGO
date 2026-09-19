@@ -12,6 +12,7 @@
  */
 import base from "./datos.json";
 import { VENTANA, segundosDeEspera } from "./politicaIntentos";
+import { validarContrasena } from "./politicaContrasena";
 import { ESTADOS_CANCELABLES } from "../estadosObra";
 import { esEnlaceSeguro } from "../enlaces";
 
@@ -622,7 +623,14 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
       const errores: Record<string, string> = {};
       if (!texto(cuerpo.nombre)) errores.nombre = "Obligatorio";
       if (!email) errores.email = "Obligatorio";
-      if (!texto(cuerpo.contrasena)) errores.contrasena = "Obligatorio";
+      const contrasenaNueva = texto(cuerpo.contrasena);
+      if (!contrasenaNueva) {
+        errores.contrasena = "Obligatorio";
+      } else {
+        // Las mismas reglas que aplica el PHP (A-05).
+        const problema = validarContrasena(contrasenaNueva);
+        if (problema) errores.contrasena = problema;
+      }
       if (Object.keys(errores).length) return json(422, { errors: errores });
       if (db.usuarios.some((u) => String(u.email).toLowerCase() === email)) {
         return json(409, { error: "El email ya esta registrado" });

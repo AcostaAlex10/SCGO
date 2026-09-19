@@ -160,6 +160,25 @@ chequear('la cuenta inactiva con clave incorrecta responde credenciales invalida
 r = await api('POST', '/auth/login', { email: 'tecnico2@sgso.test', contrasena: 'tecnico123' });
 chequear('la cuenta inactiva con clave correcta responde 403', r.estado === 403, `dio ${r.estado}`);
 
+// ---- 7. Una contraseña corta no se acepta al crear un usuario (A-05) ----
+// El mínimo pasó de 6 a 10 caracteres. Vale la pena probarlo acá porque el
+// simulador tiene su propia copia de la regla: si se desincroniza del PHP, la
+// demo acepta contraseñas que en produccion fallan.
+r = await api('POST', '/auth/register', {
+  nombre: 'Prueba corta', email: `corta-${Date.now()}@sgso.test`, contrasena: 'corta123', rol: 'PersonalTecnico',
+});
+chequear('una contrasena de menos de 10 caracteres devuelve 422', r.estado === 422, `dio ${r.estado}`);
+
+r = await api('POST', '/auth/register', {
+  nombre: 'Prueba comun', email: `comun-${Date.now()}@sgso.test`, contrasena: 'password123', rol: 'PersonalTecnico',
+});
+chequear('una de las contrasenas mas usadas devuelve 422, aunque sea larga', r.estado === 422, `dio ${r.estado}`);
+
+r = await api('POST', '/auth/register', {
+  nombre: 'Prueba valida', email: `valida-${Date.now()}@sgso.test`, contrasena: 'obras-triwe-2026', rol: 'PersonalTecnico',
+});
+chequear('una contrasena larga y no comun se acepta', r.estado === 201, `dio ${r.estado}`);
+
 await nav.close();
 console.log(`\n${ok.length}/${ok.length + mal.length} OK`);
 if (mal.length) process.exit(1);
