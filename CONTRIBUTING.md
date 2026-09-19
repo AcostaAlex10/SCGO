@@ -25,7 +25,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/dependencias` | `main` @ `f3b2373` (2026-09-19) | Dependencias al día y auditadas (A-06, A-10, B-09); fuera el mapa sin usar, la config de pnpm y el PDF del TP | pendiente |
+| `claude/dependencias` | `main` @ `f3b2373` (2026-09-19) | Dependencias al día y auditadas (A-06, A-10, B-09); fuera el mapa sin usar, la config de pnpm y el PDF del TP | [#13](https://github.com/AcostaAlex10/SCGO/pull/13) |
 
 ### Reglas
 
