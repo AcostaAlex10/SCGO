@@ -28,7 +28,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/traspaso-cierre-sesion` | `main` @ `c3addfb` (2026-09-19) | Actualizar `docs/TRASPASO.md` al cierre de la sesión y pasar la rama del PR #21 al historial | — |
+| `claude/traspaso-cierre-sesion` | `main` @ `c3addfb` (2026-09-19) | Actualizar `docs/TRASPASO.md` al cierre de la sesión y pasar la rama del PR #21 al historial | #22 |
 
 ### Reglas
 
