@@ -2,6 +2,9 @@
 
 Reglas del equipo para que `main` esté siempre en condiciones de desplegarse.
 
+> **¿Sesión nueva?** Empezá por [docs/TRASPASO.md](docs/TRASPASO.md): dice dónde
+> quedó todo, qué hay en vuelo y qué trampas ya costaron tiempo.
+
 ---
 
 ## 1. Ramas
@@ -25,7 +28,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/dependencias` | `main` @ `f3b2373` (2026-09-19) | Dependencias al día y auditadas (A-06, A-10, B-09); fuera el mapa sin usar, la config de pnpm y el PDF del TP | [#13](https://github.com/AcostaAlex10/SCGO/pull/13) |
+| `claude/ingenieria-software-nube-2ws8jg` | `main` @ `d326aba` (2026-09-19) | Triaje de los seis PR de Dependabot y documento de traspaso; borra dos primitivos de shadcn sin uso | #20 |
 
 ### Reglas
 
@@ -40,13 +43,16 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 ## 2. Pull requests
 
-Un PR se mergea cuando pasan los tres chequeos del CI:
+El CI corre cuatro jobs. Los tres primeros son obligatorios en el ruleset de
+`main`; el de Docker todavía no (es B-10 en el plan de producto), pero si falla,
+falla por algo real.
 
-| Chequeo | Qué verifica |
-|---|---|
-| Backend (PHPStan + PHPUnit) | análisis estático y pruebas, incluidas las de integración contra MariaDB |
-| Frontend (tipos + build) | que el frontend compile sin errores de tipos |
-| Playwright (demo estática) | las cinco suites de punta a punta |
+| Chequeo | Qué verifica | ¿Obligatorio? |
+|---|---|---|
+| Backend (PHPStan + PHPUnit) | análisis estático y pruebas, incluidas las de integración contra MariaDB | sí |
+| Frontend (tipos + build) | que el frontend compile sin errores de tipos, y que `vercel.json` siga declarando los headers | sí |
+| Playwright (demo estática) | las cinco suites de punta a punta | sí |
+| Imagen Docker (arranque seguro) | que la API falle cerrado sin `JWT_SECRET` y no filtre detalles internos | no todavía |
 
 La descripción del PR dice qué cambia, por qué, y cómo se verificó. Si algo no se
 pudo verificar, se dice.
@@ -89,6 +95,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/seguridad-ola-1` | XSS por enlaces, secreto JWT obligatorio, errores sin detalles internos y `.dockerignore` | PR #10 |
 | `claude/seguridad-a03` | Límite de intentos de login por cuenta y dos filtraciones del login | PR #11 |
 | `claude/seguridad-ola-2` | Contraseñas de 10 caracteres, headers de seguridad y límite de `/auth/olvide` | PR #12 |
+| `claude/dependencias` | Dependencias al día y auditadas, y Dependabot configurado | PR #13 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir

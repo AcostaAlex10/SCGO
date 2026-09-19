@@ -3,11 +3,11 @@
 Todo lo que falta para que SCGO se pueda entregar y cobrar a Triwe, ordenado por
 prioridad.
 
-- **Actualizado:** 2026-09-16
-- **Base:** `main` @ `b4f93c2`
+- **Actualizado:** 2026-09-19
+- **Base:** `main` @ `d326aba`
 - **Punto de partida:** [ADR-001](adr/ADR-001-stack.md) está completo. El backend ya
   tiene la base que le faltaba: Composer, 466 pruebas, PHPStan nivel 5, tabla de
-  rutas y CI con tres chequeos en verde.
+  rutas y CI con cuatro jobs en verde (tres obligatorios; el de Docker es B-10).
 - **Alcance:** lo que el sistema tiene que hacer está en
   [REQUERIMIENTOS.md](REQUERIMIENTOS.md). Este plan dice qué falta para llegar ahí
   con calidad de producto.
@@ -91,10 +91,11 @@ decisión de ustedes, no de código.
 | **C-05** | P2 | **`ProyectoDetallePage.tsx` tiene 1.171 líneas.** Partirla por pestaña. | M | Codex |
 | **C-06** | P2 | **Sin pruebas unitarias en el front.** Vitest para la lógica que no es pantalla. | M | Codex |
 | **C-07** | P2 | **PHPStan de nivel 5 a 6 o más**, de a un nivel. | M | Codex |
+| **C-12** | P2 | **El CI no verifica los rangos de peers.** El front instala con `--legacy-peer-deps`, así que un PR puede dejar una dependencia fuera del rango que su librería declara y el CI pasa igual. Lo mostró el PR #19: subía `date-fns` a 4.4.0 con `react-day-picker@8.10.1`, que declara `^2.28.0 \|\| ^3.0.0`. Hace falta un chequeo que lo detecte, o sacar la bandera si ya no hace falta. | S | Claude |
 | **C-08** | P2 | **Ciclo de vida del reporte** a `Sgso\Reglas`. Y aclarar si `GESTION_OBRA` y `REPORTE_APROBAR` son iguales a propósito: hoy tienen los mismos roles. | S | Claude |
 | **C-09** | P2 | **Normalización pendiente.** `proyecto.encargado` es texto libre; `proyecto.avance` se guarda en vez de calcularse. | M | Claude |
-| **C-10** | P2 | **60 dependencias en el front**, con MUI, Radix y shadcn a la vez. Podarlas baja la carga inicial, que en obra y con señal móvil se nota (RNF01). | M | Codex |
-| **C-11** | P2 | **Código muerto.** `JsonProyectoRepository` no lo usa nadie en ejecución: es el prototipo con archivo JSON anterior a la base. | S | Codex |
+| **C-10** | P2 | **Dependencias del front.** Empezado en la rama `claude/ingenieria-software-nube-2ws8jg` (PR #20): al borrar dos primitivos muertos salieron `react-day-picker`, `date-fns` y `react-resizable-panels`, y el paquete bajó de 1.032,58 kB a 952,48 kB (gzip: 293,21 → 269,86). Quedan MUI, Radix y shadcn conviviendo. Importa por RNF01: la carga en obra con señal móvil. | M | Codex |
+| **C-11** | P2 | **Código muerto.** `JsonProyectoRepository` no lo usa nadie en ejecución: es el prototipo con archivo JSON anterior a la base. En el front, la rama `claude/ingenieria-software-nube-2ws8jg` (PR #20) borró `resizable.tsx` y `calendar.tsx`; siguen sin usarse `chart`, `carousel` y `drawer`. | S | Codex |
 
 ---
 
@@ -189,3 +190,4 @@ del arreglo, CI en verde, el simulador al día y el número de PR anotado acá.
 | 2026-09-16 | A-01, A-02, A-04 y A-08 hechos (PR #10). A-03 hecho (PR #11); agregados A-12 y A-13. Con eso no queda ningún P0 de seguridad abierto. |
 | 2026-09-17 | A-05, A-07 y A-13 hechos (PR #12). De seguridad quedan A-06, A-09, A-10, A-11 y A-12, ninguno P0. |
 | 2026-09-19 | A-06, A-10 y B-09 hechos (PR #13); agregado B-10. Fuera el mapa sin usar y el PDF del TP, que tenía datos personales. De seguridad quedan A-09, A-11 y A-12. |
+| 2026-09-19 | Triados los seis PR de Dependabot, en `claude/ingenieria-software-nube-2ws8jg` (PR #20): se recomiendan #14 y #15; #16 y #17 se cierran (necesitan Vite 7 y React 19, cada uno su propia tarea); #18 y #19 quedan sin objeto al borrar dos primitivos de shadcn que no usaba nadie. Avance parcial de C-10 y C-11; agregado C-12. |
