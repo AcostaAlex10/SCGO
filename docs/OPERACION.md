@@ -28,6 +28,10 @@ curl -s https://ingenieria-en-software-proyecto.onrender.com/api/health
 curl -s -o /dev/null -w "%{http_code}\n" https://acostaalex10.github.io/SCGO/
 ```
 
+`/api/health` ejecuta `SELECT 1` contra la base: si contesta
+`{"status":"ok","db":"ok"}`, la API y la base andan. Si la base no responde,
+devuelve un 500 con `"referencia"`, y el detalle queda en el log de Render.
+
 La API puede tardar cerca de un minuto la primera vez: el plan gratuito de Render
 suspende el servicio tras unos minutos sin uso. Es el motivo por el que hoy no se
 cumple el RNF03 (ver [REQUERIMIENTOS.md](REQUERIMIENTOS.md)).

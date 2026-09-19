@@ -653,7 +653,8 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
     return noEncontrado("Ruta de autenticacion no encontrada");
   }
 
-  if (s[0] === "health") return ok({ status: "ok" });
+  // Misma forma que Sgso\Http\Salud: la API real ejecuta SELECT 1 (B-05).
+  if (s[0] === "health") return ok({ status: "ok", db: "ok" });
 
   // ----- de aca en adelante todo exige sesion
   const sesion = usuarioDeToken(headers);

@@ -15,6 +15,7 @@ use Sgso\DocumentoController;
 use Sgso\Env;
 use Sgso\EtapaPlanificacionController;
 use Sgso\Http\ManejadorErrores;
+use Sgso\Http\Salud;
 use Sgso\InactividadController;
 use Sgso\IncidenciaController;
 use Sgso\ItemExcedenteController;
@@ -135,7 +136,7 @@ $manejadores = [
     'auth.restablecer' => fn (array $p, ?array $u) => $auth->restablecer(leerCuerpoJson()),
     'auth.register' => fn (array $p, ?array $u) => $auth->registrar(leerCuerpoJson(), (array) $u),
     'auth.me' => fn (array $p, ?array $u) => $auth->yo((array) $u),
-    'health.mostrar' => fn (array $p, ?array $u) => responder(200, ['status' => 'ok']),
+    'health.mostrar' => fn (array $p, ?array $u) => responder(200, Salud::comprobar($db)),
 
     // Reportes y aprobacion (RF21/RF17)
     'reportes.listar' => fn (array $p, ?array $u) => $reporte->listar($_GET['estado'] ?? null),
