@@ -61,11 +61,13 @@ jobs:
       - name: Instalar dependencias
         run: composer install --no-interaction --prefer-dist
 
-      # Solo las dependencias de producción frenan el CI: son las que corren en
-      # Render. Hoy no hay ninguna, pero el día que se agregue una ya queda
-      # vigilada. Las de desarrollo las cubre Dependabot (A-10).
+      # Acá se auditan todas, también las de desarrollo, a diferencia del front.
+      # El backend no tiene ninguna de producción (con --no-dev, composer audit
+      # falla por no encontrar paquetes), y las de desarrollo son 28, todas de
+      # PHPUnit y PHPStan: poco ruido, y corren en el CI con acceso a la base de
+      # pruebas (A-10).
       - name: Dependencias sin vulnerabilidades conocidas
-        run: composer audit --no-dev
+        run: composer audit
 
       - name: Analisis estatico
         run: composer phpstan
