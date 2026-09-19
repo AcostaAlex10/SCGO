@@ -4,8 +4,8 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-09-19
-- **Base:** `main` @ `d326aba`, CI en verde
+- **Actualizado:** 2026-09-19, al cierre de la segunda sesión del día
+- **Base:** `main` @ `c3addfb`, CI en verde, producción desplegada y respondiendo
 
 ---
 
@@ -38,6 +38,9 @@ día de dependencias.
 | #8, #9 | Documentación ordenada, requerimientos recuperados, producto renombrado a SCGO |
 | #10, #11, #12 | Seguridad: XSS por enlaces, secreto JWT obligatorio, errores sin detalles internos, límite de login, contraseñas de 10, headers, límite de `/auth/olvide` |
 | #13 | Dependencias al día y auditadas, Dependabot configurado |
+| #20 | Triaje de Dependabot, este archivo, y fuera dos primitivos de shadcn sin uso |
+| #14, #15 | Dependabot: `phpstan` 2.2.14 y 34 menores del front |
+| #21 | B-05: `/api/health` ejecuta `SELECT 1` |
 
 **No queda ningún P0 de seguridad abierto.** De seguridad quedan A-09, A-11 y
 A-12, ninguno bloqueante.
@@ -46,35 +49,48 @@ A-12, ninguno bloqueante.
 
 ## 3. Qué hay en vuelo ahora mismo
 
-Al mergearse el PR #13 se activó Dependabot, que abrió **seis PRs** en minutos.
-La sesión local murió antes de triarlos. Este es el veredicto de cada uno,
-verificado contra los registros del CI y la metadata de los paquetes:
+**Nada a medio mergear.** Los seis PR de Dependabot están resueltos:
 
-| PR | Qué sube | CI | Qué hacer |
-|---|---|---|---|
-| [#14](https://github.com/AcostaAlex10/SCGO/pull/14) | `phpstan` 2.2.13 → 2.2.14 | verde | **Mergear.** Parche de una herramienta de desarrollo. |
-| [#15](https://github.com/AcostaAlex10/SCGO/pull/15) | 34 menores y parches del front | verde | **Mergear.** Es el grupo `front-menores`, para eso se agrupó. |
-| [#16](https://github.com/AcostaAlex10/SCGO/pull/16) | `@vitejs/plugin-react` 4.7.0 → 6.1.1 | **rojo** | **Cerrar.** La versión 6 importa `vite/internal`, que Vite 6 no exporta: necesita Vite 7 primero. Es una actualización acoplada, no suelta. |
-| [#17](https://github.com/AcostaAlex10/SCGO/pull/17) | `react-dom` 18 → **19** (y sus tipos) | **rojo** | **Cerrar.** Sube `react-dom` pero deja `react` en 18. El build pasa y la aplicación **no arranca**: la pantalla de login queda en blanco y `humo.mjs` expira esperando el campo de email. React 19 es su propia tarea. |
-| [#18](https://github.com/AcostaAlex10/SCGO/pull/18) | `react-resizable-panels` 2.1.7 → 4.12.4 | **rojo** | **Cerrar:** resuelto de otra forma (ver abajo). |
-| [#19](https://github.com/AcostaAlex10/SCGO/pull/19) | `date-fns` 3.6.0 → 4.4.0 | verde | **Cerrar:** resuelto de otra forma (ver abajo). **El verde engaña**: `react-day-picker@8.10.1` declara `date-fns: ^2.28.0 \|\| ^3.0.0`, y 4.4.0 queda fuera. El CI instala con `--legacy-peer-deps`, que no verifica los rangos de peers, así que una combinación que la librería no soporta pasa igual. |
+| PR | Qué pasó |
+|---|---|
+| #14, #15 | Mergeados. Los dos necesitaron `@dependabot rebase` (ver trampa 8). |
+| #16 | Cerrado: `@vitejs/plugin-react` 6 importa `vite/internal`, que Vite 6 no exporta. |
+| #17 | Cerrado: subía `react-dom` a 19 con `react` en 18, y la app queda en blanco. |
+| #18, #19 | Cerrados: sin objeto, porque el #20 borró los componentes que los usaban. |
 
-### Lo que se hizo en vez de #18 y #19
+Vite 7 y React 19 quedaron anotados en C-10 como subidas acopladas, que no se
+pueden hacer de a un paquete. **Si Dependabot vuelve a abrir cualquiera de las
+dos por separado, la respuesta es la misma.**
 
-`resizable.tsx` y `calendar.tsx` eran primitivos de shadcn que **no importaba
-nadie**: los `<Calendar>` que aparecen en `ProyectosPage` y `ProyectoDetallePage`
-son el ícono de lucide, no el componente. Actualizar una API rota de un
-componente muerto no tiene sentido, así que se borraron los dos, y con ellos
-`react-resizable-panels`, `react-day-picker` y `date-fns`.
+### Esperando una decisión: B-03 (migraciones versionadas)
 
-El paquete de la aplicación bajó de **1.032,58 kB a 952,48 kB** (gzip: 293,21 →
-269,86). Eso es avance parcial de C-10 y C-11, y cuenta para RNF01, que es la
-carga en obra con señal móvil.
+B-05 está hecho (#21). Lo que sigue de la Ola 2 sin depender de DEC-04 es B-03,
+pero escribir migraciones y tocar `schema.sql` requiere el visto bueno del
+equipo, y se frenó ahí. Lo que ya se relevó, para no repetirlo:
 
-> **Ojo con el resto de los primitivos de shadcn.** `chart`, `carousel` y `drawer`
-> tampoco los importa nadie. Se dejaron por ahora: borrarlos es C-11 y merece su
-> propia tarea. Pero si Dependabot abre un PR sobre alguno, la respuesta
-> probablemente sea la misma.
+- Hoy hay tres mecanismos: `migrar.php` (ejecuta `schema.sql`, con
+  `CREATE TABLE IF NOT EXISTS`), dos scripts sueltos que **ya se corrieron en
+  producción** (`migracion-estado-enum.php` y `migracion-reporte-final.php`), y
+  `Sgso\Seguridad\IntentosLogin`, que **crea su propia tabla en tiempo de
+  ejecución** (`IntentosLogin.php:104`) justamente porque no había migraciones.
+- El `Dockerfile` no corre ninguna migración: el deploy de Render solo levanta
+  Apache.
+- Las pruebas de integración cargan `schema.sql` directo (`CasoConBase`), así
+  que `schema.sql` tiene que seguir describiendo el esquema completo.
+
+Preguntas abiertas. Hasta que se respondan, **B-03 no se arranca**:
+
+1. **¿Cuándo corren?** ¿Al arrancar el contenedor, antes de Apache (cada merge
+   a `main` aplicaría las pendientes en producción sin intervención)? ¿O con un
+   comando manual, después de cada deploy?
+2. **¿Cómo se marca la base viva?** Producción ya tiene el esquema y las dos
+   migraciones sueltas. La propuesta: si `schema_migrations` no existe pero
+   `proyecto` sí, registrar esas tres como aplicadas sin ejecutarlas.
+3. **¿`schema.sql` sigue siendo la foto completa?** La propuesta: sí, y una
+   prueba de integración aplica todas las migraciones sobre una base vacía y
+   compara el resultado con `schema.sql`, para que no se desincronicen.
+4. **¿`intento_login` pasa a ser una migración?** Así se sacaría el
+   `CREATE TABLE` en tiempo de ejecución de `IntentosLogin`.
 
 ---
 
@@ -103,6 +119,31 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
    borrarse la rama base, GitHub cierra el PR apilado en vez de reapuntarlo.
 7. **Salir siempre de `main` actualizado.** Una skill pareció no existir porque
    las ramas salieron de un commit anterior a su merge.
+8. **El ruleset de `main` exige que la rama esté al día.** Cada merge deja a los
+   demás PR en `BEHIND`, y no se pueden mergear hasta actualizarlos y esperar
+   otra vez el CI. Con los de Dependabot, se comenta `@dependabot rebase`:
+   rebasearlos a mano mete commits ajenos en su rama. Con varios PR en fila,
+   hay que contar un ciclo de CI (unos 3 minutos) por cada uno.
+9. **`back/.env` local apunta a la base real.** `index.php` y `migrar.php` lo
+   cargan, así que un `php -S` o un `php sql/migrar.php` en esta máquina
+   **pegan contra producción**. Para probar la API de punta a punta está el job
+   de Docker del CI. Las pruebas de integración no lo leen: usan solo
+   `SGSO_TEST_DB_*`.
+10. **El `php.ini` de esta máquina limita la memoria a 128M**, y PHPStan se cae
+    con "Child process error... reached configured PHP memory limit". No es el
+    código: `vendor/bin/phpstan analyse --memory-limit=1G`.
+11. **Composer no descarga en esta máquina**: `curl error 60 ... unable to get
+    local issuer certificate`. Algo intercepta TLS (antivirus o firewall). Con
+    el `vendor/` que ya está alcanza para las pruebas, pero puede quedar una
+    versión atrás de `composer.lock`. En ese caso manda el CI.
+12. **Playwright no es dependencia del proyecto**, y `npm ci` lo borra. Después
+    de cada `npm ci`: `npm install --no-save playwright` (y la primera vez,
+    `npx playwright install chromium`).
+13. **En Windows, `ln -sfn` copia en vez de enlazar.** Después de cada build hay
+    que volver a copiar `dist/` a la carpeta que sirve `http-server`, o las
+    suites prueban el build anterior.
+14. **`gh pr merge --match-head-commit` pide el SHA completo.** Con uno corto
+    falla, sin mergear nada ("Could not coerce value").
 
 ### Si la sesión corre en la nube y no en tu máquina
 
