@@ -107,14 +107,20 @@ final class MigracionesTest extends CasoConBase
         return new Migrador($this->base(), __DIR__ . '/../../sql/migraciones', __DIR__ . '/../../sql/schema.sql');
     }
 
-    /** Tablas y columnas con su tipo: la foto que no tiene que cambiar. */
+    /**
+     * Tablas y columnas con su tipo: la foto que no tiene que cambiar.
+     *
+     * `schema_migrations` queda afuera a propósito: es el registro del propio
+     * migrador, no parte del esquema de la aplicación, y por eso no está en
+     * `schema.sql`.
+     */
     private function esquema(): string
     {
         $filas = $this->base()->query(
-            'SELECT table_name, column_name, column_type, is_nullable, column_default
+            "SELECT table_name, column_name, column_type, is_nullable, column_default
                FROM information_schema.columns
-              WHERE table_schema = DATABASE()
-              ORDER BY table_name, column_name'
+              WHERE table_schema = DATABASE() AND table_name <> 'schema_migrations'
+              ORDER BY table_name, column_name"
         )->fetchAll(PDO::FETCH_ASSOC);
 
         return (string) json_encode($filas);
