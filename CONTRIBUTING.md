@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/migraciones-versionadas` | `main` @ `c3addfb` (2026-09-19) | B-03: tabla `schema_migrations` y un comando que aplica las migraciones pendientes | — |
+| `claude/migraciones-versionadas` | `main` @ `c3addfb` (2026-09-19) | B-03: tabla `schema_migrations` y un comando que aplica las migraciones pendientes | #23 |
 
 ### Reglas
 
