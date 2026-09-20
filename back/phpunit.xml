@@ -18,6 +18,7 @@
             <directory suffix=".php">src/Seguridad</directory>
             <directory suffix=".php">src/Http</directory>
             <directory suffix=".php">src/Monitoreo</directory>
+            <directory suffix=".php">src/Migraciones</directory>
         </include>
     </source>
 </phpunit>

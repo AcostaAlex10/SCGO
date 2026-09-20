@@ -66,7 +66,8 @@ npm run build                    # production build
 ### Backend (`back/`)
 ```bash
 cd back && composer install      # required: generates vendor/autoload.php
-php back/sql/migrar.php          # apply schema.sql to the configured database
+php back/sql/migrar.php          # apply pending migrations (B-03); --estado just reports
+                                 # never runs on deploy: run it by hand after one
 php back/sql/seed.php            # create the initial admin user (bcrypt hash)
 php -S localhost:8000 -t back/public
 cd back && composer test         # PHPUnit over back/tests/

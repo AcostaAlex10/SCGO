@@ -69,7 +69,7 @@ decisión de ustedes, no de código.
 |---|---|---|---|---|
 | **B-01** | **P0** | **Plan pago y respaldos** (DEC-04). Respaldos automáticos con retención conocida y **una restauración probada al menos una vez**. Es lo que hace cumplir RNF03 (hoy la primera consulta tarda cerca de un minuto) y RNF07 (respaldo diario). | M | Grupo + Claude |
 | **B-02** | P1 | **Bloqueado por DEC-04** (PR #25). **Staging de verdad.** `testing` es una demo con datos simulados; falta un entorno con backend y base propios. **No entra en el plan gratuito:** Render da 750 horas de instancia por mes y por workspace, y el monitor de B-04 mantiene producción despierta todo el mes (~720 h). Un segundo servicio encendido agota las horas, y entonces Render **suspende también producción**. Los Preview Environments de Render piden workspace Pro. Decidido para cuando haya plan pago: la base de staging va **en la misma instancia de Aiven**, como `scgo_staging`, con usuario propio con permisos solo sobre ella. | M | Claude |
-| **B-03** | P1 | **Migraciones versionadas.** Hoy son scripts sueltos que alguien tiene que acordarse de correr. Hace falta una tabla `schema_migrations` y un comando que aplique las pendientes en cada deploy. | M | Claude |
+| **B-03** | P1 | **Hecho en el PR #PENDIENTE.** **Migraciones versionadas.** `schema_migrations` lleva la cuenta y `php back/sql/migrar.php` aplica lo pendiente; `--estado` informa sin tocar nada. Decisión del equipo: **no corre solo en el deploy**, se corre a mano después. Una base que ya existía queda registrada sin reejecutar nada. `intento_login` dejó de crearse en tiempo de ejecución. | M | Claude |
 | **B-04** | P1 | **Hecho en el PR #24.** **Logs y monitoreo.** El log dice qué pedido falló (`metodo=`, `ruta=`) y los errores van a Sentry con la misma referencia, sin SDK: el backend sigue sin dependencias de runtime. Oculta los valores de la base, el secreto de los tokens y la clave de Brevo antes de enviarlos. **Falta que alguien ponga `SENTRY_DSN` en Render y cree el monitor externo** (`OPERACION.md` §5). | M | Claude |
 | **B-05** | P1 | **Hecho en el PR #21.** **`/api/health` no revisaba la base.** Ahora ejecuta `SELECT 1` y contesta `{"status":"ok","db":"ok"}` solo si la base devuelve 1. Si falla, el manejador global responde el 500 genérico con referencia, igual que con la base sin conexión. | S | Claude |
 | **B-06** | **P0** | **`main` protegida.** **Hecho:** ruleset con PR obligatorio y los tres chequeos del CI. Falta, opcional, que Render espere al CI antes de desplegar. | S | Alex |
@@ -155,7 +155,7 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 ### Ola 2 — Producción que aguante
 
 6. **DEC-04**, después **B-01** (plan pago y restauración probada) y **B-02** (staging): los tres son la misma decisión.
-7. **B-03** (migraciones), ~~**B-04**~~ (monitoreo, PR #24) y ~~**B-05**~~ (health con base, PR #21).
+7. ~~**B-03**~~ (migraciones, PR #PENDIENTE), ~~**B-04**~~ (monitoreo, PR #24) y ~~**B-05**~~ (health con base, PR #21).
 
 ### Ola 3 — Calidad y funcionalidad, en paralelo
 

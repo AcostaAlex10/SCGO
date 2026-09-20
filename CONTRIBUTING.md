@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/cierre-2026-09-23` | `main` @ `f2a99c4` (2026-09-23) | Cierre de la sesión: `TRASPASO.md` al día y la rama del #25 al historial | #34 |
+| `claude/migraciones-versionadas` | `main` @ `c3addfb` (2026-09-19) | B-03: tabla `schema_migrations` y un comando que aplica las migraciones pendientes | — |
 
 ### Reglas
 
