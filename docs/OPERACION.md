@@ -52,7 +52,7 @@ cumple el RNF03 (ver [REQUERIMIENTOS.md](REQUERIMIENTOS.md)).
 
 | Qué | Dónde está |
 |---|---|
-| Base (Aiven), secreto de los tokens, correo (Brevo) | variables de entorno del servicio en Render |
+| Base (Aiven), secreto de los tokens, correo (Brevo), DSN de Sentry | variables de entorno del servicio en Render |
 | Cuentas del sistema | se administran desde la pantalla de Usuarios |
 | Cuenta para testers | la entrega el equipo por separado |
 
@@ -139,14 +139,83 @@ El usuario no ve ningún detalle interno, solo esto:
 ```
 
 El detalle completo (tipo de error, mensaje, archivo y línea) queda en el log con
-**la misma referencia**. En Render: servicio → *Logs* → buscar el código.
+**la misma referencia**, y desde B-04 la línea dice además qué pedido falló:
+
+```
+[referencia 21b4bf58abf2] metodo=POST ruta=/api/reportes/7 PDOException: ... en /var/www/html/src/...:123
+```
+
+En Render: servicio → *Logs* → buscar el código. Se puede buscar también por
+`ruta=/api/reportes` para ver todo lo que falló en un endpoint.
 
 Para ver los errores en pantalla mientras se desarrolla en local, poner
 `APP_DEBUG=1` en `back/.env`. En producción queda en `0`.
 
+### El mismo error, en Sentry
+
+Si el servicio tiene `SENTRY_DSN` en el entorno, el error viaja también a Sentry
+con esa misma referencia como etiqueta, más la ruta y el método. Sirve para
+enterarse sin entrar a mirar los logs.
+
+- **El DSN va en Render → servicio → Environment**, nunca en el repositorio.
+- **Sin `SENTRY_DSN` el monitoreo queda apagado** y no pasa nada más: el error
+  igual se registra en el log. Lo mismo si el DSN está mal escrito.
+- **El envío nunca rompe la respuesta.** Si Sentry no contesta, se abandona a
+  los 2 segundos y el usuario recibe su 500 igual.
+- **Los valores de `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET` y
+  `BREVO_API_KEY` se reemplazan por `[oculto]`** antes de salir: el mensaje de
+  un `PDOException` trae el host y el usuario de la base, y Sentry es un
+  servicio de afuera. La traza va sin los argumentos de las llamadas, por lo
+  mismo.
+
+No se usa el SDK oficial a propósito: el backend no tiene dependencias de
+runtime y la imagen no descarga nada al construirse. El envío es un POST y está
+en `Sgso\Monitoreo\Sentry`.
+
 ---
 
-## 5. Cómo verificar que todo anda
+## 5. Chequeo externo de disponibilidad
+
+Los logs y Sentry solo avisan si la API **está viva y falla**. Si Render se cae
+entero, nadie reporta nada: hace falta que alguien pregunte desde afuera.
+
+Se configura en un servicio gratuito (UptimeRobot o BetterStack), fuera del
+repositorio:
+
+| Qué | Valor |
+|---|---|
+| URL | `https://ingenieria-en-software-proyecto.onrender.com/api/health` |
+| Intervalo | 5 minutos |
+| Se espera | HTTP 200 y que el cuerpo contenga `"db":"ok"` |
+| Timeout | **60 segundos**, no el valor por defecto |
+| Avisa a | al menos dos personas del equipo |
+
+> **El timeout largo no es capricho.** En el plan gratuito Render suspende el
+> servicio tras unos minutos sin uso, y la primera respuesta puede tardar cerca
+> de un minuto. Con el timeout por defecto (30 s o menos) el monitor avisaría
+> de caídas que no existen, y a la tercera alerta falsa nadie las mira.
+>
+> Como efecto secundario, un chequeo cada 5 minutos mantiene el servicio
+> despierto casi todo el tiempo. Eso ayuda con RNF03, pero consume horas del
+> plan gratuito: si aparecen cortes, es lo primero a revisar. Con el plan pago
+> (DEC-04, B-01) el problema desaparece y el timeout puede bajar.
+
+**Verificar que el cuerpo diga `"db":"ok"`, y no solo que devuelva 200**, es lo
+que hace que el chequeo detecte una base caída: la API puede estar perfecta y la
+base no.
+
+**Cuando avisa:**
+
+1. `curl -s https://ingenieria-en-software-proyecto.onrender.com/api/health` —
+   si tarda y después contesta bien, era el arranque.
+2. Si contesta 500 con una referencia, buscarla en los logs de Render o en
+   Sentry: ahí está el error exacto.
+3. Si no contesta nada, mirar el estado del servicio en Render y el de la base
+   en Aiven.
+
+---
+
+## 6. Cómo verificar que todo anda
 
 ```bash
 # Backend: pruebas y análisis estático
@@ -181,7 +250,7 @@ node scripts/demo-un-archivo.mjs      # deja dist/demo.html
 
 ---
 
-## 6. Problemas conocidos
+## 7. Problemas conocidos
 
 Cosas que ya costaron tiempo. Conviene leerlas antes de repetirlas.
 

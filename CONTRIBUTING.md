@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/preparar-dependabot` | `main` @ `c3addfb` (2026-09-23) | Triaje de los PR #26 a #30: saca `motion` y `react-responsive-masonry` (sin uso) y deja el código listo para TypeScript 7 y recharts 3 | #33 |
+| `claude/monitoreo-errores` | `main` @ `c3addfb` (2026-09-20) | B-04: errores a Sentry sin dependencias y qué monitorear desde afuera | — |
 
 ### Reglas
 

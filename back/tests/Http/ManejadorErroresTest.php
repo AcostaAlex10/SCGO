@@ -49,6 +49,27 @@ final class ManejadorErroresTest extends TestCase
         self::assertStringContainsString(basename(__FILE__), $registrado[0]);
     }
 
+    /**
+     * Sin el pedido, el log dice que algo falló pero no en qué endpoint, y hay
+     * que adivinarlo por el archivo y la línea (plan de producto, B-04).
+     */
+    public function testElLogDiceQuePedidoFallo(): void
+    {
+        $registrado = [];
+        $cuerpo = ManejadorErrores::atender(
+            new RuntimeException('algo'),
+            static function (string $linea) use (&$registrado): void {
+                $registrado[] = $linea;
+            },
+            ['metodo' => 'POST', 'ruta' => '/reportes/7']
+        );
+
+        self::assertStringContainsString('metodo=POST', $registrado[0]);
+        self::assertStringContainsString('ruta=/reportes/7', $registrado[0]);
+        // Al cliente no le llega nada de eso: sigue viendo solo la referencia.
+        self::assertSame(['error', 'referencia'], array_keys($cuerpo));
+    }
+
     public function testCadaErrorTieneUnaReferenciaDistinta(): void
     {
         $primera = ManejadorErrores::atender(new RuntimeException('a'), static fn () => null);

@@ -120,7 +120,8 @@ handler. Resources:
 `reportes`, `analisis`, `usuarios`.
 
 Cross-cutting pieces: `Env` (dotenv loader), `Cors`, `Database` (PDO singleton),
-`Jwt`, `AuthMiddleware`, `Mailer` (Brevo, for password recovery), `Geocoder`.
+`Jwt`, `AuthMiddleware`, `Mailer` (Brevo, for password recovery), `Geocoder`,
+`Monitoreo\Sentry` (error reporting, no SDK — enabled only when `SENTRY_DSN` is set).
 
 Every class in `back/src/` lives under the `Sgso\` namespace and is loaded by
 Composer's PSR-4 autoloader — no manual `require_once`. Inside that namespace the

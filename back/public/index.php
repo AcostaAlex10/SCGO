@@ -16,6 +16,7 @@ use Sgso\Env;
 use Sgso\EtapaPlanificacionController;
 use Sgso\Http\ManejadorErrores;
 use Sgso\Http\Salud;
+use Sgso\Monitoreo\Sentry;
 use Sgso\InactividadController;
 use Sgso\IncidenciaController;
 use Sgso\ItemExcedenteController;
@@ -37,7 +38,28 @@ use Sgso\UsuarioController;
 // el cliente recibe un 500 genérico con un código de referencia (A-04). Va
 // primero para cubrir también los fallos de configuración y de conexión.
 set_exception_handler(static function (Throwable $error): void {
-    $cuerpo = ManejadorErrores::atender($error, 'error_log');
+    $pedido = [
+        'metodo' => (string) ($_SERVER['REQUEST_METHOD'] ?? '-'),
+        'ruta' => (string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?? '/'),
+    ];
+    $cuerpo = ManejadorErrores::atender($error, 'error_log', $pedido);
+
+    // Además del log, el error va a Sentry si hay SENTRY_DSN en el entorno
+    // (B-04). Sin esa variable el monitoreo queda apagado y no pasa nada más.
+    // Los valores de la base se le pasan para que no salgan del servidor: el
+    // mensaje de un PDOException los trae.
+    Sentry::desdeDsn(
+        Env::get('SENTRY_DSN'),
+        (string) Env::get('SENTRY_ENTORNO', 'produccion'),
+        array_values(array_filter([
+            Env::get('DB_HOST'),
+            Env::get('DB_USER'),
+            Env::get('DB_PASSWORD'),
+            Env::get('JWT_SECRET'),
+            Env::get('BREVO_API_KEY'),
+        ], static fn (?string $valor): bool => $valor !== null && $valor !== ''))
+    )?->reportar($error, $cuerpo['referencia'], $pedido);
+
     if (!headers_sent()) {
         http_response_code(500);
         header('Content-Type: application/json; charset=utf-8');
