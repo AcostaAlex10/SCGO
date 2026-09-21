@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/monitoreo-errores` | `main` @ `c3addfb` (2026-09-20) | B-04: errores a Sentry sin dependencias y qué monitorear desde afuera | #24 |
+| `claude/staging-decision` | `main` @ `c3addfb` (2026-09-20) | B-02: queda bloqueado por DEC-04, y el `connect-src` de la CSP pasa a estar verificado | — |
 
 ### Reglas
 

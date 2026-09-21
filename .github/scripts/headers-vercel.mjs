@@ -45,4 +45,30 @@ if (!String(csp?.value ?? '').includes("frame-ancestors 'none'")) {
   process.exit(1);
 }
 
-console.log(`vercel.json declara los ${EXIGIDOS.length} headers de seguridad`);
+// `connect-src` tiene que nombrar la API de cada entorno al que se despliegue el
+// frontend. Si falta una, el navegador bloquea TODOS los pedidos y la aplicación
+// queda muda: no hay error del servidor, solo un aviso en la consola. Ya pasó al
+// cambiar VITE_API_URL sin tocar este archivo.
+//
+// Cuando exista staging (B-02, bloqueado por DEC-04), se agrega su origen acá y
+// en vercel.json, en ese orden: esta lista es la que obliga.
+const ORIGENES_API = ['https://ingenieria-en-software-proyecto.onrender.com'];
+
+const connectSrc = String(csp?.value ?? '')
+  .split(';')
+  .map((d) => d.trim())
+  .find((d) => d.startsWith('connect-src'));
+
+const sinDeclarar = ORIGENES_API.filter((origen) => !String(connectSrc ?? '').includes(origen));
+if (sinDeclarar.length > 0) {
+  console.error(
+    `La CSP no permite hablar con la API de estos entornos: ${sinDeclarar.join(', ')}.\n` +
+      'Sin eso el navegador bloquea los pedidos y la aplicación queda muda.'
+  );
+  process.exit(1);
+}
+
+console.log(
+  `vercel.json declara los ${EXIGIDOS.length} headers de seguridad ` +
+    `y permite ${ORIGENES_API.length} origen(es) de API`
+);
