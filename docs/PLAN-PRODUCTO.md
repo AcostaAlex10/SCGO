@@ -70,7 +70,7 @@ decisión de ustedes, no de código.
 | **B-01** | **P0** | **Plan pago y respaldos** (DEC-04). Respaldos automáticos con retención conocida y **una restauración probada al menos una vez**. Es lo que hace cumplir RNF03 (hoy la primera consulta tarda cerca de un minuto) y RNF07 (respaldo diario). | M | Grupo + Claude |
 | **B-02** | P1 | **Staging de verdad.** `testing` es una demo con datos simulados; falta un entorno con backend y base propios para probar antes de producción. | M | Claude |
 | **B-03** | P1 | **Migraciones versionadas.** Hoy son scripts sueltos que alguien tiene que acordarse de correr. Hace falta una tabla `schema_migrations` y un comando que aplique las pendientes en cada deploy. | M | Claude |
-| **B-04** | P1 | **Logs y monitoreo.** Errores a un servicio tipo Sentry y un chequeo externo de disponibilidad. | M | Claude |
+| **B-04** | P1 | **Hecho en el PR #24.** **Logs y monitoreo.** El log dice qué pedido falló (`metodo=`, `ruta=`) y los errores van a Sentry con la misma referencia, sin SDK: el backend sigue sin dependencias de runtime. Oculta los valores de la base, el secreto de los tokens y la clave de Brevo antes de enviarlos. **Falta que alguien ponga `SENTRY_DSN` en Render y cree el monitor externo** (`OPERACION.md` §5). | M | Claude |
 | **B-05** | P1 | **Hecho en el PR #21.** **`/api/health` no revisaba la base.** Ahora ejecuta `SELECT 1` y contesta `{"status":"ok","db":"ok"}` solo si la base devuelve 1. Si falla, el manejador global responde el 500 genérico con referencia, igual que con la base sin conexión. | S | Claude |
 | **B-06** | **P0** | **`main` protegida.** **Hecho:** ruleset con PR obligatorio y los tres chequeos del CI. Falta, opcional, que Render espere al CI antes de desplegar. | S | Alex |
 | **B-07** | P2 | **PHP 8.3 → 8.4.** 8.3 terminó su soporte activo en 12/2025. | S | Codex |
@@ -155,7 +155,7 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 ### Ola 2 — Producción que aguante
 
 6. **DEC-04**, después **B-01** (plan pago y restauración probada).
-7. **B-03** (migraciones), **B-04** (monitoreo), ~~**B-05**~~ (health con base, PR #21) y **B-02** (staging).
+7. **B-03** (migraciones), ~~**B-04**~~ (monitoreo, PR #24), ~~**B-05**~~ (health con base, PR #21) y **B-02** (staging).
 
 ### Ola 3 — Calidad y funcionalidad, en paralelo
 
@@ -192,4 +192,5 @@ del arreglo, CI en verde, el simulador al día y el número de PR anotado acá.
 | 2026-09-19 | A-06, A-10 y B-09 hechos (PR #13); agregado B-10. Fuera el mapa sin usar y el PDF del TP, que tenía datos personales. De seguridad quedan A-09, A-11 y A-12. |
 | 2026-09-19 | Triados los seis PR de Dependabot, en `claude/ingenieria-software-nube-2ws8jg` (PR #20): se recomiendan #14 y #15; #16 y #17 se cierran (necesitan Vite 7 y React 19, cada uno su propia tarea); #18 y #19 quedan sin objeto al borrar dos primitivos de shadcn que no usaba nadie. Avance parcial de C-10 y C-11; agregado C-12. |
 | 2026-09-19 | Mergeados #20 y #14; cerrados #16 a #19, cada uno con su motivo. C-10 anota Vite 7 y React 19 como subidas acopladas. B-05 hecho (PR #21). |
+| 2026-09-20 | B-04 hecho (PR #24): contexto del pedido en el log y errores a Sentry sin dependencias. El chequeo externo de disponibilidad queda documentado en `OPERACION.md` §5: lo configura el equipo. |
 | 2026-09-23 | Triados los PR de Dependabot #26 a #30 (PR #33). #26 (`react-responsive-masonry`) y #30 (`motion`) se cierran: el verde era vacío porque nadie los importa, y las dependencias se sacan. #28 se cierra: sube `react` a 19 sin `react-dom`. #27 (TypeScript 7) y #29 (recharts 3) quedan viables: el PR #33 deja el código listo para las dos versiones, y el Dashboard se dibuja igual con recharts 3. |

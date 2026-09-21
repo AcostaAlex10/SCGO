@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/monitoreo-errores` | `main` @ `c3addfb` (2026-09-20) | B-04: errores a Sentry sin dependencias y qué monitorear desde afuera | — |
+| `claude/monitoreo-errores` | `main` @ `c3addfb` (2026-09-20) | B-04: errores a Sentry sin dependencias y qué monitorear desde afuera | #24 |
 
 ### Reglas
 
