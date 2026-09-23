@@ -10,15 +10,15 @@ ya nos topamos.
 
 ## 1. Cómo retomar
 
-**Repositorio:** `AcostaAlex10/ingenieria-en-software-proyecto` — público.
+**Repositorio:** `AcostaAlex10/SCGO` (se llamaba `ingenieria-en-software-proyecto` hasta el 2026-09-16) — público.
 
 **Rama de trabajo: `testing`.** Es donde está todo lo último. `main` va algunos
 commits atrás; si trabajás desde la nube, empezá por `testing` o mergeala a
 `main` primero.
 
 ```bash
-git clone https://github.com/AcostaAlex10/ingenieria-en-software-proyecto.git
-cd ingenieria-en-software-proyecto
+git clone https://github.com/AcostaAlex10/SCGO.git
+cd SCGO
 git checkout testing
 ```
 
@@ -43,7 +43,7 @@ git checkout testing
 | Sistema real | https://ingenieria-en-software-proyecto.vercel.app/ | SPA en Vercel contra la API PHP |
 | API | https://ingenieria-en-software-proyecto.onrender.com/api | PHP + Apache en Render (Docker) |
 | Base | Aiven | MySQL/MariaDB gestionada |
-| Demo estática | https://acostaalex10.github.io/ingenieria-en-software-proyecto/ | GitHub Pages, sin backend |
+| Demo estática | https://acostaalex10.github.io/SCGO/ | GitHub Pages, sin backend |
 
 La demo estática se publica sola con el workflow `.github/workflows/pages-testing.yml`
 en cada push a `main` o `testing`. Compila con `BASE_PATH=./`,
@@ -54,7 +54,7 @@ Comprobación rápida de que todo sigue en pie:
 
 ```bash
 curl -s https://ingenieria-en-software-proyecto.onrender.com/api/health
-curl -s -o /dev/null -w "%{http_code}\n" https://acostaalex10.github.io/ingenieria-en-software-proyecto/
+curl -s -o /dev/null -w "%{http_code}\n" https://acostaalex10.github.io/SCGO/
 ```
 
 La API puede tardar cerca de un minuto en responder la primera vez: el plan

@@ -23,8 +23,10 @@ Hay dos entornos y conviene saber cuál usar, porque no son equivalentes.
 | Tus cambios | quedan solo en tu navegador | los ven todos |
 | Disponibilidad | inmediata | la primera carga puede tardar ~1 minuto |
 
-La demo pública de GitHub Pages se compiló desde `main` en modo de prueba.
-Esta rama `testing` conserva la guía y puede tener código anterior al sitio publicado.
+La demo pública de GitHub Pages se publica desde esta rama, `testing`, cada vez
+que cambia. Es una versión anterior al cambio de nombre del producto: por eso en
+pantalla dice **SGSO**. El sistema real corre la versión actual, que ya se llama
+SCGO, así que entre los dos entornos puede haber diferencias de funcionalidad.
 
 **Recomendación: empezar por la demo estática.** Tiene datos cargados en todas
 las pantallas, no requiere esperas y no hay forma de romper nada: cada persona
