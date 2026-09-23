@@ -36,8 +36,10 @@ schema. Start here:
 ### Branches
 
 `main` is the only working branch and the one that deploys (Render + Vercel).
-`testing` is frozen at `a25da85` for the testers — never merge into it, never
-update it. Branch off an up-to-date `main`, keep branches short-lived, and
+`testing` is the testers' demo branch: its code predates the product rename (it
+still says SGSO) and GitHub Pages publishes only from it. Change it only for the
+demo or its own `GUIA-TESTERS.md`, via PR against `testing`; never merge it with
+`main` in either direction. Branch off an up-to-date `main`, keep branches short-lived, and
 **add a row to `CONTRIBUTING.md` when you create one**, not later. Avoid stacking a
 PR on another PR's branch: deleting the base branch closes the stacked PR
 instead of retargeting it.

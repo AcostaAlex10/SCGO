@@ -12,14 +12,22 @@ costaron tiempo.
 | Producción — sistema | https://ingenieria-en-software-proyecto.vercel.app/ | La aplicación contra la API real | `main` |
 | Producción — API | https://ingenieria-en-software-proyecto.onrender.com/api | PHP + Apache en Docker | `main` |
 | Producción — base | Aiven | MariaDB / MySQL gestionada, con SSL | — |
-| Demo para testers | https://acostaalex10.github.io/SCGO/ | Frontend sin backend, con datos simulados | `testing` (congelada) |
+| Demo para testers | https://acostaalex10.github.io/SCGO/ | Frontend sin backend, con datos simulados. Es la versión anterior al renombre: dice SGSO | `testing` |
 
 Todo lo que llega a `main` se despliega. Por eso `main` solo cambia por pull
 request con el CI en verde (ver [CONTRIBUTING.md](../CONTRIBUTING.md)).
 
 La demo se publica con `.github/workflows/pages-testing.yml` en cada push a
 `testing`, y compila con `BASE_PATH=./`, `VITE_HASH_ROUTER=1` y `VITE_MOCK=1`.
-**`testing` no se toca**: es lo que usan los testers.
+La base del sitio sale de `BASE_PATH`, así que no depende del nombre del
+repositorio: el renombre no la rompió. **`testing` solo cambia para la demo y su
+guía**, por PR contra `testing`; los testers tienen su propia guía ahí.
+
+**Nunca disparar a mano el workflow de Pages sobre `main`.** Publica la versión
+de `main` encima de la de los testers, y la demo cambia sin que nadie les avise:
+pasó el 2026-09-23. El entorno `github-pages` (Settings → Environments) tiene que
+admitir solo la rama `testing`, así un disparo sobre `main` falla en vez de pisar
+la demo.
 
 **Comprobación rápida:**
 

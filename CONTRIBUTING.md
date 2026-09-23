@@ -12,10 +12,12 @@ Reglas del equipo para que `main` esté siempre en condiciones de desplegarse.
 | Rama | Qué es | Se despliega | Quién la toca |
 |---|---|---|---|
 | `main` | La rama de trabajo. Todo el código vive acá. | **Sí**: API en Render, frontend en Vercel | Todo el equipo, **solo por pull request** |
-| `testing` | **Congelada** en `a25da85`. Demo con datos simulados para los testers, publicada por `.github/workflows/pages-testing.yml`. | GitHub Pages | **Nadie.** No se mergea, no se rebasea, no se actualiza |
+| `testing` | **La rama de la demo para testers.** Su código es el anterior al cambio de nombre (por eso dice SGSO) y se publica en GitHub Pages con su propio `pages-testing.yml`. Tiene su propia guía, `GUIA-TESTERS.md`. | GitHub Pages | Solo para la demo y su guía, **por PR contra `testing`**. Nunca se mergea con `main`, en ninguna dirección |
 
-> `testing` no se toca. Si alguna vez hay que actualizarla, es una decisión
-> explícita del equipo.
+> **La demo de Pages sale solo de `testing`** (decisión del equipo, 2026-09-23).
+> Disparar el workflow de Pages a mano sobre `main` publica la versión de `main`
+> encima de la de los testers: pasó el 2026-09-23. Para que no pueda repetirse, el
+> entorno `github-pages` tiene que admitir solo la rama `testing`.
 
 El repositorio se llamaba `ingenieria-en-software-proyecto` hasta el 2026-09-16.
 GitHub redirige las URLs viejas, **salvo la de la demo**, que ahora es

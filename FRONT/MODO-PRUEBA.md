@@ -159,6 +159,10 @@ de arriba y el resultado queda en
 API PHP. Pages sirve un único sitio por repositorio, así que si las dos ramas
 publicaran se pisarían entre sí.
 
+Eso incluye dispararlo **a mano** desde la pestaña Actions eligiendo `main`: el
+workflow corre igual y publica la versión de `main` encima de la de los testers.
+Pasó el 2026-09-23. El entorno `github-pages` tiene que admitir solo `testing`.
+
 Requiere, una sola vez, **Settings → Pages → Source: "GitHub Actions"**. Ya está
 hecho; sin eso el despliegue falla con un 404 aunque la compilación pase.
 
