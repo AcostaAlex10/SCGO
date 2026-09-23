@@ -11,7 +11,10 @@
 // Se corre igual que las demas, con el build estatico servido en :8123.
 import { chromium } from 'playwright';
 
-const BASE = process.env.BASE ?? 'http://127.0.0.1:8123/SCGO/';
+// SGSO_URL, como las otras cuatro suites. BASE queda por compatibilidad: era la
+// unica que la leia, y correrla contra otra URL con SGSO_URL iba en silencio a
+// localhost.
+const BASE = process.env.SGSO_URL || process.env.BASE || 'http://127.0.0.1:8123/SCGO/';
 const ok = [], mal = [];
 const chequear = (q, c, d = '') => { (c ? ok : mal).push(q); console.log(`${c ? '  OK  ' : ' FALLA'} ${q}${d ? ' — ' + d : ''}`); };
 
