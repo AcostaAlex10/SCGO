@@ -28,7 +28,8 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/traspaso-cierre-sesion` | `main` @ `c3addfb` (2026-09-19) | Actualizar `docs/TRASPASO.md` al cierre de la sesión y pasar la rama del PR #21 al historial | #22 |
+| `claude/demo-desde-testing` | `main` @ `c3addfb` (2026-09-23) | La demo de Pages vuelve a salir de `testing`: documentación alineada, la interfaz dice SCGO y `contrato.mjs` acepta `SGSO_URL` | — |
+| `claude/testing-demo-scgo` | `testing` @ `81bd9d9` (2026-09-23) | **Contra `testing`, no contra `main`.** La guía de testers dice que la demo sale de `testing`, y `HANDOFF.md` deja de apuntar a la URL vieja | — |
 
 ### Reglas
 
