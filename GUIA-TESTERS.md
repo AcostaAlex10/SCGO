@@ -17,11 +17,14 @@ Hay dos entornos y conviene saber cuál usar, porque no son equivalentes.
 
 | | Demo estática | Sistema real |
 |---|---|---|
-| URL | https://acostaalex10.github.io/ingenieria-en-software-proyecto/ | https://ingenieria-en-software-proyecto.vercel.app/ |
+| URL | https://acostaalex10.github.io/SCGO/ | https://ingenieria-en-software-proyecto.vercel.app/ |
 | Backend | ninguno: se simula en el navegador | PHP sobre MariaDB |
 | Datos | completos, ficticios | reales del equipo, varias secciones vacías |
 | Tus cambios | quedan solo en tu navegador | los ven todos |
 | Disponibilidad | inmediata | la primera carga puede tardar ~1 minuto |
+
+La demo pública de GitHub Pages se compiló desde `main` en modo de prueba.
+Esta rama `testing` conserva la guía y puede tener código anterior al sitio publicado.
 
 **Recomendación: empezar por la demo estática.** Tiene datos cargados en todas
 las pantallas, no requiere esperas y no hay forma de romper nada: cada persona
@@ -49,6 +52,15 @@ sgsoMockReset()
 ## 2. Cuentas
 
 ### Demo estática
+
+Abrir [la pantalla de inicio de sesión](https://acostaalex10.github.io/SCGO/#/login)
+para probar el acceso. Al entrar por la URL principal sin una sesión previa también
+aparece esa pantalla. Si el navegador ya recuerda una sesión y muestra el panel,
+pulsar **Cerrar sesión** o abrir el enlace en una ventana privada.
+
+Probar una cuenta válida, una contraseña incorrecta y la cuenta inactiva indicada
+abajo. Después de entrar, comprobar el rol mostrado y cerrar sesión para repetir
+la prueba con otro rol. Estas cuentas son ficticias y solo sirven en la demo.
 
 | Rol | Email | Contraseña |
 |---|---|---|
@@ -217,6 +229,8 @@ Un formato mínimo que alcanza:
 ```
 Título:        una línea que describa el problema
 Entorno:       demo estática | sistema real
+Navegador/dispositivo: ...
+URL:           ...
 Rol:           con qué cuenta se estaba operando
 Pasos:         1. ...
                2. ...
@@ -235,6 +249,16 @@ Dos cosas que ayudan mucho:
 
 Para revisar el detalle técnico de un caso, la consola del navegador (F12) muestra
 las peticiones y el código de estado que devolvió el servidor.
+
+### Si la pestaña muestra «This page crashed»
+
+Si aparece el aviso **“acostaalex10.github.io crashed unexpectedly”** dentro de
+un navegador integrado, pulsar **Open in external browser** y abrir la
+[demo](https://acostaalex10.github.io/SCGO/) en Chrome o Edge. El aviso indica
+que la pestaña del navegador se cerró inesperadamente; por sí solo no identifica
+un error de la aplicación. Si el problema se repite en el navegador externo,
+probar una ventana privada y reportar el dispositivo, sistema operativo, navegador,
+URL y paso exacto en que ocurrió, junto con una captura.
 
 ---
 
