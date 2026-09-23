@@ -41,7 +41,7 @@ export default function RestablecerPage() {
             <HardHat style={{ width: "20px", height: "20px", color: "var(--primary-foreground)" }} />
           </div>
           <div style={{ lineHeight: 1.2 }}>
-            <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--foreground)" }}>OBRAS · SGSO</div>
+            <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--foreground)" }}>OBRAS · SCGO</div>
             <div style={{ fontSize: "10px", color: "var(--muted-foreground)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Nueva contraseña</div>
           </div>
         </div>
