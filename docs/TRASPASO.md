@@ -4,8 +4,9 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-09-19, al cierre de la segunda sesión del día
+- **Actualizado:** 2026-09-23, después de revisar todo el repositorio por el renombre
 - **Base:** `main` @ `c3addfb`, CI en verde, producción desplegada y respondiendo
+- **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23)
 
 ---
 
@@ -49,48 +50,33 @@ A-12, ninguno bloqueante.
 
 ## 3. Qué hay en vuelo ahora mismo
 
-**Nada a medio mergear.** Los seis PR de Dependabot están resueltos:
+**Siete PR abiertos, todos en verde, todos esperando que el equipo los mergee.**
+Los que van contra `main` tocan las tablas de `CONTRIBUTING.md` y del plan, así
+que después de cada merge los demás piden rebase: se mergean de a uno.
 
-| PR | Qué pasó |
-|---|---|
-| #14, #15 | Mergeados. Los dos necesitaron `@dependabot rebase` (ver trampa 8). |
-| #16 | Cerrado: `@vitejs/plugin-react` 6 importa `vite/internal`, que Vite 6 no exporta. |
-| #17 | Cerrado: subía `react-dom` a 19 con `react` en 18, y la app queda en blanco. |
-| #18, #19 | Cerrados: sin objeto, porque el #20 borró los componentes que los usaban. |
+| PR | Qué trae | Antes de mergear |
+|---|---|---|
+| #22 | Este archivo | nada |
+| #23 | B-03: migraciones versionadas | **correr `php back/sql/migrar.php --estado` y después `migrar.php` contra Aiven.** El PR saca el `CREATE TABLE` que creaba `intento_login` sola |
+| #24 | B-04: errores a Sentry y contexto del pedido en el log | nada; después, `SENTRY_DSN` en Render y el monitor externo (`OPERACION.md` §5) |
+| #25 | B-02 queda bloqueado por DEC-04; el CI verifica el `connect-src` de la CSP | nada |
+| #32 | La demo sale de `testing` (documentación), la interfaz dice SCGO, `contrato.mjs` lee `SGSO_URL` | nada. Humo pasa de 24 a 28 comprobaciones |
+| #31 | **Contra `testing`.** La guía de testers y `HANDOFF.md` al día | nada. **Al mergearlo se vuelve a publicar la demo desde `testing`** |
 
-Vite 7 y React 19 quedaron anotados en C-10 como subidas acopladas, que no se
-pueden hacer de a un paquete. **Si Dependabot vuelve a abrir cualquiera de las
-dos por separado, la respuesta es la misma.**
+**Configuración que falta, y es del equipo, no de código:**
 
-### Esperando una decisión: B-03 (migraciones versionadas)
+- **Settings → Environments → github-pages: dejar solo `testing`.** Hoy admite
+  `main` y `testing`, y un disparo manual sobre `main` pisa la demo (trampa 15).
+- **B-10**: hacer obligatorio el chequeo de Docker en el ruleset de `main`.
 
-B-05 está hecho (#21). Lo que sigue de la Ola 2 sin depender de DEC-04 es B-03,
-pero escribir migraciones y tocar `schema.sql` requiere el visto bueno del
-equipo, y se frenó ahí. Lo que ya se relevó, para no repetirlo:
+**Sin triar:** Dependabot abrió #26 a #30 el lunes 2026-09-21. Pistas, sin
+verificar todavía: #28 sube `react` sin `react-dom` (el mismo problema que el
+#17, al revés), y #27 lleva TypeScript directo a 7, cuando lo recomendado es
+pasar primero por 6. Los dos están anotados en C-10.
 
-- Hoy hay tres mecanismos: `migrar.php` (ejecuta `schema.sql`, con
-  `CREATE TABLE IF NOT EXISTS`), dos scripts sueltos que **ya se corrieron en
-  producción** (`migracion-estado-enum.php` y `migracion-reporte-final.php`), y
-  `Sgso\Seguridad\IntentosLogin`, que **crea su propia tabla en tiempo de
-  ejecución** (`IntentosLogin.php:104`) justamente porque no había migraciones.
-- El `Dockerfile` no corre ninguna migración: el deploy de Render solo levanta
-  Apache.
-- Las pruebas de integración cargan `schema.sql` directo (`CasoConBase`), así
-  que `schema.sql` tiene que seguir describiendo el esquema completo.
-
-Preguntas abiertas. Hasta que se respondan, **B-03 no se arranca**:
-
-1. **¿Cuándo corren?** ¿Al arrancar el contenedor, antes de Apache (cada merge
-   a `main` aplicaría las pendientes en producción sin intervención)? ¿O con un
-   comando manual, después de cada deploy?
-2. **¿Cómo se marca la base viva?** Producción ya tiene el esquema y las dos
-   migraciones sueltas. La propuesta: si `schema_migrations` no existe pero
-   `proyecto` sí, registrar esas tres como aplicadas sin ejecutarlas.
-3. **¿`schema.sql` sigue siendo la foto completa?** La propuesta: sí, y una
-   prueba de integración aplica todas las migraciones sobre una base vacía y
-   compara el resultado con `schema.sql`, para que no se desincronicen.
-4. **¿`intento_login` pasa a ser una migración?** Así se sacaría el
-   `CREATE TABLE` en tiempo de ejecución de `IntentosLogin`.
+**Decisiones pendientes:** si se revierte el #21 (B-05 se mergeó sin consulta:
+el permiso era solo para el PR del paso 1), y DEC-04, de la que dependen B-01 y
+B-02.
 
 ---
 
@@ -98,9 +84,12 @@ Preguntas abiertas. Hasta que se respondan, **B-03 no se arranca**:
 
 Cada una de estas hizo perder al menos media hora. Están acá para no repetirlas.
 
-1. **`testing` no se toca.** Está congelada en `a25da85`. Es la demo con datos
-   simulados que ven los testers, y se publica sola por `pages-testing.yml`. No
-   se mergea, no se rebasea. Todo el desarrollo va en `main`.
+1. **`testing` es la rama de la demo de los testers.** Su código es el anterior
+   al renombre (en pantalla dice SGSO) y GitHub Pages publica solo desde ella,
+   con su propio `pages-testing.yml` y su propia `GUIA-TESTERS.md`. Se cambia
+   solo para la demo o su guía, **por PR contra `testing`**, y nunca se mergea
+   con `main` en ninguna dirección. Estuvo congelada en `a25da85` hasta el
+   2026-09-23.
 2. **El repositorio se renombró a `SCGO`** el 2026-09-16. GitHub redirige las URL
    viejas **menos la de la demo**, que ahora es
    https://acostaalex10.github.io/SCGO/.
@@ -144,6 +133,24 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
     suites prueban el build anterior.
 14. **`gh pr merge --match-head-commit` pide el SHA completo.** Con uno corto
     falla, sin mergear nada ("Could not coerce value").
+15. **Disparar a mano el workflow de Pages sobre `main` pisa la demo.** Pasó el
+    2026-09-23: se lo corrió dos veces sobre `main` y los testers quedaron
+    viendo otra versión, sin aviso. Cada run usa el archivo de la rama que lo
+    dispara, así que `main` y `testing` tienen dos `pages-testing.yml` distintos
+    (el de `testing` compila con Node 20). El entorno `github-pages` tiene que
+    admitir solo `testing`.
+16. **Hay dos guías de testers, a propósito.** `docs/pruebas/GUIA-TESTERS.md` en
+    `main` describe la versión actual; `GUIA-TESTERS.md` en la raíz de
+    `testing`, la versión de la demo, con sus cuentas de prueba. No se
+    sincronizan: cada una describe su rama.
+17. **En Git Bash, `git show rama:ruta` falla** con "ambiguous argument": Git
+    Bash convierte la ruta como si fuera de Windows. Anteponer
+    `MSYS_NO_PATHCONV=1`.
+18. **La demo publicada se puede probar entera desde acá.** Las cinco suites
+    aceptan `SGSO_URL` (desde el #32; antes `contrato.mjs` leía `BASE` y se iba
+    en silencio a localhost): `SGSO_URL=https://acostaalex10.github.io/SCGO/`.
+    Ojo: las suites de `main` prueban la versión de `main`, y la demo es la de
+    `testing`, así que alguna diferencia puede ser legítima.
 
 ### Si la sesión corre en la nube y no en tu máquina
 
@@ -156,7 +163,7 @@ nuevos apuntando a los binarios viejos y exportando `PLAYWRIGHT_BROWSERS_PATH`.
 
 Además, `humo.mjs` da **20/24 en la nube**: las cuatro que fallan son
 `ERR_CERT_AUTHORITY_INVALID` al cargar Google Fonts, por el proxy del entorno.
-**No es una regresión.** En el CI de GitHub da 24/24.
+**No es una regresión.** En el CI de GitHub da todas en verde.
 
 ---
 
