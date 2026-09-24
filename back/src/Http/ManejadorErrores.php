@@ -25,15 +25,24 @@ final class ManejadorErrores
      * Registra el error completo y devuelve el cuerpo seguro para el cliente.
      *
      * @param callable(string): mixed $registrar  destino del detalle, en producción `error_log`
+     * @param array<string, string> $contexto  qué pedido falló: `metodo`, `ruta`
      * @return array{error: string, referencia: string}
      */
-    public static function atender(Throwable $error, callable $registrar): array
+    public static function atender(Throwable $error, callable $registrar, array $contexto = []): array
     {
         $referencia = bin2hex(random_bytes(6));
 
+        // El contexto va en `clave=valor` para poder buscarlo en los logs de
+        // Render: sin él, la línea dice que algo falló pero no en qué endpoint.
+        $datos = '';
+        foreach ($contexto as $clave => $valor) {
+            $datos .= sprintf('%s=%s ', $clave, $valor);
+        }
+
         $registrar(sprintf(
-            '[referencia %s] %s: %s en %s:%d',
+            '[referencia %s] %s%s: %s en %s:%d',
             $referencia,
+            $datos,
             $error::class,
             $error->getMessage(),
             $error->getFile(),

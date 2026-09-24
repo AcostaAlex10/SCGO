@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/preparar-dependabot` | `main` @ `c3addfb` (2026-09-23) | Triaje de los PR #26 a #30: saca `motion` y `react-responsive-masonry` (sin uso) y deja el código listo para TypeScript 7 y recharts 3 | #33 |
+| `claude/monitoreo-errores` | `main` @ `c3addfb` (2026-09-20) | B-04: errores a Sentry sin dependencias y qué monitorear desde afuera | #24 |
 
 ### Reglas
 
@@ -103,6 +103,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/traspaso-cierre-sesion` | `docs/TRASPASO.md` al cierre de la sesión del 2026-09-19, revisado después del renombre | PR #22 |
 | `claude/testing-demo-scgo` | **Contra `testing`.** La guía de testers dice que la demo sale de `testing`, y `HANDOFF.md` deja de apuntar a la URL vieja | PR #31, en `testing` |
 | `claude/demo-desde-testing` | La demo de Pages vuelve a salir de `testing`: documentación alineada, la interfaz dice SCGO y `contrato.mjs` lee `SGSO_URL` | PR #32 |
+| `claude/preparar-dependabot` | Triaje de los PR de Dependabot #26 a #30: fuera `motion` y `react-responsive-masonry`, y el código listo para TypeScript 7 y recharts 3 | PR #33 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
