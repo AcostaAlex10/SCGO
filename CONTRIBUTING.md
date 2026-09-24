@@ -28,7 +28,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/health-con-base` | `main` @ `61abb39` (2026-09-19) | B-05: `/api/health` ejecuta `SELECT 1` y reporta la base | #21 |
+| `claude/traspaso-cierre-sesion` | `main` @ `c3addfb` (2026-09-19) | Actualizar `docs/TRASPASO.md` al cierre de la sesión y pasar la rama del PR #21 al historial | #22 |
 
 ### Reglas
 
@@ -97,6 +97,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/seguridad-ola-2` | Contraseñas de 10 caracteres, headers de seguridad y límite de `/auth/olvide` | PR #12 |
 | `claude/dependencias` | Dependencias al día y auditadas, y Dependabot configurado | PR #13 |
 | `claude/ingenieria-software-nube-2ws8jg` | Triaje de los seis PR de Dependabot, `docs/TRASPASO.md` y el borrado de dos primitivos de shadcn sin uso. El nombre se reutilizó: es otra rama que la del PR #4 | PR #20 |
+| `claude/health-con-base` | B-05: `/api/health` ejecuta `SELECT 1` y reporta la base | PR #21 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir

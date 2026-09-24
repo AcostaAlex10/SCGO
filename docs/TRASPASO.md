@@ -4,8 +4,9 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-09-19
-- **Base:** `main` @ `d326aba`, CI en verde
+- **Actualizado:** 2026-09-23, después de revisar todo el repositorio por el renombre
+- **Base:** `main` @ `c3addfb`, CI en verde, producción desplegada y respondiendo
+- **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23)
 
 ---
 
@@ -38,6 +39,9 @@ día de dependencias.
 | #8, #9 | Documentación ordenada, requerimientos recuperados, producto renombrado a SCGO |
 | #10, #11, #12 | Seguridad: XSS por enlaces, secreto JWT obligatorio, errores sin detalles internos, límite de login, contraseñas de 10, headers, límite de `/auth/olvide` |
 | #13 | Dependencias al día y auditadas, Dependabot configurado |
+| #20 | Triaje de Dependabot, este archivo, y fuera dos primitivos de shadcn sin uso |
+| #14, #15 | Dependabot: `phpstan` 2.2.14 y 34 menores del front |
+| #21 | B-05: `/api/health` ejecuta `SELECT 1` |
 
 **No queda ningún P0 de seguridad abierto.** De seguridad quedan A-09, A-11 y
 A-12, ninguno bloqueante.
@@ -46,35 +50,33 @@ A-12, ninguno bloqueante.
 
 ## 3. Qué hay en vuelo ahora mismo
 
-Al mergearse el PR #13 se activó Dependabot, que abrió **seis PRs** en minutos.
-La sesión local murió antes de triarlos. Este es el veredicto de cada uno,
-verificado contra los registros del CI y la metadata de los paquetes:
+**Siete PR abiertos, todos en verde, todos esperando que el equipo los mergee.**
+Los que van contra `main` tocan las tablas de `CONTRIBUTING.md` y del plan, así
+que después de cada merge los demás piden rebase: se mergean de a uno.
 
-| PR | Qué sube | CI | Qué hacer |
-|---|---|---|---|
-| [#14](https://github.com/AcostaAlex10/SCGO/pull/14) | `phpstan` 2.2.13 → 2.2.14 | verde | **Mergear.** Parche de una herramienta de desarrollo. |
-| [#15](https://github.com/AcostaAlex10/SCGO/pull/15) | 34 menores y parches del front | verde | **Mergear.** Es el grupo `front-menores`, para eso se agrupó. |
-| [#16](https://github.com/AcostaAlex10/SCGO/pull/16) | `@vitejs/plugin-react` 4.7.0 → 6.1.1 | **rojo** | **Cerrar.** La versión 6 importa `vite/internal`, que Vite 6 no exporta: necesita Vite 7 primero. Es una actualización acoplada, no suelta. |
-| [#17](https://github.com/AcostaAlex10/SCGO/pull/17) | `react-dom` 18 → **19** (y sus tipos) | **rojo** | **Cerrar.** Sube `react-dom` pero deja `react` en 18. El build pasa y la aplicación **no arranca**: la pantalla de login queda en blanco y `humo.mjs` expira esperando el campo de email. React 19 es su propia tarea. |
-| [#18](https://github.com/AcostaAlex10/SCGO/pull/18) | `react-resizable-panels` 2.1.7 → 4.12.4 | **rojo** | **Cerrar:** resuelto de otra forma (ver abajo). |
-| [#19](https://github.com/AcostaAlex10/SCGO/pull/19) | `date-fns` 3.6.0 → 4.4.0 | verde | **Cerrar:** resuelto de otra forma (ver abajo). **El verde engaña**: `react-day-picker@8.10.1` declara `date-fns: ^2.28.0 \|\| ^3.0.0`, y 4.4.0 queda fuera. El CI instala con `--legacy-peer-deps`, que no verifica los rangos de peers, así que una combinación que la librería no soporta pasa igual. |
+| PR | Qué trae | Antes de mergear |
+|---|---|---|
+| #22 | Este archivo | nada |
+| #23 | B-03: migraciones versionadas | **correr `php back/sql/migrar.php --estado` y después `migrar.php` contra Aiven.** El PR saca el `CREATE TABLE` que creaba `intento_login` sola |
+| #24 | B-04: errores a Sentry y contexto del pedido en el log | nada; después, `SENTRY_DSN` en Render y el monitor externo (`OPERACION.md` §5) |
+| #25 | B-02 queda bloqueado por DEC-04; el CI verifica el `connect-src` de la CSP | nada |
+| #32 | La demo sale de `testing` (documentación), la interfaz dice SCGO, `contrato.mjs` lee `SGSO_URL` | nada. Humo pasa de 24 a 28 comprobaciones |
+| #31 | **Contra `testing`.** La guía de testers y `HANDOFF.md` al día | nada. **Al mergearlo se vuelve a publicar la demo desde `testing`** |
 
-### Lo que se hizo en vez de #18 y #19
+**Configuración que falta, y es del equipo, no de código:**
 
-`resizable.tsx` y `calendar.tsx` eran primitivos de shadcn que **no importaba
-nadie**: los `<Calendar>` que aparecen en `ProyectosPage` y `ProyectoDetallePage`
-son el ícono de lucide, no el componente. Actualizar una API rota de un
-componente muerto no tiene sentido, así que se borraron los dos, y con ellos
-`react-resizable-panels`, `react-day-picker` y `date-fns`.
+- **Settings → Environments → github-pages: dejar solo `testing`.** Hoy admite
+  `main` y `testing`, y un disparo manual sobre `main` pisa la demo (trampa 15).
+- **B-10**: hacer obligatorio el chequeo de Docker en el ruleset de `main`.
 
-El paquete de la aplicación bajó de **1.032,58 kB a 952,48 kB** (gzip: 293,21 →
-269,86). Eso es avance parcial de C-10 y C-11, y cuenta para RNF01, que es la
-carga en obra con señal móvil.
+**Sin triar:** Dependabot abrió #26 a #30 el lunes 2026-09-21. Pistas, sin
+verificar todavía: #28 sube `react` sin `react-dom` (el mismo problema que el
+#17, al revés), y #27 lleva TypeScript directo a 7, cuando lo recomendado es
+pasar primero por 6. Los dos están anotados en C-10.
 
-> **Ojo con el resto de los primitivos de shadcn.** `chart`, `carousel` y `drawer`
-> tampoco los importa nadie. Se dejaron por ahora: borrarlos es C-11 y merece su
-> propia tarea. Pero si Dependabot abre un PR sobre alguno, la respuesta
-> probablemente sea la misma.
+**Decisiones pendientes:** si se revierte el #21 (B-05 se mergeó sin consulta:
+el permiso era solo para el PR del paso 1), y DEC-04, de la que dependen B-01 y
+B-02.
 
 ---
 
@@ -82,9 +84,12 @@ carga en obra con señal móvil.
 
 Cada una de estas hizo perder al menos media hora. Están acá para no repetirlas.
 
-1. **`testing` no se toca.** Está congelada en `a25da85`. Es la demo con datos
-   simulados que ven los testers, y se publica sola por `pages-testing.yml`. No
-   se mergea, no se rebasea. Todo el desarrollo va en `main`.
+1. **`testing` es la rama de la demo de los testers.** Su código es el anterior
+   al renombre (en pantalla dice SGSO) y GitHub Pages publica solo desde ella,
+   con su propio `pages-testing.yml` y su propia `GUIA-TESTERS.md`. Se cambia
+   solo para la demo o su guía, **por PR contra `testing`**, y nunca se mergea
+   con `main` en ninguna dirección. Estuvo congelada en `a25da85` hasta el
+   2026-09-23.
 2. **El repositorio se renombró a `SCGO`** el 2026-09-16. GitHub redirige las URL
    viejas **menos la de la demo**, que ahora es
    https://acostaalex10.github.io/SCGO/.
@@ -103,6 +108,49 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
    borrarse la rama base, GitHub cierra el PR apilado en vez de reapuntarlo.
 7. **Salir siempre de `main` actualizado.** Una skill pareció no existir porque
    las ramas salieron de un commit anterior a su merge.
+8. **El ruleset de `main` exige que la rama esté al día.** Cada merge deja a los
+   demás PR en `BEHIND`, y no se pueden mergear hasta actualizarlos y esperar
+   otra vez el CI. Con los de Dependabot, se comenta `@dependabot rebase`:
+   rebasearlos a mano mete commits ajenos en su rama. Con varios PR en fila,
+   hay que contar un ciclo de CI (unos 3 minutos) por cada uno.
+9. **`back/.env` local apunta a la base real.** `index.php` y `migrar.php` lo
+   cargan, así que un `php -S` o un `php sql/migrar.php` en esta máquina
+   **pegan contra producción**. Para probar la API de punta a punta está el job
+   de Docker del CI. Las pruebas de integración no lo leen: usan solo
+   `SGSO_TEST_DB_*`.
+10. **El `php.ini` de esta máquina limita la memoria a 128M**, y PHPStan se cae
+    con "Child process error... reached configured PHP memory limit". No es el
+    código: `vendor/bin/phpstan analyse --memory-limit=1G`.
+11. **Composer no descarga en esta máquina**: `curl error 60 ... unable to get
+    local issuer certificate`. Algo intercepta TLS (antivirus o firewall). Con
+    el `vendor/` que ya está alcanza para las pruebas, pero puede quedar una
+    versión atrás de `composer.lock`. En ese caso manda el CI.
+12. **Playwright no es dependencia del proyecto**, y `npm ci` lo borra. Después
+    de cada `npm ci`: `npm install --no-save playwright` (y la primera vez,
+    `npx playwright install chromium`).
+13. **En Windows, `ln -sfn` copia en vez de enlazar.** Después de cada build hay
+    que volver a copiar `dist/` a la carpeta que sirve `http-server`, o las
+    suites prueban el build anterior.
+14. **`gh pr merge --match-head-commit` pide el SHA completo.** Con uno corto
+    falla, sin mergear nada ("Could not coerce value").
+15. **Disparar a mano el workflow de Pages sobre `main` pisa la demo.** Pasó el
+    2026-09-23: se lo corrió dos veces sobre `main` y los testers quedaron
+    viendo otra versión, sin aviso. Cada run usa el archivo de la rama que lo
+    dispara, así que `main` y `testing` tienen dos `pages-testing.yml` distintos
+    (el de `testing` compila con Node 20). El entorno `github-pages` tiene que
+    admitir solo `testing`.
+16. **Hay dos guías de testers, a propósito.** `docs/pruebas/GUIA-TESTERS.md` en
+    `main` describe la versión actual; `GUIA-TESTERS.md` en la raíz de
+    `testing`, la versión de la demo, con sus cuentas de prueba. No se
+    sincronizan: cada una describe su rama.
+17. **En Git Bash, `git show rama:ruta` falla** con "ambiguous argument": Git
+    Bash convierte la ruta como si fuera de Windows. Anteponer
+    `MSYS_NO_PATHCONV=1`.
+18. **La demo publicada se puede probar entera desde acá.** Las cinco suites
+    aceptan `SGSO_URL` (desde el #32; antes `contrato.mjs` leía `BASE` y se iba
+    en silencio a localhost): `SGSO_URL=https://acostaalex10.github.io/SCGO/`.
+    Ojo: las suites de `main` prueban la versión de `main`, y la demo es la de
+    `testing`, así que alguna diferencia puede ser legítima.
 
 ### Si la sesión corre en la nube y no en tu máquina
 
@@ -115,7 +163,7 @@ nuevos apuntando a los binarios viejos y exportando `PLAYWRIGHT_BROWSERS_PATH`.
 
 Además, `humo.mjs` da **20/24 en la nube**: las cuatro que fallan son
 `ERR_CERT_AUTHORITY_INVALID` al cargar Google Fonts, por el proxy del entorno.
-**No es una regresión.** En el CI de GitHub da 24/24.
+**No es una regresión.** En el CI de GitHub da todas en verde.
 
 ---
 
