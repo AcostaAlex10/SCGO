@@ -106,6 +106,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/preparar-dependabot` | Triaje de los PR de Dependabot #26 a #30: fuera `motion` y `react-responsive-masonry`, y el código listo para TypeScript 7 y recharts 3 | PR #33 |
 | `claude/monitoreo-errores` | B-04: el log dice qué pedido falló y los errores van a Sentry, sin SDK | PR #24 |
 | `claude/staging-decision` | B-02 queda bloqueado por DEC-04, y el CI verifica el `connect-src` de la CSP | PR #25 |
+| `claude/cierre-2026-09-23` | Cierre de la sesión del 2026-09-23: `TRASPASO.md` al día y la rama del #25 al historial | PR #34 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
