@@ -30,8 +30,6 @@
     // es su trabajo, no el del chequeo de tipos.
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }

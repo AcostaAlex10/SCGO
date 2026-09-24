@@ -70,12 +70,20 @@ const alertasPorTipo = [
 ];
 
 const RADIAN = Math.PI / 180;
-const renderCustomLabel = ({
-  cx, cy, midAngle, innerRadius, outerRadius, percent,
-}: {
-  cx: number; cy: number; midAngle: number; innerRadius: number;
-  outerRadius: number; percent: number;
-}) => {
+// recharts 3 declara estas props como opcionales y los radios como número o
+// texto: se normalizan acá, así compila igual con recharts 2 y con 3.
+type EtiquetaTorta = {
+  cx?: number | string; cy?: number | string; midAngle?: number;
+  innerRadius?: number | string; outerRadius?: number | string; percent?: number;
+};
+
+const renderCustomLabel = (props: EtiquetaTorta) => {
+  const cx = Number(props.cx ?? 0);
+  const cy = Number(props.cy ?? 0);
+  const midAngle = props.midAngle ?? 0;
+  const innerRadius = Number(props.innerRadius ?? 0);
+  const outerRadius = Number(props.outerRadius ?? 0);
+  const percent = props.percent ?? 0;
   const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
@@ -213,7 +221,7 @@ export function DistribucionProyectosChart(
                 <Cell key={index} fill={entry.color} />
               ))}
             </Pie>
-            <Tooltip formatter={(v: number, name: string) => [`${v} proyectos`, name]} contentStyle={{ background: "#0d1120", border: "1px solid #1e2a42", borderRadius: "4px", fontSize: "12px" }} />
+            <Tooltip formatter={(v, name) => [`${v} proyectos`, String(name)]} contentStyle={{ background: "#0d1120", border: "1px solid #1e2a42", borderRadius: "4px", fontSize: "12px" }} />
             <Legend {...chartProps.legendProps} formatter={(value, entry) => (
               <span style={{ color: "#94a3b8" }}>{value}: <strong style={{ color: "#dde3ef", fontFamily: "'JetBrains Mono', monospace" }}>{(entry.payload as { value: number }).value}</strong></span>
             )} />
@@ -263,7 +271,7 @@ export function RendimientoRadarChart() {
             <PolarAngleAxis dataKey="indicador" tick={{ fontSize: 10, fill: C.tick, fontFamily: "'JetBrains Mono', monospace" }} />
             <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 9, fill: C.tick }} />
             <Radar name="Rendimiento" dataKey="valor" stroke={C.amber} fill={C.amber} fillOpacity={0.15} strokeWidth={2} dot={{ fill: C.amber, r: 3, strokeWidth: 0 }} />
-            <Tooltip formatter={(v: number) => [`${v}%`, "Rendimiento"]} contentStyle={{ background: "#0d1120", border: "1px solid #1e2a42", borderRadius: "4px", fontSize: "12px" }} />
+            <Tooltip formatter={(v) => [`${v}%`, "Rendimiento"]} contentStyle={{ background: "#0d1120", border: "1px solid #1e2a42", borderRadius: "4px", fontSize: "12px" }} />
           </RadarChart>
         </ResponsiveContainer>
       </CardContent>
