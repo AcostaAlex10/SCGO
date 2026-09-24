@@ -256,11 +256,28 @@ Cosas que ya costaron tiempo. Conviene leerlas antes de repetirlas.
 
 ### Base de datos
 
-**`migrar.php` no aplica cambios de tipo de columna.** Solo ejecuta `schema.sql`,
-cuyas tablas usan `CREATE TABLE IF NOT EXISTS`: sobre una base existente no hace
-nada. Un cambio de tipo necesita su propio script con el `ALTER`, como
-`migracion-estado-enum.php`. Por eso el esquema del repositorio y el de Aiven
-pueden no coincidir.
+**Las migraciones no corren solas en el deploy (B-03).** Render levanta Apache y
+nada más. Si un deploy trae una migración, hay que aplicarla a mano **después**,
+con las credenciales de la base en el entorno:
+
+```bash
+php back/sql/migrar.php --estado   # qué hay aplicado y qué falta, sin tocar nada
+php back/sql/migrar.php            # aplica lo pendiente
+```
+
+La tabla `schema_migrations` lleva la cuenta, así que correrlo de más no hace
+nada. Sobre una base que ya existía, la primera corrida registra las tres
+versiones base (`schema.sql` y los dos scripts sueltos, que ya se habían
+corrido) **sin ejecutarlas**.
+
+**Cada cambio de esquema va en dos lugares:** su archivo en
+`back/sql/migraciones/NNNN-nombre.sql`, escrito idempotente, y también
+`schema.sql`, que sigue siendo la foto completa del esquema. Si alguien se
+olvida de uno de los dos, `MigracionesTest` falla en el CI.
+
+Los dos scripts viejos (`migracion-estado-enum.php` y
+`migracion-reporte-final.php`) quedan como referencia: ya se aplicaron y el
+migrador los da por hechos.
 
 **El antivirus borra los scripts PHP que se conectan a la base.** `migrar.php` y
 similares desaparecen del árbol de trabajo. Están versionados: si falta uno,

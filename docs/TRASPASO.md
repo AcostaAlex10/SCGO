@@ -114,10 +114,13 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
    1.344 líneas que reimplementan el backend a mano. Ya pasó tres veces que la
    demo acepta datos que el sistema real rechaza. Si cambiás una validación de la
    API, cambiá las dos. Es el problema que ataca C-02.
-4. **`migrar.php` no cambia columnas que ya existen.** Todas las tablas de
-   `schema.sql` usan `CREATE TABLE IF NOT EXISTS`, así que sobre una base viva un
-   cambio de tipo no hace nada. Por eso cada cambio de esquema lleva su script
-   aparte en `back/sql/`. Las dos migraciones existentes **ya se corrieron**.
+4. **Cada cambio de esquema va en dos lugares** (desde B-03, #23): su archivo
+   en `back/sql/migraciones/NNNN-nombre.sql`, escrito idempotente, y también
+   `schema.sql`, que sigue siendo la foto completa. `MigracionesTest` falla si
+   se olvida uno de los dos. **Las migraciones no corren solas en el deploy:**
+   después de uno que las traiga, `php back/sql/migrar.php` a mano (primero
+   `--estado`). Los dos scripts sueltos viejos ya se corrieron, y el migrador
+   los da por hechos.
 5. **Las credenciales de la base están en Render → servicio → Environment.** El
    repositorio es **público**: ninguna credencial ni dato de Triwe puede entrar,
    ni al código ni a un archivo ni al chat.

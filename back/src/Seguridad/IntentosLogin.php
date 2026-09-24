@@ -19,14 +19,12 @@ use PDO;
  *   probó.
  * - **El incremento es atómico**, en una sola sentencia: dos intentos
  *   simultáneos no pueden contar como uno.
- * - **La tabla se crea si falta.** Todavía no hay un sistema de migraciones
- *   (plan: B-03), y sin la tabla el login dejaría de funcionar en el primer
- *   deploy. Cuando exista ese sistema, esto se va.
+ * - **La tabla la crea una migración**, no esta clase. Hasta B-03 se creaba acá
+ *   en cada arranque, porque no había forma de aplicar un cambio de esquema a
+ *   una base viva. Ahora es `sql/migraciones/0004-intento-login.sql`.
  */
 final class IntentosLogin
 {
-    private static bool $tablaVerificada = false;
-
     /** @var Closure(): int */
     private Closure $reloj;
 
@@ -44,8 +42,6 @@ final class IntentosLogin
     /** Segundos que faltan para poder volver a intentar; 0 si no hay bloqueo. */
     public function segundosDeEspera(string $clave): int
     {
-        $this->asegurarTabla();
-
         $stmt = $this->db->prepare('SELECT fallos, ultimo_fallo FROM intento_login WHERE clave = ?');
         $stmt->execute([$clave]);
         $fila = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -64,7 +60,6 @@ final class IntentosLogin
 
     public function registrarFallo(string $clave): void
     {
-        $this->asegurarTabla();
         $ahora = $this->ahora();
 
         // MySQL evalúa las asignaciones en orden: `fallos` todavía ve el
@@ -84,29 +79,11 @@ final class IntentosLogin
     /** Un login correcto borra el historial de fallos de la cuenta. */
     public function limpiar(string $clave): void
     {
-        $this->asegurarTabla();
-
         $this->db->prepare('DELETE FROM intento_login WHERE clave = ?')->execute([$clave]);
     }
 
     private function ahora(): int
     {
         return ($this->reloj)();
-    }
-
-    private function asegurarTabla(): void
-    {
-        if (self::$tablaVerificada) {
-            return;
-        }
-
-        $this->db->exec(
-            'CREATE TABLE IF NOT EXISTS intento_login (
-               clave         VARCHAR(191) NOT NULL PRIMARY KEY,
-               fallos        INT UNSIGNED NOT NULL,
-               ultimo_fallo  INT UNSIGNED NOT NULL
-             )'
-        );
-        self::$tablaVerificada = true;
     }
 }
