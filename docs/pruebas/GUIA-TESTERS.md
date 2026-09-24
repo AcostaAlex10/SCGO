@@ -22,6 +22,13 @@ Hay dos entornos y conviene saber cuál usar, porque no son equivalentes.
 | Tus cambios | quedan solo en tu navegador | los ven todos |
 | Disponibilidad | inmediata | la primera carga puede tardar ~1 minuto |
 
+> **La demo pública no es esta versión.** Se publica desde la rama `testing`, que
+> tiene el código anterior al cambio de nombre (en pantalla dice SGSO) y su
+> propia guía, `GUIA-TESTERS.md` en esa rama: los testers externos usan esa. Esta
+> guía describe la versión actual, la de `main`, que es la que corre en el
+> sistema real. Para recorrer esta versión con datos simulados, se compila en
+> modo de prueba: ver [FRONT/MODO-PRUEBA.md](../../FRONT/MODO-PRUEBA.md).
+
 **Recomendación: empezar por la demo estática.** Tiene datos cargados en todas
 las pantallas, no requiere esperas y no hay forma de romper nada: cada persona
 trabaja sobre su propia copia. Es el entorno adecuado para recorrer el sistema,

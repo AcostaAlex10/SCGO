@@ -27,6 +27,7 @@ for (const cuenta of CUENTAS) {
 
   // 1. Login
   await page.goto(BASE, { waitUntil: 'networkidle' });
+  const textoLogin = await page.locator('body').innerText();
   await page.fill('input[type=email]', cuenta.email);
   await page.fill('input[type=password]', cuenta.pass);
   await page.click('button[type=submit]');
@@ -38,6 +39,16 @@ for (const cuenta of CUENTAS) {
     await ctx.close();
     continue;
   }
+
+  // 1b. El producto se llama SCGO (DEC-01). La marca vieja quedo en la pantalla
+  // de login y en la barra de arriba despues del renombre. Distingue mayusculas a
+  // proposito: los emails de prueba (@sgso.test) no son la marca.
+  await page.waitForTimeout(800);
+  const textoApp = await page.locator('body').innerText();
+  const marcaVieja = [textoLogin, textoApp].some((t) => /SGSO/.test(t));
+  const marcaNueva = [textoLogin, textoApp].every((t) => /SCGO/.test(t));
+  chequear(cuenta.rol, 'la interfaz dice SCGO y no SGSO', marcaNueva && !marcaVieja,
+    marcaVieja ? 'todavia dice SGSO' : (marcaNueva ? '' : 'no dice SCGO'));
 
   // 2. Sidebar: Usuarios solo para el AdministradorSistema
   const nav = page.locator('nav');
