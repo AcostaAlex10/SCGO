@@ -36,7 +36,7 @@ decisión de ustedes, no de código.
 | **DEC-01** | Nombre del producto | **Resuelta:** SCGO, Sistema de Control y Gestión de Obras de construcción. El namespace `Sgso\` del código queda como nombre interno: renombrarlo no aporta nada al cliente. | E-05 |
 | **DEC-02** | Modelo comercial | **Parcial:** el cliente es Triwe. Falta decidir si después se vende a otras constructoras. Recomendación: entregar a Triwe primero y decidir el multicliente **antes** de que aparezca un segundo cliente, porque migrar el modelo de datos después sale más caro. | E-01 a E-03 |
 | **DEC-03** | RF07 y RF16: documentos como archivo o como enlace | Abierta. Recomendación: **archivos**, en almacenamiento compatible con S3. Triwe va a querer subir el PDF del plano, no pegar un enlace; y además resuelve de raíz el XSS de A-01. | D-01 |
-| **DEC-04** | Hosting pago | Abierta. Recomendación: Render sin reposo y una base con respaldos automáticos. Es lo único que hace cumplir RNF03 y RNF07. | B-01 |
+| **DEC-04** | Hosting pago | Abierta. Recomendación: Render sin reposo y una base con respaldos automáticos. Es lo único que hace cumplir RNF03 y RNF07, **y lo único que permite tener staging** (B-02): con el plan gratuito, un segundo servicio encendido agota las 750 horas del workspace y Render suspende también producción. | B-01, B-02 |
 | **DEC-05** | Cómo se factura | Abierta. Condición fiscal y factura electrónica ante ARCA: consultarlo con un contador antes del primer cobro. | E-03, E-04 |
 | **DEC-06** | La rama `TP1-plan-de-testing` | **Resuelta:** borrada. Estaba vacía y el trabajo no correspondía a este repositorio. | — |
 | **DEC-07** | ¿El repositorio es público o privado? | **Resuelta:** sigue **público**, renombrado a `SCGO`. En GitHub Free la protección de `main` solo funciona en repositorios públicos, y se prefirió conservarla. La consecuencia es que el código es visible: **ningún dato de Triwe ni ninguna credencial puede entrar al repositorio**, lo que vuelve más importantes A-02 y A-08. Los datos de producción que se publicaron antes siguen en el historial; son de cuentas del equipo. | E-04 |
@@ -68,7 +68,7 @@ decisión de ustedes, no de código.
 | # | P | Problema | Tamaño | Quién |
 |---|---|---|---|---|
 | **B-01** | **P0** | **Plan pago y respaldos** (DEC-04). Respaldos automáticos con retención conocida y **una restauración probada al menos una vez**. Es lo que hace cumplir RNF03 (hoy la primera consulta tarda cerca de un minuto) y RNF07 (respaldo diario). | M | Grupo + Claude |
-| **B-02** | P1 | **Staging de verdad.** `testing` es una demo con datos simulados; falta un entorno con backend y base propios para probar antes de producción. | M | Claude |
+| **B-02** | P1 | **Bloqueado por DEC-04** (PR #25). **Staging de verdad.** `testing` es una demo con datos simulados; falta un entorno con backend y base propios. **No entra en el plan gratuito:** Render da 750 horas de instancia por mes y por workspace, y el monitor de B-04 mantiene producción despierta todo el mes (~720 h). Un segundo servicio encendido agota las horas, y entonces Render **suspende también producción**. Los Preview Environments de Render piden workspace Pro. Decidido para cuando haya plan pago: la base de staging va **en la misma instancia de Aiven**, como `scgo_staging`, con usuario propio con permisos solo sobre ella. | M | Claude |
 | **B-03** | P1 | **Migraciones versionadas.** Hoy son scripts sueltos que alguien tiene que acordarse de correr. Hace falta una tabla `schema_migrations` y un comando que aplique las pendientes en cada deploy. | M | Claude |
 | **B-04** | P1 | **Hecho en el PR #24.** **Logs y monitoreo.** El log dice qué pedido falló (`metodo=`, `ruta=`) y los errores van a Sentry con la misma referencia, sin SDK: el backend sigue sin dependencias de runtime. Oculta los valores de la base, el secreto de los tokens y la clave de Brevo antes de enviarlos. **Falta que alguien ponga `SENTRY_DSN` en Render y cree el monitor externo** (`OPERACION.md` §5). | M | Claude |
 | **B-05** | P1 | **Hecho en el PR #21.** **`/api/health` no revisaba la base.** Ahora ejecuta `SELECT 1` y contesta `{"status":"ok","db":"ok"}` solo si la base devuelve 1. Si falla, el manejador global responde el 500 genérico con referencia, igual que con la base sin conexión. | S | Claude |
@@ -154,8 +154,8 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 
 ### Ola 2 — Producción que aguante
 
-6. **DEC-04**, después **B-01** (plan pago y restauración probada).
-7. **B-03** (migraciones), ~~**B-04**~~ (monitoreo, PR #24), ~~**B-05**~~ (health con base, PR #21) y **B-02** (staging).
+6. **DEC-04**, después **B-01** (plan pago y restauración probada) y **B-02** (staging): los tres son la misma decisión.
+7. **B-03** (migraciones), ~~**B-04**~~ (monitoreo, PR #24) y ~~**B-05**~~ (health con base, PR #21).
 
 ### Ola 3 — Calidad y funcionalidad, en paralelo
 
@@ -193,4 +193,5 @@ del arreglo, CI en verde, el simulador al día y el número de PR anotado acá.
 | 2026-09-19 | Triados los seis PR de Dependabot, en `claude/ingenieria-software-nube-2ws8jg` (PR #20): se recomiendan #14 y #15; #16 y #17 se cierran (necesitan Vite 7 y React 19, cada uno su propia tarea); #18 y #19 quedan sin objeto al borrar dos primitivos de shadcn que no usaba nadie. Avance parcial de C-10 y C-11; agregado C-12. |
 | 2026-09-19 | Mergeados #20 y #14; cerrados #16 a #19, cada uno con su motivo. C-10 anota Vite 7 y React 19 como subidas acopladas. B-05 hecho (PR #21). |
 | 2026-09-20 | B-04 hecho (PR #24): contexto del pedido en el log y errores a Sentry sin dependencias. El chequeo externo de disponibilidad queda documentado en `OPERACION.md` §5: lo configura el equipo. |
+| 2026-09-20 | B-02 queda bloqueado por DEC-04 (PR #25): con 750 horas por workspace, un staging encendido agotaría las horas y suspendería también producción. Decidido que su base irá en la misma instancia de Aiven. De paso, el CI ahora verifica que el `connect-src` de la CSP nombre la API: era el desfasaje que dejaba la aplicación muda. |
 | 2026-09-23 | Triados los PR de Dependabot #26 a #30 (PR #33). #26 (`react-responsive-masonry`) y #30 (`motion`) se cierran: el verde era vacío porque nadie los importa, y las dependencias se sacan. #28 se cierra: sube `react` a 19 sin `react-dom`. #27 (TypeScript 7) y #29 (recharts 3) quedan viables: el PR #33 deja el código listo para las dos versiones, y el Dashboard se dibuja igual con recharts 3. |

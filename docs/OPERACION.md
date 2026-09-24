@@ -277,6 +277,19 @@ Vercel**: hay que cambiar también esa línea, o el navegador bloquea todos los
 pedidos y la aplicación queda muda sin ningún error del servidor. El síntoma es
 un error de CSP en la consola del navegador, no un 500.
 
+Desde el PR #25 el CI lo verifica: `.github/scripts/headers-vercel.mjs` tiene la
+lista de orígenes de API que la CSP **tiene** que permitir, y el chequeo del
+frontend falla si alguno no está. **Para agregar un entorno nuevo** (el staging
+de B-02, o una URL distinta del backend) se tocan los dos lugares: la lista del
+script y el `connect-src` de `vercel.json`.
+
+**Staging no entra en el plan gratuito de Render.** El plan gratuito da 750 horas
+de instancia por mes **y por workspace**, no por servicio. Con el monitor de B-04
+pegándole cada 5 minutos, producción no se duerme nunca y consume unas 720. Un
+segundo servicio encendido agota las horas, y cuando eso pasa Render **suspende
+todos los servicios gratuitos del workspace, producción incluida**. Por eso B-02
+quedó atado a DEC-04, junto con B-01.
+
 **Los PR de Dependabot se despliegan como cualquier otro.** Los lunes abre PRs
 con actualizaciones de dependencias (y una vez por mes, de las actions). Que los
 abra un bot no los vuelve seguros: al mergearlos van a producción. Los de
