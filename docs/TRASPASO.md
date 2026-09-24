@@ -4,8 +4,8 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-09-23, después de revisar todo el repositorio por el renombre
-- **Base:** `main` @ `c3addfb`, CI en verde, producción desplegada y respondiendo
+- **Actualizado:** 2026-09-23, al cierre de la sesión que vació la cola de PR
+- **Base:** `main` @ `f2a99c4`, CI en verde, producción desplegada y respondiendo
 - **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23)
 
 ---
@@ -42,6 +42,13 @@ día de dependencias.
 | #20 | Triaje de Dependabot, este archivo, y fuera dos primitivos de shadcn sin uso |
 | #14, #15 | Dependabot: `phpstan` 2.2.14 y 34 menores del front |
 | #21 | B-05: `/api/health` ejecuta `SELECT 1` |
+| #22 | Este archivo, revisado después del renombre |
+| #24 | B-04: el log dice qué pedido falló, y los errores van a Sentry sin SDK |
+| #25 | B-02 queda bloqueado por DEC-04; el CI verifica el `connect-src` de la CSP |
+| #32 | La interfaz dice SCGO; la documentación dice que la demo sale de `testing` |
+| #33 | Triaje de Dependabot #26 a #30: fuera `motion` y `react-responsive-masonry`, código listo para TS 7 y recharts 3 |
+| #27, #29 | Dependabot: TypeScript 7.0.2 y recharts 3.10.1 |
+| #31 | **En `testing`:** guía y `HANDOFF.md` al día; la demo vuelve a publicarse desde ahí |
 
 **No queda ningún P0 de seguridad abierto.** De seguridad quedan A-09, A-11 y
 A-12, ninguno bloqueante.
@@ -50,33 +57,43 @@ A-12, ninguno bloqueante.
 
 ## 3. Qué hay en vuelo ahora mismo
 
-**Siete PR abiertos, todos en verde, todos esperando que el equipo los mergee.**
-Los que van contra `main` tocan las tablas de `CONTRIBUTING.md` y del plan, así
-que después de cada merge los demás piden rebase: se mergean de a uno.
+**Un solo PR abierto: el #23 (B-03, migraciones versionadas).** Está en verde y
+al día con `main`, pero **no se mergea hasta correr las migraciones en Aiven**:
+el PR saca el `CREATE TABLE` que creaba `intento_login` sola en cada arranque.
 
-| PR | Qué trae | Antes de mergear |
-|---|---|---|
-| #22 | Este archivo | nada |
-| #23 | B-03: migraciones versionadas | **correr `php back/sql/migrar.php --estado` y después `migrar.php` contra Aiven.** El PR saca el `CREATE TABLE` que creaba `intento_login` sola |
-| #24 | B-04: errores a Sentry y contexto del pedido en el log | nada; después, `SENTRY_DSN` en Render y el monitor externo (`OPERACION.md` §5) |
-| #25 | B-02 queda bloqueado por DEC-04; el CI verifica el `connect-src` de la CSP | nada |
-| #32 | La demo sale de `testing` (documentación), la interfaz dice SCGO, `contrato.mjs` lee `SGSO_URL` | nada. Humo pasa de 24 a 28 comprobaciones |
-| #31 | **Contra `testing`.** La guía de testers y `HANDOFF.md` al día | nada. **Al mergearlo se vuelve a publicar la demo desde `testing`** |
+```bash
+php back/sql/migrar.php --estado   # informa, no toca nada
+php back/sql/migrar.php            # registra las versiones base y aplica 0004
+```
 
-**Configuración que falta, y es del equipo, no de código:**
+Con las credenciales de Render en el entorno, desde la máquina de quien tenga
+acceso. Después de eso se mergea. Cualquier merge a `main` en el medio lo deja
+atrás y hay que rebasearlo (trampa 8).
 
-- **Settings → Environments → github-pages: dejar solo `testing`.** Hoy admite
-  `main` y `testing`, y un disparo manual sobre `main` pisa la demo (trampa 15).
-- **B-10**: hacer obligatorio el chequeo de Docker en el ruleset de `main`.
+**Dependabot, al día.** Los cinco PR del lunes 2026-09-21 están resueltos: #26 y
+#30 cerrados (el verde era vacío: nadie importaba esos paquetes, y se sacaron en
+el #33), #28 cerrado (React 19 sin `react-dom`), y #27 y #29 mergeados después
+de preparar el código en el #33. El próximo lunes llegan más: ver trampa 20.
 
-**Sin triar:** Dependabot abrió #26 a #30 el lunes 2026-09-21. Pistas, sin
-verificar todavía: #28 sube `react` sin `react-dom` (el mismo problema que el
-#17, al revés), y #27 lleva TypeScript directo a 7, cuando lo recomendado es
-pasar primero por 6. Los dos están anotados en C-10.
+**Configuración pendiente, del equipo, no de código:**
 
-**Decisiones pendientes:** si se revierte el #21 (B-05 se mergeó sin consulta:
-el permiso era solo para el PR del paso 1), y DEC-04, de la que dependen B-01 y
-B-02.
+- **Settings → Environments → github-pages: dejar solo `testing`.** Verificado
+  el 2026-09-23: todavía admite `main` y `testing`, así que un disparo manual
+  del workflow sobre `main` sigue pudiendo pisar la demo (trampa 15).
+- **B-10: agregar "Imagen Docker (arranque seguro)" a los chequeos obligatorios**
+  del ruleset de `main`. Verificado el 2026-09-23: hoy son solo Backend,
+  Frontend y Playwright.
+- **B-04:** poner `SENTRY_DSN` en Render → Environment y crear el monitor
+  externo con los valores de `OPERACION.md` §5. Hasta entonces el envío a Sentry
+  queda apagado, que es lo previsto.
+
+**Decisiones pendientes:** si se revierte el #21 (B-05 se mergeó sin consulta: el
+permiso era solo para el PR del paso 1), y DEC-04, de la que dependen B-01 y B-02.
+
+**Lo siguiente del plan, sin decisiones pendientes:** Ola 3 de
+`PLAN-PRODUCTO.md` (C-01, C-03, D-03, D-02, D-04, D-09). Conviene arrancarla
+con la cola vacía, o sea después del #23: cada rama nueva choca con las abiertas
+en la tabla de `CONTRIBUTING.md`.
 
 ---
 
@@ -125,8 +142,9 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
     local issuer certificate`. Algo intercepta TLS (antivirus o firewall). Con
     el `vendor/` que ya está alcanza para las pruebas, pero puede quedar una
     versión atrás de `composer.lock`. En ese caso manda el CI.
-12. **Playwright no es dependencia del proyecto**, y `npm ci` lo borra. Después
-    de cada `npm ci`: `npm install --no-save playwright` (y la primera vez,
+12. **Playwright no es dependencia del proyecto**, y `npm ci` lo borra. También
+    lo borra `npm uninstall` de cualquier otro paquete. Después de cada uno:
+    `npm install --no-save playwright` (y la primera vez,
     `npx playwright install chromium`).
 13. **En Windows, `ln -sfn` copia en vez de enlazar.** Después de cada build hay
     que volver a copiar `dist/` a la carpeta que sirve `http-server`, o las
@@ -151,6 +169,16 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
     en silencio a localhost): `SGSO_URL=https://acostaalex10.github.io/SCGO/`.
     Ojo: las suites de `main` prueban la versión de `main`, y la demo es la de
     `testing`, así que alguna diferencia puede ser legítima.
+19. **La tabla de ramas abiertas choca en cada rebase.** Todas las ramas agregan
+    su fila en el mismo lugar de `CONTRIBUTING.md`, así que después de cada
+    merge los demás PR tienen conflicto ahí. Se resuelve dejando **solo la fila
+    de la propia rama**, y la del PR recién mergeado se pasa al historial en un
+    commit aparte. El registro de `PLAN-PRODUCTO.md` choca igual: se dejan las
+    dos entradas, por fecha.
+20. **Un PR de Dependabot en verde puede ser vacío.** Si nadie importa el
+    paquete, el CI pasa aunque la versión nueva rompa todo: pasó con el #19, el
+    #26 y el #30. Antes de mergear uno, `git grep` del paquete en `FRONT/src`.
+    Si no aparece, la respuesta es sacar la dependencia, no subirla.
 
 ### Si la sesión corre en la nube y no en tu máquina
 
