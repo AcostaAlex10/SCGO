@@ -31,7 +31,6 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
 | `claude/demo-desde-testing` | `main` @ `c3addfb` (2026-09-23) | La demo de Pages vuelve a salir de `testing`: documentación alineada, la interfaz dice SCGO y `contrato.mjs` acepta `SGSO_URL` | #32 |
-| `claude/testing-demo-scgo` | `testing` @ `81bd9d9` (2026-09-23) | **Contra `testing`, no contra `main`.** La guía de testers dice que la demo sale de `testing`, y `HANDOFF.md` deja de apuntar a la URL vieja | #31 |
 
 ### Reglas
 
@@ -101,6 +100,8 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/dependencias` | Dependencias al día y auditadas, y Dependabot configurado | PR #13 |
 | `claude/ingenieria-software-nube-2ws8jg` | Triaje de los seis PR de Dependabot, `docs/TRASPASO.md` y el borrado de dos primitivos de shadcn sin uso. El nombre se reutilizó: es otra rama que la del PR #4 | PR #20 |
 | `claude/health-con-base` | B-05: `/api/health` ejecuta `SELECT 1` y reporta la base | PR #21 |
+| `claude/traspaso-cierre-sesion` | `docs/TRASPASO.md` al cierre de la sesión del 2026-09-19, revisado después del renombre | PR #22 |
+| `claude/testing-demo-scgo` | **Contra `testing`.** La guía de testers dice que la demo sale de `testing`, y `HANDOFF.md` deja de apuntar a la URL vieja | PR #31, en `testing` |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
