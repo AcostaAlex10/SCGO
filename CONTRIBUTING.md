@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/demo-desde-testing` | `main` @ `c3addfb` (2026-09-23) | La demo de Pages vuelve a salir de `testing`: documentación alineada, la interfaz dice SCGO y `contrato.mjs` acepta `SGSO_URL` | #32 |
+| `claude/preparar-dependabot` | `main` @ `c3addfb` (2026-09-23) | Triaje de los PR #26 a #30: saca `motion` y `react-responsive-masonry` (sin uso) y deja el código listo para TypeScript 7 y recharts 3 | — |
 
 ### Reglas
 
