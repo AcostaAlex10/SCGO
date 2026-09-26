@@ -138,8 +138,8 @@ The timezone is pinned to `America/Argentina/Buenos_Aires` because Render runs i
 UTC and date validations depend on the local date.
 
 ### Styling system
-Styles live in `src/styles/`: `theme.css` (dark/orange theme, `--primary: #e8981e`),
-`tailwind.css`, `globals.css`. `default_shadcn_theme.css` is
+Styles live in `src/styles/`: `index.css` imports `fonts.css`, `tailwind.css` and
+`theme.css` (dark/orange theme, `--primary: #e8981e`). `default_shadcn_theme.css` is
 kept as a light-theme reference but is not applied.
 
 ### Domain model
@@ -160,5 +160,4 @@ Seventeen tables in `back/sql/schema.sql`. `proyecto` is the core entity:
 
 ### Component conventions
 - Page-level components live directly in `src/app/components/`; shadcn/ui primitives in `src/app/components/ui/`
-- `src/app/components/figma/ImageWithFallback.tsx` handles Figma-exported images with graceful fallback
 - The Vite config includes a custom plugin that resolves Figma asset paths; SVG and CSV are treated as static assets
