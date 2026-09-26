@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/codigo-muerto-2` | `main` @ `9df1faa` (2026-09-26) | C-11, segunda parte: fuera `globals.css` e `ImageWithFallback.tsx` | — |
+| `claude/codigo-muerto-2` | `main` @ `9df1faa` (2026-09-26) | C-11, segunda parte: fuera `globals.css` e `ImageWithFallback.tsx` | #37 |
 
 ### Reglas
 
