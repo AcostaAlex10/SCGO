@@ -4,8 +4,8 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-09-23, al cierre de la sesión que vació la cola de PR
-- **Base:** `main` @ `f2a99c4`, CI en verde, producción desplegada y respondiendo
+- **Actualizado:** 2026-09-26, para seguir en una sesión en la nube
+- **Base:** `main` @ `9e0ee67`, CI en verde, producción desplegada y respondiendo
 - **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23)
 
 ---
@@ -50,6 +50,8 @@ día de dependencias.
 | #33 | Triaje de Dependabot #26 a #30: fuera `motion` y `react-responsive-masonry`, código listo para TS 7 y recharts 3 |
 | #27, #29 | Dependabot: TypeScript 7.0.2 y recharts 3.10.1 |
 | #31 | **En `testing`:** guía y `HANDOFF.md` al día; la demo vuelve a publicarse desde ahí |
+| #34, #35 | Cierre de sesión; DEC-04 postergada; B-10 y el entorno de Pages, hechos |
+| #36, #37 | C-11: fuera 36 archivos muertos del front, 37 dependencias sin uso y `JsonProyectoRepository`; nuevo `docs/STACK.md` |
 
 **No queda ningún P0 de seguridad abierto.** De seguridad quedan A-09, A-11 y
 A-12, ninguno bloqueante.
@@ -58,17 +60,23 @@ A-12, ninguno bloqueante.
 
 ## 3. Qué hay en vuelo ahora mismo
 
-**Un solo PR abierto: el #23 (B-03, migraciones versionadas).** Está en verde y
-al día con `main`, pero **no se mergea hasta correr las migraciones en Aiven**:
-el PR saca el `CREATE TABLE` que creaba `intento_login` sola en cada arranque.
+**Un solo PR abierto: el #23 (B-03, migraciones versionadas).** El código
+pasó el CI, pero **hoy tiene conflicto con `main`**, y **no se mergea hasta que
+alguien del equipo corra las migraciones en Aiven**: el PR saca el `CREATE
+TABLE` que creaba `intento_login` sola en cada arranque.
+
+Al rebasearlo: los commits "Pasar al historial la rama del #34" y "... del #35"
+**sobran**, porque el #37 ya hizo esos pases en `main`. En los conflictos de
+`CONTRIBUTING.md` se deja solo la fila del #23 (trampa 19).
 
 ```bash
 php back/sql/migrar.php --estado   # informa, no toca nada
 php back/sql/migrar.php            # registra las versiones base y aplica 0004
 ```
 
-Con las credenciales de Render en el entorno, desde la máquina de quien tenga
-acceso. Después de eso se mergea. Cualquier merge a `main` en el medio lo deja
+Con las credenciales de la base, desde la máquina de alguien del equipo: **una
+sesión en la nube no tiene esas credenciales, ni debe tenerlas**. Cuando el
+equipo confirme que corrieron, se mergea. Cualquier merge a `main` en el medio lo deja
 atrás y hay que rebasearlo (trampa 8).
 
 **Dependabot, al día.** Los cinco PR del lunes 2026-09-21 están resueltos: #26 y
@@ -201,9 +209,14 @@ navegador preinstalado es una compilación más vieja que la que pide el paquete
 `chrome-headless-shell`). Se resuelve armando enlaces simbólicos con los nombres
 nuevos apuntando a los binarios viejos y exportando `PLAYWRIGHT_BROWSERS_PATH`.
 
-Además, `humo.mjs` da **20/24 en la nube**: las cuatro que fallan son
-`ERR_CERT_AUTHORITY_INVALID` al cargar Google Fonts, por el proxy del entorno.
-**No es una regresión.** En el CI de GitHub da todas en verde.
+Además, `humo.mjs` da **24/28 en la nube**: las cuatro que fallan son las de
+"sin errores en consola", una por rol, por `ERR_CERT_AUTHORITY_INVALID` al
+cargar Google Fonts detrás del proxy del entorno. **No es una regresión.** En el
+CI de GitHub da 28/28.
+
+**Las trampas 9, 10, 11, 13, 17 y 21 son de la máquina local** (Windows,
+antivirus, `back/.env`): en la nube no aplican. La 12 y la 14 sí. En la nube tampoco hay `back/.env`, así que
+no hay forma de pegarle a producción por accidente, y así tiene que seguir.
 
 ---
 

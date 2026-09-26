@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/codigo-muerto-2` | `main` @ `9df1faa` (2026-09-26) | C-11, segunda parte: fuera `globals.css` e `ImageWithFallback.tsx` | #37 |
+| `claude/traspaso-nube` | `main` @ `9e0ee67` (2026-09-26) | `TRASPASO.md` al día para seguir en una sesión en la nube; la rama del #37 al historial | — |
 
 ### Reglas
 
@@ -109,6 +109,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/cierre-2026-09-23` | Cierre de la sesión del 2026-09-23: `TRASPASO.md` al día y la rama del #25 al historial | PR #34 |
 | `claude/registrar-decisiones` | DEC-04 postergada hasta cerrar la posible venta; B-10 y el entorno de Pages, hechos; el timeout del monitor, corregido | PR #35 |
 | `claude/codigo-muerto` | C-11: fuera 34 primitivos de shadcn, 37 dependencias del front que no usaba nadie y `JsonProyectoRepository`; `docs/STACK.md` | PR #36 |
+| `claude/codigo-muerto-2` | C-11, segunda parte: fuera `globals.css` e `ImageWithFallback.tsx`; #34, #35 y #36 al historial | PR #37 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
