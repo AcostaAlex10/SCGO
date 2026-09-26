@@ -19,6 +19,7 @@ se perdió.** Una sesión nueva empieza leyendo esto.
 | [docs/PLAN-PRODUCTO.md](PLAN-PRODUCTO.md) | **El backlog real.** Todo lo que falta, con prioridad y tamaño |
 | [docs/REQUERIMIENTOS.md](REQUERIMIENTOS.md) | Qué tiene que hacer el sistema (RF y RNF) |
 | [docs/ARQUITECTURA.md](ARQUITECTURA.md) | Cómo está construido |
+| [docs/STACK.md](STACK.md) | El stack en una página, con versiones |
 | [docs/OPERACION.md](OPERACION.md) | Cómo se despliega y se opera |
 
 El backlog **no se duplica acá**. Si algo cambia de estado, se anota en
@@ -90,9 +91,9 @@ de preparar el código en el #33. El próximo lunes llegan más: ver trampa 20.
 
 - **DEC-04 queda postergada** hasta que se cierre la posible venta del sistema
   (decisión del 2026-09-26). De ella dependen B-01 y B-02.
-- **#21:** se mergeó sin consulta (el permiso era solo para el PR del paso 1).
-  La recomendación es dejarlo: funciona, tiene pruebas y el monitor de B-04
-  depende de su `"db":"ok"`. Falta que el equipo lo confirme.
+- **#21: cerrado.** Se mergeó sin consulta (el permiso era solo para el PR del
+  paso 1), y el equipo decidió dejarlo el 2026-09-26: funciona, tiene pruebas y
+  el monitor de B-04 depende de su `"db":"ok"`.
 
 **Lo siguiente del plan, sin decisiones pendientes:** Ola 3 de
 `PLAN-PRODUCTO.md` (C-01, C-03, D-03, D-02, D-04, D-09). Conviene arrancarla

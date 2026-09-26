@@ -30,6 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
+| `claude/codigo-muerto` | `main` @ `debb8d9` (2026-09-26) | C-11: fuera 34 primitivos de shadcn, 37 dependencias del front que no usa nadie y `JsonProyectoRepository`; `docs/STACK.md` | #36 |
 | `claude/registrar-decisiones` | `main` @ `3dc885d` (2026-09-26) | DEC-04 postergada hasta cerrar la posible venta; B-10 y el entorno de Pages, hechos; el timeout del monitor, corregido | #35 |
 | `claude/cierre-2026-09-23` | `main` @ `f2a99c4` (2026-09-23) | Cierre de la sesión: `TRASPASO.md` al día y la rama del #25 al historial | #34 |
 

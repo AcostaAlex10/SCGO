@@ -16,6 +16,8 @@ schema. Start here:
   stories, RF01–RF28, RNF01–RNF10 and the real status of each. Check it before
   building anything, and update it when a requirement or its status changes.
 - `docs/ARQUITECTURA.md` — how the system is built.
+- `docs/STACK.md` — the tech stack in one page, with versions. Every front
+  dependency listed there is in use; `react-is` is a peer of recharts.
 - `docs/PLAN-PRODUCTO.md` — the prioritized roadmap. Work is picked from here.
 - `docs/OPERACION.md` — environments, where credentials live, known pitfalls.
 - `CONTRIBUTING.md` — branch and pull request rules.
