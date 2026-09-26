@@ -9,11 +9,10 @@ namespace Sgso;
  * eliminar y consultar proyectos de obra).
  *
  * Cualquier clase que implemente esta interfaz puede usarse en
- * ProyectoController sin cambiar una línea del controlador. Hoy la
- * implementación es JsonProyectoRepository (archivo data/proyectos.json).
- * Cuando esté lista la base MariaDB, se crea MySqlProyectoRepository
- * implementando estos mismos métodos con PDO, y se cambia una sola
- * línea en index.php.
+ * ProyectoController sin cambiar una línea del controlador. La
+ * implementación es MySqlProyectoRepository, con PDO. La primera versión
+ * guardaba los proyectos en un archivo JSON; se borró en C-11 porque ya
+ * no la usaba nada.
  */
 interface ProyectoRepositoryInterface
 {
