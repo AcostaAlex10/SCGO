@@ -3,8 +3,8 @@
 Todo lo que falta para que SCGO se pueda entregar y cobrar a Triwe, ordenado por
 prioridad.
 
-- **Actualizado:** 2026-09-23
-- **Base:** `main` @ `f2a99c4`
+- **Actualizado:** 2026-09-26
+- **Base:** `main` @ `057d078`
 - **Punto de partida:** [ADR-001](adr/ADR-001-stack.md) está completo. El backend ya
   tiene la base que le faltaba: Composer, 466 pruebas, PHPStan nivel 5, tabla de
   rutas y CI con cuatro jobs en verde (tres obligatorios; el de Docker es B-10).
@@ -59,6 +59,8 @@ decisión de ustedes, no de código.
 | **A-10** | P1 | **Hecho en el PR #13.** **Auditoría de dependencias en CI.** En el front, el CI falla por un aviso alto o crítico en las dependencias de producción; las 134 de desarrollo no lo frenan, para que un aviso en una herramienta no deje sin mergear ningún PR. En el back se auditan todas: no hay de producción y las 28 de desarrollo son de PHPUnit y PHPStan. Lo demás, y las actions, lo vigila Dependabot, agrupado por semana. | `ci.yml`, `dependabot.yml` | S | Claude |
 | **A-12** | P2 | **Límite de intentos por IP.** Detrás del proxy de Render todas las conexiones llegan con la misma IP de origen: limitar por ella bloquearía a todos los usuarios a la vez. Primero hay que confirmar qué cabecera agrega Render con la IP real, y que el cliente no la pueda falsificar. | `AuthController::login` | S | Claude |
 | **A-13** | P1 | **Hecho en el PR #12.** **`/auth/olvide` sin límite.** Como mucho un correo cada 5 minutos por cuenta. El límite es la condición del mismo UPDATE que guarda el token: preguntar primero y escribir después dejaba pasar juntos a veinte pedidos simultáneos, que es justo el ataque. Pasado el límite responde lo mismo de siempre, sin mandar el correo: un 429 delataría qué emails tienen cuenta. | `AuthController::olvide` | S | Claude |
+| **A-14** | **P0** | **Una baja o un cambio de rol no revoca el acceso.** Encontrado en C-01 (PR #39). Cada pedido autenticado solo verifica la firma y el vencimiento del JWT (`exigirAutenticacion` en `index.php`): no mira `activo`, ni `sesion_token`, ni el rol actual, y `exigirRol` usa el rol grabado en el token al hacer login. Tres consecuencias, durante las 8 horas que dura el token: un usuario **dado de baja sigue usando la API**; un administrador **degradado conserva el rol de administrador y puede volver a asignárselo**, porque la guarda de "uno mismo" de `UsuarioController` no prohíbe subirse el rol; y restablecer la contraseña no corta un token robado, aunque el código pone `sesion_token = NULL` para eso. Hoy la sesión única la hace cumplir solo el front, a través de `/auth/yo`. Solución: que la autenticación de cada pedido lea el usuario de la base, rechace si está inactivo o si el `sid` no coincide, y use el rol de la base. | `index.php`, `AuthMiddleware` | S | Claude |
+| **A-15** | P2 | **RF20 se decide por lista negra.** `AnalisisController` y `ProyectoController` ocultan los costos solo si el rol es exactamente `PersonalTecnico`: cualquier otro los ve, así que un rol nuevo vería costos por defecto. Es la única regla de roles que no vive en `Sgso\Reglas\Permisos`. Pasarla ahí como lista blanca de quién sí ve costos. Ningún rol actual está afectado. | `AnalisisController`, `ProyectoController` | S | Claude |
 | **A-11** | P1 | **Pentest antes de la entrega.** Las skills de Strix están instaladas y generan el informe que suele pedir un cliente. Necesita Docker, pendiente en esta máquina. | — | M | Claude |
 
 ---
@@ -84,7 +86,7 @@ decisión de ustedes, no de código.
 
 | # | P | Problema | Tamaño | Quién |
 |---|---|---|---|---|
-| **C-01** | P1 | **13 de 16 controladores sin pruebas de integración.** Primero los que tocan plata o stock: `MaterialObraController`, `AnalisisController` y `UsuarioController` (la regla de "siempre al menos un administrador"). | L | Codex, con specs de Claude |
+| **C-01** | P1 | **Pruebas de integración de los controladores.** Tienen 8 de 16: `AuthController`, `DocumentoController`, `InactividadController`, `ProyectoController` y `ReporteController` de antes, y desde el PR #39 los tres que tocan plata, stock o el acceso: `MaterialObraController`, `AnalisisController` (con RF20 contra el backend real, que hasta ahí solo probaba el simulador) y `UsuarioController` (la regla de "siempre al menos un administrador"). **Quedan 8:** `AvanceController`, `PlanificacionController` y `EtapaPlanificacionController` (el avance esperado y lo que mueve el estado de la obra), `AsistenciaController`, `IncidenciaController`, `ItemExcedenteController`, `MaquinariaController` y `MaterialController`. Las del #39 encontraron A-14 y A-15. | L | Codex, con specs de Claude |
 | **C-02** | P1 | **Contrato de la API duplicado.** `mock/servidor.ts` (1.344 líneas) reimplementa el backend a mano y ya se desincronizó tres veces. Definir el contrato una vez (OpenAPI) y verificar las dos implementaciones contra él. | L | Claude + Codex |
 | **C-03** | P1 | **Sin paginación.** No hay un solo `LIMIT` en el backend: todo listado trae la tabla entera. Afecta RNF08. | M | Codex |
 | **C-04** | P2 | **Sin linter en el front**, y el paquete se sigue llamando `@figma/my-make-file`. ESLint, Prettier y renombrarlo. | S | Codex |
@@ -150,7 +152,9 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 2. ~~**A-01, A-02 y A-04**~~ (PR #10) y ~~**A-03**~~ (PR #11). Hechos, cada uno
    con una prueba que falló antes del arreglo.
 3. ~~**A-05, A-07 y A-13**~~ (PR #12) y ~~**A-06, A-10 y B-09**~~ (PR #13). A-08 se
-   hizo en el PR #10. Falta **B-10**, que es un cambio de configuración en GitHub.
+   hizo en el PR #10. ~~**B-10**~~ se hizo en GitHub el 2026-09-26.
+4. **A-14**, encontrado por las pruebas de C-01 (PR #39): que una baja o un cambio
+   de rol corten el acceso en el momento, y no cuando vence el token.
 
 ### Ola 2 — Producción que aguante
 
@@ -198,3 +202,4 @@ del arreglo, CI en verde, el simulador al día y el número de PR anotado acá.
 | 2026-09-23 | Mergeados #22, #24, #25, #32 y #33 contra `main`, y #31 contra `testing`, que vuelve a publicar la demo de los testers. Mergeados #27 (TypeScript 7) y #29 (recharts 3) de Dependabot, que pasaron solos después del #33. Queda abierto #23 (B-03), que espera que se corran las migraciones en Aiven. |
 | 2026-09-26 | C-11 hecho (PR #36): fuera 34 primitivos, 37 dependencias del front (de 52 quedan 16, todas en uso) y `JsonProyectoRepository`. Nuevo `docs/STACK.md`. DEC-04 postergada hasta cerrar la posible venta (PR #35); el #21 queda cerrado. |
 | 2026-09-26 | C-11, segunda parte (PR #37): fuera `globals.css` e `ImageWithFallback.tsx`, con el visto bueno del equipo. |
+| 2026-09-26 | C-01, primera parte (PR #39): 38 pruebas de integración para `MaterialObraController`, `AnalisisController` y `UsuarioController`; RF20 pasa a tener prueba contra el backend real. Quedan 8 controladores. Las pruebas encontraron **A-14** (P0: una baja o un cambio de rol no revoca el token, y un administrador degradado puede volver a asignarse el rol) y **A-15** (P2: RF20 por lista negra). |
