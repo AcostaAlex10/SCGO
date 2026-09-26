@@ -79,16 +79,17 @@ export default function Root() {
     return () => { vivo = false; clearInterval(t); };
   }, [location.pathname]);
 
-  // Sesion unica: chequeamos contra el backend si nuestra sesion sigue activa.
-  // Si alguien inicio sesion con la misma cuenta en otro lado, /auth/me devuelve
-  // 401 y cerramos sesion aca. Se revisa al entrar y cada 45 segundos.
+  // Sesion vigente: chequeamos contra el backend si nuestra sesion sigue activa.
+  // /auth/me devuelve 401 si alguien inicio sesion con la misma cuenta en otro
+  // lado, o si un administrador dio de baja la cuenta o le cambio el rol (A-14),
+  // y entonces cerramos sesion aca. Se revisa al entrar y cada 45 segundos.
   useEffect(() => {
     let cancelado = false;
     async function verificarSesion() {
       try {
         const res = await apiFetch("/auth/me");
         if (!cancelado && res.status === 401) {
-          toast.error("Tu sesión se cerró: se inició sesión en otro dispositivo.");
+          toast.error("Tu sesión se cerró: se inició en otro dispositivo o cambiaron tus permisos.");
           clearSession();
           navigate("/login", { replace: true });
         }

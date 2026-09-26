@@ -269,7 +269,7 @@ if ($resultado->estado === Resolucion::METODO_NO_PERMITIDO) {
     // En un camino protegido el token va primero, como en el ruteo anterior:
     // si no, un anonimo podria mapear la API a fuerza de probar metodos.
     if (!Despachador::caminoEsPublico($ruta, Tabla::rutas())) {
-        exigirAutenticacion($jwtSecreto);
+        exigirAutenticacion($jwtSecreto, $db);
     }
     responder(405, ['error' => 'Metodo no permitido']);
     exit;
@@ -286,7 +286,7 @@ if ($rutaDeclarada === null) {
 // Una ruta publica no lleva roles: lo garantiza la prueba de la tabla.
 $usuario = null;
 if (!$rutaDeclarada->publica) {
-    $usuario = exigirAutenticacion($jwtSecreto);
+    $usuario = exigirAutenticacion($jwtSecreto, $db);
     if ($rutaDeclarada->roles !== null) {
         exigirRol($usuario, $rutaDeclarada->roles);
     }
@@ -314,16 +314,17 @@ function responder(int $codigo, mixed $cuerpo): void
 }
 function noAutenticado(): void
 {
-    responder(401, ['error' => 'Falta el token de autenticacion']);
+    responder(401, ['error' => 'Tu sesión no es válida. Iniciá sesión de nuevo.']);
 }
 /**
- * Exige un token valido. Si no lo hay, corta con 401. Devuelve el payload
- * del usuario (id_usuario, email, rol) para usarlo en las guardas de rol.
+ * Exige una sesion vigente. Si no la hay, corta con 401. Devuelve el payload
+ * del usuario (id_usuario, email, rol) para usarlo en las guardas de rol, con
+ * el rol de la base y no el del token (A-14).
  * @return array<string, mixed>
  */
-function exigirAutenticacion(string $secreto): array
+function exigirAutenticacion(string $secreto, PDO $db): array
 {
-    $usuario = AuthMiddleware::usuarioAutenticado($secreto);
+    $usuario = AuthMiddleware::usuarioAutenticado($secreto, $db);
     if ($usuario === null) { noAutenticado(); exit; }
     return $usuario;
 }
