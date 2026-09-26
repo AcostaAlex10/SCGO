@@ -30,9 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/codigo-muerto` | `main` @ `debb8d9` (2026-09-26) | C-11: fuera 34 primitivos de shadcn, 37 dependencias del front que no usa nadie y `JsonProyectoRepository`; `docs/STACK.md` | #36 |
-| `claude/registrar-decisiones` | `main` @ `3dc885d` (2026-09-26) | DEC-04 postergada hasta cerrar la posible venta; B-10 y el entorno de Pages, hechos; el timeout del monitor, corregido | #35 |
-| `claude/cierre-2026-09-23` | `main` @ `f2a99c4` (2026-09-23) | Cierre de la sesión: `TRASPASO.md` al día y la rama del #25 al historial | #34 |
+| `claude/codigo-muerto-2` | `main` @ `9df1faa` (2026-09-26) | C-11, segunda parte: fuera `globals.css` e `ImageWithFallback.tsx` | #37 |
 
 ### Reglas
 
@@ -108,6 +106,9 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/preparar-dependabot` | Triaje de los PR de Dependabot #26 a #30: fuera `motion` y `react-responsive-masonry`, y el código listo para TypeScript 7 y recharts 3 | PR #33 |
 | `claude/monitoreo-errores` | B-04: el log dice qué pedido falló y los errores van a Sentry, sin SDK | PR #24 |
 | `claude/staging-decision` | B-02 queda bloqueado por DEC-04, y el CI verifica el `connect-src` de la CSP | PR #25 |
+| `claude/cierre-2026-09-23` | Cierre de la sesión del 2026-09-23: `TRASPASO.md` al día y la rama del #25 al historial | PR #34 |
+| `claude/registrar-decisiones` | DEC-04 postergada hasta cerrar la posible venta; B-10 y el entorno de Pages, hechos; el timeout del monitor, corregido | PR #35 |
+| `claude/codigo-muerto` | C-11: fuera 34 primitivos de shadcn, 37 dependencias del front que no usaba nadie y `JsonProyectoRepository`; `docs/STACK.md` | PR #36 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
