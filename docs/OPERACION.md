@@ -187,13 +187,19 @@ repositorio:
 | URL | `https://ingenieria-en-software-proyecto.onrender.com/api/health` |
 | Intervalo | 5 minutos |
 | Se espera | HTTP 200 y que el cuerpo contenga `"db":"ok"` |
-| Timeout | **60 segundos**, no el valor por defecto |
+| Timeout | **60 segundos, si el plan lo permite** (ver abajo) |
 | Avisa a | al menos dos personas del equipo |
 
-> **El timeout largo no es capricho.** En el plan gratuito Render suspende el
-> servicio tras unos minutos sin uso, y la primera respuesta puede tardar cerca
-> de un minuto. Con el timeout por defecto (30 s o menos) el monitor avisaría
-> de caídas que no existen, y a la tercera alerta falsa nadie las mira.
+> **Por qué importa el timeout.** En el plan gratuito Render suspende el
+> servicio a los 15 minutos sin uso, y la primera respuesta puede tardar cerca
+> de un minuto (el 2026-09-24 tardó 33 segundos). Con un timeout corto, esa
+> espera parece una caída.
+>
+> En UptimeRobot el timeout está entre las opciones avanzadas del monitor, y no
+> está claro que el plan gratis permita cambiarlo. Si no aparece, no es grave:
+> con un chequeo cada 5 minutos el servicio no llega a dormirse, así que la
+> espera larga solo pasa después de un deploy. Como mucho, una alerta falsa en
+> ese momento.
 >
 > Como efecto secundario, un chequeo cada 5 minutos mantiene el servicio
 > despierto casi todo el tiempo. Eso ayuda con RNF03, pero consume horas del

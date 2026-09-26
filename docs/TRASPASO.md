@@ -75,20 +75,24 @@ atrás y hay que rebasearlo (trampa 8).
 el #33), #28 cerrado (React 19 sin `react-dom`), y #27 y #29 mergeados después
 de preparar el código en el #33. El próximo lunes llegan más: ver trampa 20.
 
-**Configuración pendiente, del equipo, no de código:**
+**Configuración del equipo:**
 
-- **Settings → Environments → github-pages: dejar solo `testing`.** Verificado
-  el 2026-09-23: todavía admite `main` y `testing`, así que un disparo manual
-  del workflow sobre `main` sigue pudiendo pisar la demo (trampa 15).
-- **B-10: agregar "Imagen Docker (arranque seguro)" a los chequeos obligatorios**
-  del ruleset de `main`. Verificado el 2026-09-23: hoy son solo Backend,
-  Frontend y Playwright.
-- **B-04:** poner `SENTRY_DSN` en Render → Environment y crear el monitor
-  externo con los valores de `OPERACION.md` §5. Hasta entonces el envío a Sentry
-  queda apagado, que es lo previsto.
+- **Hecho el 2026-09-26:** el entorno `github-pages` admite solo `testing`, y
+  el ruleset "Proteger main" exige los cuatro chequeos, incluido el de Docker
+  (B-10). Verificado contra la API de GitHub.
+- **Pendiente, B-04:** poner `SENTRY_DSN` en Render → Environment ("Save and
+  deploy") y crear el monitor externo con los valores de `OPERACION.md` §5.
+  Antes del monitor, confirmar que el workspace de Render no tenga **otro
+  servicio web gratuito**: el monitor mantiene producción despierta y consume
+  casi todas las 750 horas del mes, y si se agotan Render suspende todo.
 
-**Decisiones pendientes:** si se revierte el #21 (B-05 se mergeó sin consulta: el
-permiso era solo para el PR del paso 1), y DEC-04, de la que dependen B-01 y B-02.
+**Decisiones:**
+
+- **DEC-04 queda postergada** hasta que se cierre la posible venta del sistema
+  (decisión del 2026-09-26). De ella dependen B-01 y B-02.
+- **#21:** se mergeó sin consulta (el permiso era solo para el PR del paso 1).
+  La recomendación es dejarlo: funciona, tiene pruebas y el monitor de B-04
+  depende de su `"db":"ok"`. Falta que el equipo lo confirme.
 
 **Lo siguiente del plan, sin decisiones pendientes:** Ola 3 de
 `PLAN-PRODUCTO.md` (C-01, C-03, D-03, D-02, D-04, D-09). Conviene arrancarla
@@ -179,6 +183,13 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
     paquete, el CI pasa aunque la versión nueva rompa todo: pasó con el #19, el
     #26 y el #30. Antes de mergear uno, `git grep` del paquete en `FRONT/src`.
     Si no aparece, la respuesta es sacar la dependencia, no subirla.
+21. **Para probar un DSN de Sentry desde esta máquina, PHP no sirve.** No puede
+    abrir HTTPS por el antivirus (trampa 11), y además el transporte de
+    `Sgso\Monitoreo\Sentry` se traga los errores a propósito, así que un
+    `true` no prueba nada. Lo que funciona es armar el evento con esa clase,
+    pasándole un transporte que lo guarde, y mandarlo con `curl.exe` de
+    Windows, que sí pasa el antivirus: así se hizo el 2026-09-26. La prueba de
+    verdad es verlo aparecer en Sentry → Issues.
 
 ### Si la sesión corre en la nube y no en tu máquina
 
