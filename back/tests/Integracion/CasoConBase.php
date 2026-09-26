@@ -141,6 +141,21 @@ abstract class CasoConBase extends TestCase
         ];
     }
 
+    /**
+     * Compara un numero de la respuesta. `json_encode` manda los valores enteros
+     * sin decimales (`100`, no `100.0`), asi que al decodificarlos llegan como
+     * int: lo que importa es que sea un numero y no un string, y que valga lo
+     * esperado. La tolerancia de un milesimo sigue detectando un centavo de error.
+     */
+    protected static function assertNumero(float $esperado, mixed $real, string $mensaje = ''): void
+    {
+        self::assertTrue(
+            is_int($real) || is_float($real),
+            ($mensaje !== '' ? $mensaje . ': ' : '') . 'se esperaba un número y llegó ' . get_debug_type($real)
+        );
+        self::assertEqualsWithDelta($esperado, (float) $real, 0.001, $mensaje);
+    }
+
     // ----------------------------------------------------------------
     //  Datos de prueba
     // ----------------------------------------------------------------
@@ -187,6 +202,38 @@ abstract class CasoConBase extends TestCase
             'INSERT INTO periodo_inactividad (id_proyecto, fecha_inicio, fecha_fin, motivo) VALUES (?, ?, ?, ?)'
         );
         $stmt->execute([$idProyecto, $inicio, $fin, 'Lluvia']);
+
+        return (int) $this->base()->lastInsertId();
+    }
+
+    /**
+     * Un material del catalogo. `schema.sql` precarga el catalogo, pero cada
+     * prueba vacia las tablas, asi que el que haga falta se crea aca.
+     */
+    protected function crearMaterial(string $nombre = 'Cemento', string $unidad = 'bolsa'): int
+    {
+        $stmt = $this->base()->prepare('INSERT INTO material (nombre, unidad) VALUES (?, ?)');
+        $stmt->execute([$nombre, $unidad]);
+
+        return (int) $this->base()->lastInsertId();
+    }
+
+    protected function asignarMaterial(int $idProyecto, int $idMaterial, float $cantidad): int
+    {
+        $stmt = $this->base()->prepare(
+            'INSERT INTO asignacion_material (id_proyecto, id_material, cantidad_asignada) VALUES (?, ?, ?)'
+        );
+        $stmt->execute([$idProyecto, $idMaterial, $cantidad]);
+
+        return (int) $this->base()->lastInsertId();
+    }
+
+    protected function registrarConsumo(int $idAsignacion, float $cantidad, string $fecha = '2026-03-01'): int
+    {
+        $stmt = $this->base()->prepare(
+            'INSERT INTO consumo_material (id_asignacion, fecha, cantidad_consumida) VALUES (?, ?, ?)'
+        );
+        $stmt->execute([$idAsignacion, $fecha, $cantidad]);
 
         return (int) $this->base()->lastInsertId();
     }
