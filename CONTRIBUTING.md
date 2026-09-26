@@ -30,6 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
+| `claude/registrar-decisiones` | `main` @ `3dc885d` (2026-09-26) | DEC-04 postergada hasta cerrar la posible venta; B-10 y el entorno de Pages, hechos; el timeout del monitor, corregido | — |
 | `claude/cierre-2026-09-23` | `main` @ `f2a99c4` (2026-09-23) | Cierre de la sesión: `TRASPASO.md` al día y la rama del #25 al historial | #34 |
 
 ### Reglas
