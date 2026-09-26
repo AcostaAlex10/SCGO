@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/traspaso-nube` | `main` @ `9e0ee67` (2026-09-26) | `TRASPASO.md` al día para seguir en una sesión en la nube; la rama del #37 al historial | #38 |
+| `claude/pruebas-controladores` | `main` @ `057d078` (2026-09-26) | C-01, primera parte: pruebas de integración de `MaterialObraController`, `AnalisisController` y `UsuarioController`; la rama del #38 al historial | — |
 
 ### Reglas
 
