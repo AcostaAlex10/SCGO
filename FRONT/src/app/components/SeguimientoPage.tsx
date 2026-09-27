@@ -12,7 +12,8 @@ import {
   listarProyectos,
   listarAsistencias, crearAsistencia, eliminarAsistencia,
   listarIncidencias, crearIncidencia, eliminarIncidencia,
-  type Proyecto, type Asistencia, type Incidencia,
+  paginaVacia, sumarPagina, quitarDePagina,
+  type Proyecto, type Asistencia, type Incidencia, type Pagina,
   type EstadoAsistencia, type TipoIncidencia, type GravedadIncidencia,
 } from "../api/proyectos";
 import { puedeRegistrarAvance } from "../auth/permisos";
@@ -30,7 +31,7 @@ const GRAVEDAD_INC: Record<GravedadIncidencia, { label: string; color: string }>
 export default function SeguimientoPage() {
   const [proyectos, setProyectos] = useState<Proyecto[]>([]);
   const [obra, setObra] = useState("");
-  const [asistencias, setAsistencias] = useState<Asistencia[]>([]);
+  const [asistencias, setAsistencias] = useState<Pagina<Asistencia>>(paginaVacia());
   const [incidencias, setIncidencias] = useState<Incidencia[]>([]);
   const [formAsis, setFormAsis] = useState<{ trabajador: string; estado: EstadoAsistencia; fecha: string; justificacion: string }>({ trabajador: "", estado: "presente", fecha: hoy(), justificacion: "" });
   const [formInc, setFormInc] = useState<{ tipo: TipoIncidencia; gravedad: GravedadIncidencia; fecha: string; descripcion: string; dias_retraso: string }>({ tipo: "clima", gravedad: "media", fecha: hoy(), descripcion: "", dias_retraso: "" });
@@ -38,7 +39,7 @@ export default function SeguimientoPage() {
 
   useEffect(() => { listarProyectos().then(setProyectos).catch(() => {}); }, []);
   useEffect(() => {
-    if (!obra) { setAsistencias([]); setIncidencias([]); return; }
+    if (!obra) { setAsistencias(paginaVacia()); setIncidencias([]); return; }
     listarAsistencias(obra).then(setAsistencias).catch(() => {});
     listarIncidencias(obra).then(setIncidencias).catch(() => {});
   }, [obra]);
@@ -49,6 +50,12 @@ export default function SeguimientoPage() {
       await crearAsistencia(obra, { fecha: formAsis.fecha, trabajador: formAsis.trabajador, estado: formAsis.estado, justificacion: formAsis.justificacion || undefined });
       toast.success("Asistencia registrada"); setFormAsis({ trabajador: "", estado: "presente", fecha: hoy(), justificacion: "" });
       setAsistencias(await listarAsistencias(obra));
+    } catch (err) { toast.error(err instanceof Error ? err.message : "Error"); }
+  }
+  async function verMasAsis() {
+    try {
+      const siguiente = await listarAsistencias(obra, asistencias.filas.length);
+      setAsistencias((vista) => sumarPagina(vista, siguiente, "id_asistencia"));
     } catch (err) { toast.error(err instanceof Error ? err.message : "Error"); }
   }
   async function guardarInc(e: React.FormEvent) {
@@ -93,14 +100,19 @@ export default function SeguimientoPage() {
                   {formAsis.estado !== "presente" && <div className="space-y-2 md:col-span-5"><Label>Justificación</Label><Input value={formAsis.justificacion} onChange={(e) => setFormAsis({ ...formAsis, justificacion: e.target.value })} placeholder="Motivo" /></div>}
                 </form>
               )}
-              {asistencias.length === 0 ? <p className="text-muted-foreground text-sm">Sin asistencias registradas.</p> : (
-                <div className="space-y-2">{asistencias.map((a) => { const i = ESTADO_ASIS[a.estado]; return (
+              {asistencias.filas.length === 0 ? <p className="text-muted-foreground text-sm">Sin asistencias registradas.</p> : (
+                <div className="space-y-2">{asistencias.filas.map((a) => { const i = ESTADO_ASIS[a.estado]; return (
                   <div key={a.id_asistencia} className="flex items-center gap-3 border rounded-md px-4 py-2 text-sm">
                     <span className="text-muted-foreground w-24">{fmtFecha(a.fecha)}</span>
                     <span className="font-medium">{a.trabajador}</span><Badge style={{ background: i.color }}>{i.label}</Badge>
                     <span className="text-muted-foreground flex-1 truncate">{a.justificacion ?? ""}</span>
-                    {registra && <Button size="sm" variant="ghost" onClick={() => eliminarAsistencia(a.id_asistencia).then(() => setAsistencias((p) => p.filter((x) => x.id_asistencia !== a.id_asistencia))).catch(() => toast.error("Error"))}><Trash2 className="w-4 h-4" style={{ color: "#ef4444" }} /></Button>}
+                    {registra && <Button size="sm" variant="ghost" onClick={() => eliminarAsistencia(a.id_asistencia).then(() => setAsistencias((p) => quitarDePagina(p, (x) => x.id_asistencia === a.id_asistencia))).catch(() => toast.error("Error"))}><Trash2 className="w-4 h-4" style={{ color: "#ef4444" }} /></Button>}
                   </div>); })}</div>
+              )}
+              {asistencias.hayMas && (
+                <Button variant="outline" size="sm" onClick={verMasAsis}>
+                  Ver más{asistencias.total !== null && ` (${asistencias.filas.length} de ${asistencias.total})`}
+                </Button>
               )}
             </CardContent>
           </Card>

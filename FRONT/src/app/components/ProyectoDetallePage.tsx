@@ -20,6 +20,7 @@ import {
   listarDocumentos, crearDocumento, eliminarDocumento,
   listarInactividades, crearInactividad, cerrarInactividad, eliminarInactividad,
   listarExcedentes, crearExcedente, eliminarExcedente,
+  paginaVacia, sumarPagina, quitarDePagina, type Pagina,
   type Proyecto, type Planificacion, type Avance, type Resumen,
   type EtapaPlanificacion,
   type Asistencia, type Incidencia, type EstadoAsistencia,
@@ -79,7 +80,7 @@ export default function ProyectoDetallePage() {
   const [formEditEtapa, setFormEditEtapa] = useState({ nombre: "", peso_porcentual: "", fecha_inicio: "", fecha_fin: "", presupuesto_base: "" });
 
   // Seguimiento operativo (Sprint 2): asistencia (RF06) e incidencias (RF09).
-  const [asistencias, setAsistencias] = useState<Asistencia[]>([]);
+  const [asistencias, setAsistencias] = useState<Pagina<Asistencia>>(paginaVacia());
   const [incidencias, setIncidencias] = useState<Incidencia[]>([]);
   const [formAsis, setFormAsis] = useState<{ trabajador: string; estado: EstadoAsistencia; fecha: string; justificacion: string }>(
     { trabajador: "", estado: "presente", fecha: hoy(), justificacion: "" }
@@ -264,9 +265,18 @@ export default function ProyectoDetallePage() {
   async function borrarAsistencia(idA: number) {
     try {
       await eliminarAsistencia(idA);
-      setAsistencias((prev) => prev.filter((a) => a.id_asistencia !== idA));
+      setAsistencias((prev) => quitarDePagina(prev, (a) => a.id_asistencia === idA));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error al eliminar");
+    }
+  }
+  async function verMasAsistencias() {
+    if (!id) return;
+    try {
+      const siguiente = await listarAsistencias(id, asistencias.filas.length);
+      setAsistencias((vista) => sumarPagina(vista, siguiente, "id_asistencia"));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudieron cargar más asistencias");
     }
   }
 
@@ -829,11 +839,11 @@ export default function ProyectoDetallePage() {
               )}
             </form>
           )}
-          {asistencias.length === 0 ? (
+          {asistencias.filas.length === 0 ? (
             <p className="text-muted-foreground text-sm">Todavía no hay asistencias registradas.</p>
           ) : (
             <div className="space-y-2">
-              {asistencias.map((a) => {
+              {asistencias.filas.map((a) => {
                 const info = ESTADO_ASIS[a.estado];
                 return (
                   <div key={a.id_asistencia} className="flex items-center gap-3 border rounded-md px-4 py-2 text-sm">
@@ -850,6 +860,11 @@ export default function ProyectoDetallePage() {
                 );
               })}
             </div>
+          )}
+          {asistencias.hayMas && (
+            <Button variant="outline" size="sm" className="mt-3" onClick={verMasAsistencias}>
+              Ver más{asistencias.total !== null && ` (${asistencias.filas.length} de ${asistencias.total})`}
+            </Button>
           )}
         </CardContent>
       </Card>

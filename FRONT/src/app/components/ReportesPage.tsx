@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -14,8 +14,8 @@ import { toast } from "sonner";
 import {
   listarReportes, crearReporte, editarReporte, enviarReporte,
   aprobarReporte, rechazarReporte, eliminarReporte,
-  listarProyectos,
-  type Reporte, type EstadoReporte, type Proyecto,
+  listarProyectos, paginaVacia, sumarPagina,
+  type Reporte, type EstadoReporte, type Proyecto, type Pagina,
 } from "../api/proyectos";
 import { puedeCargarDocumentos, puedeAprobarReportes } from "../auth/permisos";
 
@@ -35,7 +35,7 @@ const FILTROS: { valor: string; label: string }[] = [
 ];
 
 export default function ReportesPage() {
-  const [reportes, setReportes] = useState<Reporte[]>([]);
+  const [reportes, setReportes] = useState<Pagina<Reporte>>(paginaVacia());
   const [proyectos, setProyectos] = useState<Proyecto[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState("");
@@ -50,22 +50,36 @@ export default function ReportesPage() {
   const cargaReportes = puedeCargarDocumentos();
   const aprueba = puedeAprobarReportes();
 
+  // El filtro por estado lo aplica la API, que pagina (C-03). Si se cambia de
+  // filtro antes de que llegue la respuesta anterior, esa se descarta.
+  const pedido = useRef(0);
   async function cargar() {
+    const este = ++pedido.current;
     setLoading(true);
     try {
-      setReportes(await listarReportes());
+      const pagina = await listarReportes(filtro);
+      if (este === pedido.current) setReportes(pagina);
     } catch {
       toast.error("No se pudieron cargar los reportes");
     } finally {
-      setLoading(false);
+      if (este === pedido.current) setLoading(false);
+    }
+  }
+  async function verMas() {
+    const este = pedido.current;
+    try {
+      const siguiente = await listarReportes(filtro, reportes.filas.length);
+      if (este === pedido.current) setReportes((vista) => sumarPagina(vista, siguiente, "id_reporte"));
+    } catch {
+      toast.error("No se pudieron cargar más reportes");
     }
   }
   useEffect(() => {
-    cargar();
     listarProyectos().then(setProyectos).catch(() => {});
   }, []);
-
-  const visibles = filtro ? reportes.filter((r) => r.estado === filtro) : reportes;
+  useEffect(() => {
+    cargar();
+  }, [filtro]);
 
   async function guardarNuevo(e: React.FormEvent) {
     e.preventDefault();
@@ -153,12 +167,12 @@ export default function ReportesPage() {
 
       {loading && <div className="text-center text-muted-foreground py-12">Cargando reportes...</div>}
 
-      {!loading && visibles.length === 0 && (
+      {!loading && reportes.filas.length === 0 && (
         <Card><CardContent className="py-12 text-center text-muted-foreground">No hay reportes para mostrar.</CardContent></Card>
       )}
 
       <div className="space-y-4">
-        {visibles.map((r) => {
+        {reportes.filas.map((r) => {
           const est = ESTADOS[r.estado];
           const editable = r.estado === "borrador" || r.estado === "rechazado";
           return (
@@ -216,6 +230,14 @@ export default function ReportesPage() {
           );
         })}
       </div>
+
+      {!loading && reportes.hayMas && (
+        <div className="text-center">
+          <Button variant="outline" onClick={verMas}>
+            Ver más{reportes.total !== null && ` (${reportes.filas.length} de ${reportes.total})`}
+          </Button>
+        </div>
+      )}
 
       {/* Dialog: nuevo reporte */}
       <Dialog open={dialogNuevo} onOpenChange={setDialogNuevo}>

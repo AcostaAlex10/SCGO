@@ -42,7 +42,7 @@ const api = (metodo, ruta, cuerpo = null) => page.evaluate(async ([m, r, c]) => 
   });
   let datos = null;
   try { datos = await res.json(); } catch { /* respuesta sin cuerpo */ }
-  return { estado: res.status, datos };
+  return { estado: res.status, datos, total: res.headers.get('X-Total-Count') };
 }, [metodo, ruta, cuerpo]);
 
 const estadoObra = async (id) => (await api('GET', `/proyectos/${id}`)).datos?.estado;
@@ -211,6 +211,54 @@ chequear('una falla sin fecha devuelve 422', r.estado === 422, `dio ${r.estado}`
 
 r = await api('POST', '/maquinaria/1/registros', { fecha: '2026-03-01', horas_uso: 4, combustible_consumido: 20 });
 chequear('un registro de maquinaria valido se acepta', r.estado === 201, `dio ${r.estado}`);
+
+// ---- 10. Los listados que crecen se paginan a pedido (C-03) ----
+// Sin ?limite= van enteros, como siempre. Con limite y desde, la pagina y el
+// total en X-Total-Count, en el mismo orden que la API: lo mas reciente primero.
+const todos = await api('GET', '/reportes');
+chequear('sin pedir pagina, los reportes van enteros y sin total',
+  todos.estado === 200 && todos.datos.length >= 3 && todos.total === null, `dio ${todos.datos?.length} y ${todos.total}`);
+const fechas = todos.datos.map((x) => x.fecha_creacion);
+chequear('los reportes van del mas reciente al mas viejo',
+  fechas.every((f, i) => i === 0 || fechas[i - 1] >= f), fechas.join(', '));
+
+const ids = (lista) => lista.map((x) => x.id_reporte).join(',');
+r = await api('GET', '/reportes?limite=2');
+chequear('la primera pagina trae las dos mas recientes y el total',
+  ids(r.datos) === ids(todos.datos.slice(0, 2)) && r.total === String(todos.datos.length), `dio ${ids(r.datos)} y ${r.total}`);
+r = await api('GET', '/reportes?limite=2&desde=2');
+chequear('la segunda pagina sigue donde termino la primera',
+  ids(r.datos) === ids(todos.datos.slice(2, 4)), `dio ${ids(r.datos)}`);
+
+const reportesEnRevision = todos.datos.filter((x) => x.estado === 'en_revision').length;
+r = await api('GET', '/reportes?estado=en_revision&limite=1');
+chequear('el total respeta el filtro por estado',
+  r.datos.length === 1 && r.total === String(reportesEnRevision), `dio ${r.total}, esperaba ${reportesEnRevision}`);
+
+r = await api('GET', '/proyectos/2/asistencias?limite=abc');
+chequear('un limite que no es un numero devuelve 422', r.estado === 422 && Boolean(r.datos?.errors?.limite), `dio ${r.estado}`);
+r = await api('GET', '/proyectos/2/asistencias?limite=5&desde=-1');
+chequear('un desde negativo devuelve 422', r.estado === 422 && Boolean(r.datos?.errors?.desde), `dio ${r.estado}`);
+
+// En pantalla: la obra 2 con mas asistencias que una pagina muestra la primera
+// y ofrece el resto, con el total real.
+for (let i = 0; i < 52; i++) {
+  await api('POST', '/proyectos/2/asistencias', { fecha: '2026-03-01', trabajador: `Operario ${i}`, estado: 'presente' });
+}
+const asistenciasObra2 = (await api('GET', '/proyectos/2/asistencias')).datos.length;
+await page.goto(BASE + '#/proyectos/2', { waitUntil: 'networkidle' });
+await page.waitForTimeout(1500);
+const verMas = page.getByRole('button', { name: /Ver más/ });
+chequear('la obra muestra el boton para ver mas asistencias con el total',
+  (await verMas.count()) === 1 && (await verMas.innerText()).includes(`50 de ${asistenciasObra2}`),
+  (await verMas.count()) ? await verMas.innerText() : 'sin boton');
+if (await verMas.count()) {
+  await verMas.click();
+  await page.waitForTimeout(800);
+}
+chequear('ver mas trae el resto y el boton desaparece',
+  (await page.getByText(/^Operario \d+$/).count()) === 52 && (await verMas.count()) === 0,
+  `se ven ${await page.getByText(/^Operario \d+$/).count()}`);
 
 await nav.close();
 console.log(`\n${ok.length}/${ok.length + mal.length} OK`);

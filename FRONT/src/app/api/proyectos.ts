@@ -171,6 +171,49 @@ async function parse<T>(res: Response): Promise<T> {
   return data as T;
 }
 
+/**
+ * Una pagina de un listado que crece con el tiempo (C-03). La API la devuelve
+ * con `?limite=&desde=`, y el total en el encabezado `X-Total-Count`.
+ */
+export interface Pagina<T> {
+  filas: T[];
+  total: number | null;
+  hayMas: boolean;
+}
+export const TAMANO_PAGINA = 50;
+
+async function pedirPagina<T>(ruta: string, desde: number): Promise<Pagina<T>> {
+  const separador = ruta.includes("?") ? "&" : "?";
+  const res = await apiFetch(`${ruta}${separador}limite=${TAMANO_PAGINA}&desde=${desde}`);
+  const filas = await parse<T[]>(res);
+  const encabezado = res.headers.get("X-Total-Count");
+  const total = encabezado === null ? null : Number(encabezado);
+  // Sin el total (un proxy que no expone el encabezado), una pagina llena
+  // significa que puede haber mas: mejor ofrecerlas que perderlas en silencio.
+  const hayMas = total === null ? filas.length === TAMANO_PAGINA : desde + filas.length < total;
+  return { filas, total, hayMas };
+}
+
+export function paginaVacia<T>(): Pagina<T> {
+  return { filas: [], total: 0, hayMas: false };
+}
+
+/**
+ * Agrega la pagina siguiente a la que ya se ve. Si alguien cargo una fila
+ * entre medio, el corrimiento repetiria la ultima: se descarta por id.
+ */
+export function sumarPagina<T>(vista: Pagina<T>, siguiente: Pagina<T>, id: keyof T): Pagina<T> {
+  const vistos = new Set(vista.filas.map((f) => f[id]));
+  return { ...siguiente, filas: [...vista.filas, ...siguiente.filas.filter((f) => !vistos.has(f[id]))] };
+}
+
+/** Saca de la vista una fila eliminada, y la descuenta del total. */
+export function quitarDePagina<T>(vista: Pagina<T>, quitar: (f: T) => boolean): Pagina<T> {
+  const filas = vista.filas.filter((f) => !quitar(f));
+  const total = vista.total === null ? null : vista.total - (vista.filas.length - filas.length);
+  return { ...vista, filas, total };
+}
+
 // ---------- Proyectos (RF01) ----------
 export async function listarProyectos(busqueda?: string): Promise<Proyecto[]> {
   const q = busqueda ? `?q=${encodeURIComponent(busqueda)}` : "";
@@ -243,8 +286,8 @@ export async function crearAvance(
 }
 
 // ---------- Asistencia del personal (RF06) ----------
-export async function listarAsistencias(idProyecto: string): Promise<Asistencia[]> {
-  return parse(await apiFetch(`/proyectos/${idProyecto}/asistencias`));
+export async function listarAsistencias(idProyecto: string, desde = 0): Promise<Pagina<Asistencia>> {
+  return pedirPagina(`/proyectos/${idProyecto}/asistencias`, desde);
 }
 export async function crearAsistencia(
   idProyecto: string,
@@ -314,9 +357,9 @@ export async function eliminarDocumento(idDocumento: number): Promise<void> {
 }
 
 // ---------- Reportes (RF17/RF21) ----------
-export async function listarReportes(estado?: string): Promise<Reporte[]> {
+export async function listarReportes(estado = "", desde = 0): Promise<Pagina<Reporte>> {
   const q = estado ? `?estado=${encodeURIComponent(estado)}` : "";
-  return parse(await apiFetch(`/reportes${q}`));
+  return pedirPagina(`/reportes${q}`, desde);
 }
 export async function crearReporte(datos: { id_proyecto: number; titulo: string; contenido: string; es_final?: boolean }): Promise<Reporte> {
   return parse(await apiFetch(`/reportes`, { method: "POST", body: JSON.stringify(datos) }));
