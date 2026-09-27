@@ -35,21 +35,39 @@ final class Cors
 
     public static function enviarHeaders(): void
     {
-        $origen = $_SERVER['HTTP_ORIGIN'] ?? '';
+        foreach (self::encabezados((string) ($_SERVER['HTTP_ORIGIN'] ?? '')) as $encabezado) {
+            header($encabezado);
+        }
+    }
+
+    /**
+     * Los encabezados CORS para un pedido desde ese origen. Separado del envio
+     * para poder probarlo: en la consola, header() no deja rastro.
+     *
+     * @return list<string>
+     */
+    public static function encabezados(string $origen): array
+    {
+        $encabezados = [];
 
         // Sin Origin no hay chequeo CORS del navegador (curl, Postman, el
         // health-check de Render): no hace falta el header.
         if ($origen !== '' && self::permitido($origen)) {
-            header("Access-Control-Allow-Origin: {$origen}");
+            $encabezados[] = "Access-Control-Allow-Origin: {$origen}";
             // La respuesta depende del Origin: sin esto un cache intermedio
             // podria servirle a un origen la respuesta emitida para otro.
-            header('Vary: Origin');
+            $encabezados[] = 'Vary: Origin';
         }
 
-        header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+        $encabezados[] = 'Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS';
         // IMPORTANTE: incluir Authorization, porque el frontend envia el JWT en
         // ese header. Sin esto el navegador bloquea las peticiones autenticadas.
-        header('Access-Control-Allow-Headers: Content-Type, Authorization');
+        $encabezados[] = 'Access-Control-Allow-Headers: Content-Type, Authorization';
+        // El total de un listado paginado va en X-Total-Count (C-03). Desde otro
+        // origen, el navegador solo deja leer los encabezados que se exponen.
+        $encabezados[] = 'Access-Control-Expose-Headers: X-Total-Count';
+
+        return $encabezados;
     }
 
     /** Indica si el origen recibido figura en la lista blanca. */

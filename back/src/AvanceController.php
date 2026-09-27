@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sgso;
 
 use PDO;
+use Sgso\Http\Paginacion;
 use Sgso\Reglas\CicloDeVida;
 
 /**
@@ -19,11 +20,15 @@ final class AvanceController
     }
 
     /** GET /api/planificacion/{planId}/avances */
-    public function listarPorPlan(string $planId): void
+    public function listarPorPlan(string $planId, ?Paginacion $pagina = null): void
     {
-        $stmt = $this->db->prepare(
-            'SELECT * FROM avance_fisico WHERE id_planificacion = ? ORDER BY fecha DESC'
-        );
+        // El id desempata dos avances del mismo dia: sin un orden total, paginar
+        // podria repetir uno en dos paginas y saltear otro.
+        $sql = 'SELECT * FROM avance_fisico WHERE id_planificacion = ? ORDER BY fecha DESC, id_avance DESC';
+        if ($pagina !== null) {
+            $sql .= $pagina->aplicar($this->db, 'SELECT COUNT(*) FROM avance_fisico WHERE id_planificacion = ?', [$planId]);
+        }
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$planId]);
         $this->json(200, array_map([self::class, 'normalizar'], $stmt->fetchAll()));
     }

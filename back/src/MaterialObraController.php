@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sgso;
 
 use PDO;
+use Sgso\Http\Paginacion;
 
 /**
  * Materiales asignados a una obra y sus consumos (RF10). Calcula el total
@@ -96,9 +97,13 @@ final class MaterialObraController
     }
 
     /** GET /api/proyectos/material/{idAsignacion}/consumos */
-    public function listarConsumos(string $idAsignacion): void
+    public function listarConsumos(string $idAsignacion, ?Paginacion $pagina = null): void
     {
-        $stmt = $this->db->prepare('SELECT * FROM consumo_material WHERE id_asignacion = ? ORDER BY fecha DESC, id_consumo DESC');
+        $sql = 'SELECT * FROM consumo_material WHERE id_asignacion = ? ORDER BY fecha DESC, id_consumo DESC';
+        if ($pagina !== null) {
+            $sql .= $pagina->aplicar($this->db, 'SELECT COUNT(*) FROM consumo_material WHERE id_asignacion = ?', [$idAsignacion]);
+        }
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$idAsignacion]);
         $this->json(200, array_map([self::class, 'normalizarConsumo'], $stmt->fetchAll()));
     }
