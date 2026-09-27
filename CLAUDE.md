@@ -153,7 +153,7 @@ Seventeen tables in `back/sql/schema.sql`. `proyecto` is the core entity:
 - **usuario** — `rol` enum + `activo` flag, bcrypt password hash, password-reset token
 
 #### State values (as stored, lowercase)
-- Project (`proyecto.estado`, default `planificacion`): seven states — `creada`, `planificacion`, `en_ejecucion`, `pausada`, `en_revision`, `finalizada`, `cancelada`. Legal transitions live in `Sgso\Reglas\CicloDeVida`; the full table is in `docs/ARQUITECTURA.md` §4
+- Project (`proyecto.estado`; a new project starts `creada` and moves to `planificacion` when its planning is loaded): seven states — `creada`, `planificacion`, `en_ejecucion`, `pausada`, `en_revision`, `finalizada`, `cancelada`. Legal transitions live in `Sgso\Reglas\CicloDeVida`; the full table is in `docs/ARQUITECTURA.md` §4
 - Report (`reporte.estado`, default `borrador`): `borrador` → `en_revision` → `aprobado` | `rechazado`
 - Attendance (`asistencia.estado`): `presente` | `ausente` | `tarde`
 - Incident (`incidencia`): type `clima` | `falla_maquinaria` | `proveedor` | `otro`; severity `baja` | `media` | `alta`

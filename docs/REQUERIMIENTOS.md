@@ -139,7 +139,7 @@ diferencia respecto del texto · *Pendiente* — no implementado.
 | RF24 | comparar el consumo con el rendimiento esperado y alertar ante desvíos | Importante | **Parcial** | `AlertasPage`, `MaquinariaPage`; ver desvío 2 |
 | RF25 | permitir registrar períodos de inactividad con su motivo | Importante | Cumplido | `InactividadController`, `Sgso\Reglas\CicloDeVida` |
 | RF26 | clasificar incidencias por gravedad para activar protocolos de notificación | Secundaria | Cumplido | `IncidenciaController`, `Sgso\Reglas\ProtocoloIncidencias`: alta avisa por correo a Gerentes y Personal Administrativo; media, al Personal Administrativo; baja no avisa |
-| RF27 | mantener el historial de fallas y reemplazos de cada máquina | Importante | **Parcial** | ver desvío 5 |
+| RF27 | mantener el historial de fallas y reemplazos de cada máquina | Importante | **Parcial** | ver desvío 4 |
 | RF28 | generar comparativas de rendimiento entre operarios | Secundaria | Cumplido | `MaquinariaController::rendimientoOperarios()` |
 
 **Resumen:** 23 cumplidos, 4 parciales y 1 pendiente.
@@ -216,9 +216,7 @@ pueden demostrar.
    porcentaje de avance en `ProyectoDetallePage`, no en el servidor. Un cálculo con
    impacto económico tiene que vivir en el backend, donde se puede probar y
    auditar (plan: D-09).
-4. **Estado `creada` sin uso.** El modelo de la obra tiene siete estados y `creada`
-   no lo asigna nadie: toda obra nueva arranca en `planificacion` (plan: D-04).
-5. **RF27 — una falla no se puede marcar como resuelta.** Se cargan y se listan,
+4. **RF27 — una falla no se puede marcar como resuelta.** Se cargan y se listan,
    con su componente y si hubo reemplazo, pero no existe un `PUT` ni la pantalla
    muestra el campo: el contador de fallas abiertas solo baja borrando la falla,
    que es justamente el historial que RF27 pide conservar (plan: D-11).
