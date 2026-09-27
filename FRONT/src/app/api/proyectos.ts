@@ -428,9 +428,12 @@ export interface AnalisisProyecto {
   presupuesto_base_total?: number | null;
 }
 export interface Alerta {
-  tipo: "avance" | "material";
+  tipo: "avance" | "material" | "maquinaria";
   gravedad: "alta" | "media" | "baja";
-  proyecto: string;
+  // En una alerta de maquinaria, la obra del ultimo registro anomalo, o null si no tenia.
+  proyecto: string | null;
+  // Solo en las alertas de maquinaria (RF24).
+  maquina?: string;
   mensaje: string;
 }
 export interface Analisis {

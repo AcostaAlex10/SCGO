@@ -57,6 +57,8 @@ Las decisiones que antes tomaba cada controlador por su cuenta viven en
 
 - **`CicloDeVida`** — los siete estados de la obra y qué transición es legal.
 - **`Permisos`** — los grupos de roles del RF19.
+- **`ConsumoMaquinaria`** — cuándo un registro de uso consume de más (RF24). La
+  usan el listado de la máquina y el feed de Alertas.
 
 Una regla de estado se cambia ahí, no en un controlador.
 
