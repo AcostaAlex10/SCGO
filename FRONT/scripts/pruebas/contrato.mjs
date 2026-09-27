@@ -260,6 +260,48 @@ chequear('ver mas trae el resto y el boton desaparece',
   (await page.getByText(/^Operario \d+$/).count()) === 52 && (await verMas.count()) === 0,
   `se ven ${await page.getByText(/^Operario \d+$/).count()}`);
 
+// ---- 11. El consumo anomalo de maquinaria llega a Alertas (D-03) ----
+// La API lo marcaba solo en el listado de la maquina. El feed tiene que traer
+// una alerta por maquina, con la misma regla: mas de 1,5 veces su promedio.
+const maquina = await api('POST', '/maquinaria', { nombre: 'Excavadora de contrato', tipo: 'Movimiento de suelos' });
+const idMaq = maquina.datos?.id_maquinaria;
+for (const [fecha, litros] of [['2026-03-01', 10], ['2026-03-02', 10], ['2026-03-03', 40]]) {
+  await api('POST', `/maquinaria/${idMaq}/registros`, { fecha, horas_uso: 1, combustible_consumido: litros, id_proyecto: 1 });
+}
+const obra1 = (await api('GET', '/proyectos/1')).datos?.nombre;
+let feed = (await api('GET', '/analisis')).datos.alertas;
+const alertaMaq = feed.find((a) => a.tipo === 'maquinaria' && a.maquina === 'Excavadora de contrato');
+chequear('el consumo anomalo aparece en el feed de alertas, con la obra y la fecha',
+  alertaMaq?.proyecto === obra1 && alertaMaq?.gravedad === 'media' && String(alertaMaq?.mensaje).includes('03/03/2026'),
+  JSON.stringify(alertaMaq ?? null));
+
+// El feed y el listado de cada maquina dicen lo mismo.
+let discrepan = [];
+for (const m of (await api('GET', '/maquinaria')).datos) {
+  const marcados = (await api('GET', `/maquinaria/${m.id_maquinaria}/registros`)).datos.filter((r) => r.alerta_consumo).length;
+  const alerta = feed.find((a) => a.tipo === 'maquinaria' && a.maquina === m.nombre);
+  const cuenta = !alerta ? 0 : /^Un registro/.test(alerta.mensaje) ? 1 : Number(alerta.mensaje.match(/^(\d+) registros/)?.[1]);
+  if (cuenta !== marcados) discrepan.push(`${m.nombre}: listado ${marcados}, feed ${cuenta}`);
+}
+chequear('el feed cuenta los mismos registros anomalos que el listado de cada maquina', discrepan.length === 0, discrepan.join('; '));
+
+// Las alertas de avance usan la gravedad de la API: alta desde 15 puntos de desvio.
+const analisis = (await api('GET', '/analisis')).datos;
+discrepan = [];
+for (const p of analisis.proyectos.filter((x) => x.alerta_avance)) {
+  const alerta = analisis.alertas.find((a) => a.tipo === 'avance' && a.proyecto === p.nombre);
+  const esperada = p.avance_esperado - p.avance_real >= 15 ? 'alta' : 'media';
+  if (alerta?.gravedad !== esperada) discrepan.push(`${p.nombre}: ${alerta?.gravedad} en vez de ${esperada}`);
+}
+chequear('la gravedad de las alertas de avance es la de la API', discrepan.length === 0, discrepan.join('; '));
+
+await page.goto(BASE + '#/alertas', { waitUntil: 'networkidle' });
+await page.waitForTimeout(1500);
+const filaMaquina = page.getByText('Excavadora de contrato');
+chequear('la pantalla de alertas muestra la maquina y su obra',
+  (await filaMaquina.count()) === 1 && (await filaMaquina.innerText()).includes(obra1),
+  (await filaMaquina.count()) ? await filaMaquina.innerText() : 'no aparece');
+
 await nav.close();
 console.log(`\n${ok.length}/${ok.length + mal.length} OK`);
 if (mal.length) process.exit(1);

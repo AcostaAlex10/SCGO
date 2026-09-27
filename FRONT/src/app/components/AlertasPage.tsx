@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { AlertTriangle, TrendingDown, Package, Wallet } from "lucide-react";
+import { AlertTriangle, TrendingDown, Package, Wallet, Fuel, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
-import { obtenerAnalisis, type Analisis } from "../api/proyectos";
+import { obtenerAnalisis, type Alerta, type Analisis } from "../api/proyectos";
 import { puedeVerCostos } from "../auth/permisos";
 
 const GRAVEDAD: Record<string, string> = { alta: "#ef4444", media: "#e8981e", baja: "#22c55e" };
+const ICONO: Record<Alerta["tipo"], LucideIcon> = { avance: TrendingDown, material: Package, maquinaria: Fuel };
 const pesos = (n: number) => "$" + n.toLocaleString("es-AR", { maximumFractionDigits: 0 });
 
 export default function AlertasPage() {
@@ -43,14 +44,20 @@ export default function AlertasPage() {
           {data.alertas.length === 0 ? (
             <p className="text-muted-foreground text-sm">No hay alertas activas. 👍</p>
           ) : (
-            data.alertas.map((a, i) => (
-              <div key={i} className="flex items-center gap-3 border rounded-md px-4 py-3 text-sm" style={{ borderLeft: `3px solid ${GRAVEDAD[a.gravedad]}` }}>
-                {a.tipo === "avance" ? <TrendingDown className="w-4 h-4" style={{ color: GRAVEDAD[a.gravedad] }} /> : <Package className="w-4 h-4" style={{ color: GRAVEDAD[a.gravedad] }} />}
-                <span className="font-medium">{a.proyecto}</span>
-                <span className="flex-1 text-muted-foreground">{a.mensaje}</span>
-                <Badge style={{ background: GRAVEDAD[a.gravedad] }}>{a.gravedad}</Badge>
-              </div>
-            ))
+            data.alertas.map((a, i) => {
+              const Icono = ICONO[a.tipo];
+              return (
+                <div key={i} className="flex items-center gap-3 border rounded-md px-4 py-3 text-sm" style={{ borderLeft: `3px solid ${GRAVEDAD[a.gravedad]}` }}>
+                  <Icono className="w-4 h-4" style={{ color: GRAVEDAD[a.gravedad] }} />
+                  <span className="font-medium">
+                    {a.maquina ?? a.proyecto}
+                    {a.maquina && a.proyecto && <span className="text-muted-foreground font-normal"> · {a.proyecto}</span>}
+                  </span>
+                  <span className="flex-1 text-muted-foreground">{a.mensaje}</span>
+                  <Badge style={{ background: GRAVEDAD[a.gravedad] }}>{a.gravedad}</Badge>
+                </div>
+              );
+            })
           )}
         </CardContent>
       </Card>

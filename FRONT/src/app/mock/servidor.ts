@@ -347,15 +347,18 @@ function analisis(rol: string) {
     return fila;
   });
 
-  const alertas: Array<Record<string, string>> = [];
+  // Las mismas alertas, con la misma gravedad y el mismo texto, que
+  // AnalisisController::resumen().
+  const alertas: Array<Record<string, string | null>> = [];
   for (const p of proyectos) {
-    const desvio = p.desvio_avance as number | null;
-    if (p.alerta_avance && desvio !== null) {
+    if (p.alerta_avance) {
+      const real = num(p.avance_real);
+      const esperado = num(p.avance_esperado);
       alertas.push({
         tipo: "avance",
-        gravedad: desvio <= -20 ? "alta" : desvio <= -10 ? "media" : "baja",
+        gravedad: esperado - real >= 15 ? "alta" : "media",
         proyecto: String(p.nombre),
-        mensaje: `El avance real (${p.avance_real}%) esta ${Math.abs(desvio)} puntos por debajo del esperado (${p.avance_esperado}%).`,
+        mensaje: `El avance real (${real}%) está por debajo del esperado (${esperado}%).`,
       });
     }
     if (Number(p.materiales_excedidos) > 0) {
@@ -363,9 +366,30 @@ function analisis(rol: string) {
         tipo: "material",
         gravedad: "media",
         proyecto: String(p.nombre),
-        mensaje: `${p.materiales_excedidos} material(es) superaron la cantidad asignada.`,
+        mensaje: `${p.materiales_excedidos} material(es) superan la cantidad asignada.`,
       });
     }
+  }
+
+  // RF24 (D-03): una alerta por maquina con consumos anomalos, con cuantos son,
+  // el ultimo y la obra de ese ultimo.
+  const maquinas = db.maquinaria.slice().sort((a, b) => String(a.nombre).localeCompare(String(b.nombre)));
+  for (const m of maquinas) {
+    const anomalos = registrosDeMaquina(Number(m.id_maquinaria)).filter((r) => r.alerta_consumo);
+    if (anomalos.length === 0) continue;
+    const ultimo = anomalos[0];
+    const obra = db.proyectos.find((p) => Number(p.id) === ultimo.id_proyecto);
+    const fecha = ultimo.fecha.split("-").reverse().join("/");
+    alertas.push({
+      tipo: "maquinaria",
+      gravedad: "media",
+      proyecto: obra ? String(obra.nombre) : null,
+      maquina: String(m.nombre),
+      mensaje:
+        anomalos.length === 1
+          ? `Un registro de uso, del ${fecha}, consumió más de 1,5 veces el combustible por hora promedio de la máquina.`
+          : `${anomalos.length} registros de uso consumieron más de 1,5 veces el combustible por hora promedio de la máquina; el último, del ${fecha}.`,
+    });
   }
   return { proyectos, alertas };
 }
@@ -401,12 +425,15 @@ function registrosDeMaquina(idMaq: number) {
     "fecha",
     "id_registro"
   );
-  const horas = regs.reduce((s, r) => s + num(r.horas_uso), 0);
-  const combustible = regs.reduce((s, r) => s + num(r.combustible_consumido), 0);
+  // Como Sgso\Reglas\ConsumoMaquinaria: el promedio sale de los registros con
+  // horas, y la comparacion usa el consumo sin redondear.
+  const conHoras = regs.filter((r) => num(r.horas_uso) > 0);
+  const horas = conHoras.reduce((s, r) => s + num(r.horas_uso), 0);
+  const combustible = conHoras.reduce((s, r) => s + num(r.combustible_consumido), 0);
   const promedio = horas > 0 ? combustible / horas : 0;
   return regs.map((r) => {
     const h = num(r.horas_uso);
-    const cph = h > 0 ? redondear(num(r.combustible_consumido) / h) : 0;
+    const cph = h > 0 ? num(r.combustible_consumido) / h : 0;
     return {
       id_registro: Number(r.id_registro),
       id_maquinaria: idMaq,
@@ -416,7 +443,7 @@ function registrosDeMaquina(idMaq: number) {
       horas_uso: h,
       combustible_consumido: num(r.combustible_consumido),
       produccion_realizada: num(r.produccion_realizada),
-      combustible_por_hora: cph,
+      combustible_por_hora: redondear(cph),
       // RF24: consumo anomalo si supera 1,5 veces el promedio de la maquina.
       alerta_consumo: promedio > 0 && cph > promedio * 1.5,
     };
