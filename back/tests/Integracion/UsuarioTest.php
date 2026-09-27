@@ -12,9 +12,9 @@ use Sgso\UsuarioController;
  * baja logica. La regla que mas importa es que el sistema nunca quede sin un
  * administrador activo, porque sin el nadie puede gestionar usuarios (B-08).
  *
- * Que un token siga valido despues de la baja o del cambio de rol no se prueba
- * aca: lo decide la autenticacion de cada pedido, no este controlador. Ver A-14
- * en el plan de producto.
+ * Que la baja o el cambio de rol corten el acceso en el momento no se prueba
+ * aca: lo decide la autenticacion de cada pedido, no este controlador. Esta en
+ * RevocacionDeSesionTest (A-14).
  */
 #[CoversClass(UsuarioController::class)]
 final class UsuarioTest extends CasoConBase
