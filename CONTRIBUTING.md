@@ -121,6 +121,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/estado-creada` | D-04: una obra nueva arranca `creada` y pasa a `planificacion` al cargar su planificación | PR #47 |
 | `claude/certificacion-api` | D-09: la certificación de RF15 la calcula la API, al centavo, y no le llega al Personal Técnico; RF15 cumplido | PR #48 |
 | `claude/traspaso-cierre-nube` | `TRASPASO.md` al día al cerrar la sesión en la nube: estado, lo que falta probar en producción y las trampas de la nube | PR #49 |
+| `claude/diagnostico-correo` | A-17: un correo que no sale deja el motivo en el log de Render, y `/auth/olvide` dice qué hizo con cada pedido | PR #50 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
