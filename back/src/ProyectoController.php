@@ -79,7 +79,7 @@ final class ProyectoController
      */
     private static function sinCostos(array $proyecto): array
     {
-        unset($proyecto['presupuesto']);
+        unset($proyecto['presupuesto'], $proyecto['certificado']);
         return $proyecto;
     }
 

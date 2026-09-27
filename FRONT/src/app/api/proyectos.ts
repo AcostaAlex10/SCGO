@@ -12,9 +12,11 @@ export interface Proyecto {
   estado: string;
   avance: number;
   presupuesto: number;
+  // RF15: monto certificado a la fecha, calculado por la API. No le llega al Personal Técnico (RF20).
+  certificado?: number;
 }
 
-export type ProyectoInput = Omit<Proyecto, "id" | "avance" | "estado"> &
+export type ProyectoInput = Omit<Proyecto, "id" | "avance" | "estado" | "certificado"> &
   Partial<Pick<Proyecto, "estado" | "avance">>;
 
 export interface Planificacion {

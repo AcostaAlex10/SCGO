@@ -85,7 +85,8 @@ export default function Dashboard() {
   const presupuestoChart = proyectos.slice(0, 6).map((p) => ({
     nombre: p.nombre.length > 12 ? p.nombre.slice(0, 12) + "…" : p.nombre,
     presupuestado: +(p.presupuesto / 1_000_000).toFixed(1),
-    ejecutado: +((p.presupuesto * (p.avance || 0)) / 100 / 1_000_000).toFixed(1),
+    // El monto certificado lo calcula la API (D-09).
+    ejecutado: +((p.certificado ?? 0) / 1_000_000).toFixed(1),
   }));
 
   return (

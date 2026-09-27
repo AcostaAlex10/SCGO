@@ -546,9 +546,12 @@ function conEstadoProyecto(cuerpo: object, estado: string | null): object {
 
 /** RF20: el PersonalTecnico no ve el presupuesto de la obra. */
 function proyectoSegunRol(p: Fila, rol: string): Fila {
-  if (rol !== "PersonalTecnico") return { ...p };
+  // El monto certificado a la fecha, como Sgso\Reglas\Certificacion (RF15, D-09).
+  if (rol !== "PersonalTecnico") return { ...p, certificado: redondear((num(p.presupuesto) * num(p.avance)) / 100) };
+  // RF20: ningun importe para el Personal Tecnico.
   const copia = { ...p };
   delete copia.presupuesto;
+  delete copia.certificado;
   return copia;
 }
 

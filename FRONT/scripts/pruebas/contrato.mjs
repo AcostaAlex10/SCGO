@@ -33,17 +33,18 @@ const entrar = async () => {
 
 // Llama al simulador directo. El token `mock.1` es el admin, que tiene todos
 // los roles: lo que se prueba aca son las reglas de negocio, no los permisos
-// (de eso se ocupa humo.mjs).
-const api = (metodo, ruta, cuerpo = null) => page.evaluate(async ([m, r, c]) => {
+// (de eso se ocupa humo.mjs). Otro token solo hace falta para ver lo que
+// recibe cada rol, como los importes que no le llegan al Tecnico (RF20).
+const api = (metodo, ruta, cuerpo = null, token = 'mock.1') => page.evaluate(async ([m, r, c, t]) => {
   const res = await window.sgsoMockFetch(r, {
     method: m,
-    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer mock.1' },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
     body: c === null ? undefined : JSON.stringify(c),
   });
   let datos = null;
   try { datos = await res.json(); } catch { /* respuesta sin cuerpo */ }
   return { estado: res.status, datos, total: res.headers.get('X-Total-Count') };
-}, [metodo, ruta, cuerpo]);
+}, [metodo, ruta, cuerpo, token]);
 
 const estadoObra = async (id) => (await api('GET', `/proyectos/${id}`)).datos?.estado;
 
@@ -342,6 +343,23 @@ chequear('el filtro de obras creadas la muestra',
 r = await api('POST', `/proyectos/${idNueva}/planificacion`, { fecha_carga: '2026-03-01' });
 chequear('cargar su planificacion la pasa a planificacion',
   r.estado === 201 && await estadoObra(idNueva) === 'planificacion', `dio ${r.estado} y ${await estadoObra(idNueva)}`);
+
+// ---- 14. La certificacion la calcula la API, al centavo (D-09) ----
+// Antes la calculaba la pantalla, redondeada al peso. Es un importe: al
+// Personal Tecnico (mock.3) no le llega (RF20).
+const obraUno = (await api('GET', '/proyectos/1')).datos;
+const esperado = Math.round(obraUno.presupuesto * obraUno.avance) / 100;
+chequear('el detalle de la obra trae el monto certificado al centavo',
+  obraUno.certificado === esperado, `dio ${obraUno.certificado}, esperaba ${esperado}`);
+const comoTecnico = (await api('GET', '/proyectos/1', null, 'mock.3')).datos;
+chequear('al Personal Tecnico no le llega la certificacion',
+  comoTecnico && !('certificado' in comoTecnico) && !('presupuesto' in comoTecnico), JSON.stringify(Object.keys(comoTecnico ?? {})));
+
+await page.goto(BASE + '#/proyectos/1', { waitUntil: 'networkidle' });
+await page.waitForTimeout(1500);
+const textoCertificado = esperado.toLocaleString('es-AR', { maximumFractionDigits: 2 });
+chequear('la pantalla muestra el monto que dio la API',
+  (await page.getByText(`Certificación a la fecha: $${textoCertificado}`).count()) === 1, textoCertificado);
 
 await nav.close();
 console.log(`\n${ok.length}/${ok.length + mal.length} OK`);

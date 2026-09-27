@@ -117,7 +117,7 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 | **D-06** | P2 | **Exportar a PDF y Excel** los reportes y el avance. *A validar con Triwe.* | RF14 | M | Codex |
 | **D-07** | P1 | **Uso desde el celular.** El Personal Técnico carga todo en obra: revisar cada pantalla en un celular y medir el tiempo del registro diario. | RNF01, RNF02, RNF09 | M | Claude |
 | **D-08** | P2 | **Avisos por correo** de aprobaciones, rechazos y asignaciones. | — | M | Codex |
-| **D-09** | P1 | **La certificación se calcula en el navegador.** El monto de RF15 sale del porcentaje de avance en `ProyectoDetallePage`. Un cálculo con impacto económico tiene que vivir en el backend, con pruebas. | RF15 | M | Claude |
+| **D-09** | P1 | **Hecho en el PR #48.** **La certificación se calculaba en el navegador.** Ahora sale de `Sgso\Reglas\Certificacion`: la API devuelve `certificado` en el listado y el detalle de cada obra, al centavo, y el análisis usa la misma cuenta para "ejecutado". Antes el detalle redondeaba al peso y el análisis al centavo, y la misma obra daba dos montos. `certificado` es un importe más que hubo que sumar a la lista negra de RF20 (ver A-15). | RF15 | M | Claude |
 | **D-11** | P1 | **Una falla de maquinaria no se puede marcar como resuelta.** Encontrado en C-01 (PR #42). No existe el `PUT` y la pantalla no muestra el campo: el contador de fallas abiertas solo baja borrando la falla, que es el historial que RF27 pide conservar. Falta el endpoint, el simulador y el botón. | RF27 | S | Codex |
 | **D-12** | P2 | **Asistencia duplicada.** Encontrado en C-01 (PR #42). El esquema dice "una fila por trabajador y por jornada", pero nada lo impide: se puede cargar dos veces el mismo trabajador el mismo día. *Decidir si hay turnos* antes de agregar la restricción, que además pide una migración. | RF06 | S | Grupo + Codex |
 | **D-13** | P2 | **La alerta de consumo compara la máquina consigo misma.** Encontrado en D-03 (PR #44). Un registro alerta si supera 1,5 veces el promedio de su propia máquina: una máquina que siempre consume de más no alerta nunca, y un registro anómalo alerta para siempre, porque no hay ventana de fechas ni forma de darlo por visto. RF24 pide comparar con el rendimiento esperado: falta guardar un consumo esperado por máquina (*migración*) y decidir la ventana. | RF24 | M | Grupo + Codex |
@@ -168,8 +168,8 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 
 ### Ola 3 — Calidad y funcionalidad, en paralelo
 
-8. **C-01** (pruebas de controladores) y **C-03** (paginación), por Codex con specs cerrados.
-9. **D-03, D-02, D-04 y D-09**: funcionalidad chica y ya especificada.
+8. ~~**C-01**~~ (pruebas de controladores, PR #39, #41 y #42) y ~~**C-03**~~ (paginación, PR #43).
+9. ~~**D-03, D-02, D-04 y D-09**~~ (PR #44, #46, #47 y #48): funcionalidad chica y ya especificada.
 10. **DEC-03**, después **D-01** (archivos) y **D-05** (registro de cambios).
 11. **D-07:** SCGO usable desde el celular.
 12. **C-02:** el contrato OpenAPI, que corta de raíz el problema del simulador duplicado.
@@ -216,3 +216,4 @@ del arreglo, CI en verde, el simulador al día y el número de PR anotado acá.
 | 2026-09-27 | A-16 hecho (PR #45): `Mailer` y `Geocoder` vuelven a verificar el certificado TLS. Se encontró al preparar D-02, que va a mandar avisos con `Mailer`. |
 | 2026-09-27 | D-02 hecho (PR #46): una incidencia alta o media avisa por correo según el protocolo que decidió el equipo; RF26 pasa a cumplido. `Mailer` acepta varios destinatarios. |
 | 2026-09-27 | D-04 hecho (PR #47): una obra nueva arranca `creada` y pasa a `planificacion` al cargar su planificación. El listado de obras suma el filtro "Creadas". |
+| 2026-09-27 | D-09 hecho (PR #48): la certificación de RF15 la calcula la API, al centavo, y ya no discrepa del "ejecutado" del análisis; RF15 pasa a cumplido. Con eso quedan hechos los puntos 8 y 9 de la Ola 3. |

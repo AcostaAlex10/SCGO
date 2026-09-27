@@ -61,6 +61,8 @@ Las decisiones que antes tomaba cada controlador por su cuenta viven en
   usan el listado de la máquina y el feed de Alertas.
 - **`ProtocoloIncidencias`** — a quién se avisa por correo de una incidencia según
   su gravedad (RF26).
+- **`Certificacion`** — el monto certificado de una obra a la fecha (RF15). La usan
+  el detalle, el listado y el análisis de obras.
 
 Una regla de estado se cambia ahí, no en un controlador.
 
