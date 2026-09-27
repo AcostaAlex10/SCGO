@@ -1249,9 +1249,9 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
         ubicacion: texto(cuerpo.ubicacion),
         encargado: texto(cuerpo.encargado),
         fechaInicio: texto(cuerpo.fechaInicio),
-        // Toda obra nueva arranca en 'planificacion', igual que en PHP: si el
-        // alta aceptara un estado, se saltearia la regla de transicion.
-        estado: "planificacion",
+        // Toda obra nueva arranca creada, igual que en PHP (D-04): si el alta
+        // aceptara un estado, se saltearia la regla de transicion.
+        estado: "creada",
         avance: num(cuerpo.avance),
         presupuesto: num(cuerpo.presupuesto),
       };
@@ -1350,6 +1350,9 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
           fecha_carga: hoy(),
         };
         db.planificaciones.push(nueva);
+        // Cargar la planificacion pasa una obra creada a planificacion (D-04).
+        const obra = db.proyectos.find((p) => String(p.id) === String(idObra));
+        if (obra && obra.estado === "creada") obra.estado = "planificacion";
         guardar();
         return creado(nueva);
       }
