@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/estado-creada` | `main` @ `52c099e` (2026-09-27) | D-04: una obra nueva arranca `creada` y pasa a `planificacion` al cargar su planificación | — |
+| `claude/certificacion-api` | `main` @ `d80ddc8` (2026-09-27) | D-09: la certificación de RF15 la calcula la API, no el navegador | — |
 
 ### Reglas
 
