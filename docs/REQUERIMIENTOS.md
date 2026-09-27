@@ -154,6 +154,7 @@ diferencia respecto del texto · *Pendiente* — no implementado.
 | RF13 — presupuesto contra lo ejecutado | `back/tests/Integracion/AnalisisTest.php` |
 | RF20 — costos ocultos al Personal Técnico | `back/tests/Integracion/AnalisisTest.php` (backend), `FRONT/scripts/pruebas/humo.mjs` (pantallas) |
 | HU16 — gestión de cuentas: nunca sin un administrador activo | `back/tests/Integracion/UsuarioTest.php` |
+| RNF06 y A-14 — una baja, un cambio de rol, un restablecimiento o un login en otro lado cortan la sesión | `back/tests/Integracion/RevocacionDeSesionTest.php` |
 | RF21 — cierre de obra por reporte final | `back/tests/Integracion/CierrePorReporteFinalTest.php` |
 | RF25 — pausa y reactivación por inactividad | `back/tests/Integracion/CicloDeVidaObraTest.php`, `FRONT/scripts/pruebas/inactividad.mjs` |
 | Ciclo de vida de la obra completo | `back/tests/Reglas/CicloDeVidaTest.php` |
@@ -175,7 +176,7 @@ La columna **Estado** dice si el sistema los cumple hoy.
 | RNF03 | responder las consultas principales en menos de 5 segundos en el 90 % de los casos | Crítica | **No se cumple.** En el plan gratuito, Render suspende la API y la primera consulta puede tardar cerca de un minuto (plan: B-01). |
 | RNF04 | permitir el acceso en tiempo real desde distintas ubicaciones con internet | Importante | Cumple. Es una aplicación web publicada. |
 | RNF05 | almacenar la información de forma persistente e inmediata | Crítica | Cumple. Cada registro se escribe en la base en el momento. |
-| RNF06 | exigir usuario y contraseña para acceder | Crítica | Cumple: límite de intentos por cuenta, mínimo de 10 caracteres y rechazo de las contraseñas más usadas. |
+| RNF06 | exigir usuario y contraseña para acceder | Crítica | Cumple: límite de intentos por cuenta, mínimo de 10 caracteres y rechazo de las contraseñas más usadas. Una baja, un cambio de rol o un restablecimiento de contraseña cortan la sesión en el momento (A-14). |
 | RNF07 | hacer respaldos automáticos diarios | Importante | **Sin verificar.** Depende del plan contratado en Aiven, y nunca se probó restaurar un respaldo (plan: B-01). |
 | RNF08 | soportar al menos 10 obras activas sin degradarse | Importante | **Sin verificar.** Con el volumen actual anda, pero ningún listado está paginado y no hubo prueba de carga (plan: C-03). |
 | RNF09 | minimizar el texto a tipear en obra: listas, selección rápida y carga numérica | Importante | **Parcial.** Hay listas para materiales y etapas; falta revisar el resto de los formularios de campo. |
