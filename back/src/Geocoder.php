@@ -36,7 +36,6 @@ final class Geocoder
                 'header' => "User-Agent: SGSO-Grupo2/1.0 (proyecto academico UNaM)\r\n",
                 'timeout' => 6,
             ],
-            'ssl' => ['verify_peer' => false, 'verify_peer_name' => false],
         ]);
 
         $respuesta = @file_get_contents($url, false, $contexto);
