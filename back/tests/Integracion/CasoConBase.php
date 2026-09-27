@@ -238,6 +238,33 @@ abstract class CasoConBase extends TestCase
         return (int) $this->base()->lastInsertId();
     }
 
+    protected function crearPlanificacion(int $idProyecto, float $avanceEsperadoTotal = 0): int
+    {
+        $stmt = $this->base()->prepare(
+            'INSERT INTO planificacion (id_proyecto, avance_esperado_total, fecha_carga) VALUES (?, ?, ?)'
+        );
+        $stmt->execute([$idProyecto, $avanceEsperadoTotal, '2020-01-01']);
+
+        return (int) $this->base()->lastInsertId();
+    }
+
+    protected function crearEtapa(
+        int $idPlanificacion,
+        float $peso,
+        string $inicio,
+        string $fin,
+        float $presupuestoBase = 0
+    ): int {
+        $stmt = $this->base()->prepare(
+            'INSERT INTO etapa_planificacion
+                (id_planificacion, nombre, peso_porcentual, fecha_inicio, fecha_fin, presupuesto_base)
+             VALUES (?, ?, ?, ?, ?, ?)'
+        );
+        $stmt->execute([$idPlanificacion, 'Etapa', $peso, $inicio, $fin, $presupuestoBase]);
+
+        return (int) $this->base()->lastInsertId();
+    }
+
     /** El estado actual de la obra, que es lo que casi todas estas pruebas miran. */
     protected function estadoDeLaObra(int $idProyecto): string
     {

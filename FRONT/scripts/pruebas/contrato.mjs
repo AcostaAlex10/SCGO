@@ -182,6 +182,21 @@ r = await api('POST', '/auth/register', {
 });
 chequear('una contrasena larga y no comun se acepta', r.estado === 201, `dio ${r.estado}`);
 
+// ---- 8. Corregir una sola fecha de una etapa se compara con la otra (C-01) ----
+// La etapa 1 de los datos base va del 2026-06-29 al 2026-07-09. La API comparaba
+// inicio y fin solo si llegaban los dos, y el simulador no validaba nada al editar.
+r = await api('PUT', '/planificacion/etapa/1', { fecha_fin: '2026-06-01' });
+chequear('corregir solo la fecha de fin a antes del inicio devuelve 422', r.estado === 422, `dio ${r.estado}`);
+
+r = await api('PUT', '/planificacion/etapa/1', { fecha_inicio: '2026-08-01' });
+chequear('corregir solo la fecha de inicio a despues del fin devuelve 422', r.estado === 422, `dio ${r.estado}`);
+
+r = await api('PUT', '/planificacion/etapa/1', { peso_porcentual: 101 });
+chequear('un peso mayor a 100 al editar devuelve 422', r.estado === 422, `dio ${r.estado}`);
+
+r = await api('PUT', '/planificacion/etapa/1', { fecha_fin: '2026-07-20' });
+chequear('corregir solo la fecha de fin dentro del rango se acepta', r.estado === 200, `dio ${r.estado}`);
+
 await nav.close();
 console.log(`\n${ok.length}/${ok.length + mal.length} OK`);
 if (mal.length) process.exit(1);
