@@ -4,8 +4,10 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-09-26, para seguir en una sesión en la nube
-- **Base:** `main` @ `9e0ee67`, CI en verde, producción desplegada y respondiendo
+- **Actualizado:** 2026-09-27, al cerrar la sesión en la nube que hizo C-01, C-03,
+  A-14, A-16 y D-02, D-03, D-04 y D-09
+- **Base:** `main` @ `b6d42ea`, CI en verde. Cada deploy de Render quedó "live" y sin
+  errores en los logs; lo que falta probar a mano en producción está en la sección 3
 - **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23)
 
 ---
@@ -52,22 +54,27 @@ día de dependencias.
 | #31 | **En `testing`:** guía y `HANDOFF.md` al día; la demo vuelve a publicarse desde ahí |
 | #34, #35 | Cierre de sesión; DEC-04 postergada; B-10 y el entorno de Pages, hechos |
 | #36, #37 | C-11: fuera 36 archivos muertos del front, 37 dependencias sin uso y `JsonProyectoRepository`; nuevo `docs/STACK.md` |
+| #39, #41, #42 | C-01: 108 pruebas de integración, y los 16 controladores con pruebas. Encontraron A-14, A-15, C-13, D-11, D-12 y tres errores que se arreglaron |
+| #40 | A-14 (P0): una baja, un cambio de rol o un restablecimiento cortan la sesión en el primer pedido |
+| #43 | C-03: paginación a pedido con el total en `X-Total-Count`; "Ver más" en asistencias y reportes |
+| #44 | D-03: el consumo anómalo de maquinaria llega a Alertas; agregado D-13 |
+| #45 | A-16: `Mailer` y `Geocoder` vuelven a verificar el certificado TLS |
+| #46 | D-02: una incidencia alta o media avisa por correo; RF26 cumplido |
+| #47 | D-04: una obra nueva arranca `creada` |
+| #48 | D-09: la certificación la calcula la API; RF15 cumplido |
 
-**No queda ningún P0 de seguridad abierto.** De seguridad quedan A-09, A-11 y
-A-12, ninguno bloqueante.
+**No queda ningún P0 de seguridad abierto.** De seguridad quedan A-09, A-11, A-12
+y A-15, ninguno bloqueante.
 
 ---
 
 ## 3. Qué hay en vuelo ahora mismo
 
-**Un solo PR abierto: el #23 (B-03, migraciones versionadas).** El código
-pasó el CI, pero **hoy tiene conflicto con `main`**, y **no se mergea hasta que
-alguien del equipo corra las migraciones en Aiven**: el PR saca el `CREATE
+**Un solo PR abierto: el #23 (B-03, migraciones versionadas).** Se rebaseó
+sobre `main` como último paso de la sesión del 2026-09-27, después de mergear
+este traspaso, y quedó con el CI en verde y sin conflicto. **No se mergea hasta
+que alguien del equipo corra las migraciones en Aiven**: el PR saca el `CREATE
 TABLE` que creaba `intento_login` sola en cada arranque.
-
-Al rebasearlo: los commits "Pasar al historial la rama del #34" y "... del #35"
-**sobran**, porque el #37 ya hizo esos pases en `main`. En los conflictos de
-`CONTRIBUTING.md` se deja solo la fila del #23 (trampa 19).
 
 ```bash
 php back/sql/migrar.php --estado   # informa, no toca nada
@@ -76,37 +83,61 @@ php back/sql/migrar.php            # registra las versiones base y aplica 0004
 
 Con las credenciales de la base, desde la máquina de alguien del equipo: **una
 sesión en la nube no tiene esas credenciales, ni debe tenerlas**. Cuando el
-equipo confirme que corrieron, se mergea. Cualquier merge a `main` en el medio lo deja
-atrás y hay que rebasearlo (trampa 8).
+equipo confirme que corrieron, se mergea. Cualquier merge a `main` en el medio
+lo deja atrás y hay que rebasearlo (trampas 8 y 19): el #23 toca
+`CONTRIBUTING.md`, `PLAN-PRODUCTO.md`, `CLAUDE.md` y este archivo.
 
-**Dependabot, al día.** Los cinco PR del lunes 2026-09-21 están resueltos: #26 y
-#30 cerrados (el verde era vacío: nadie importaba esos paquetes, y se sacaron en
-el #33), #28 cerrado (React 19 sin `react-dom`), y #27 y #29 mergeados después
-de preparar el código en el #33. El próximo lunes llegan más: ver trampa 20.
+**Para verificar en producción.** Desde la nube no se llega a `onrender.com` ni
+a `vercel.app` (trampa 28), así que cada deploy de Render se verificó como
+"live" y sin errores en los logs, pero hay cosas que solo se pueden probar a
+mano:
+
+1. **"Olvidé mi contraseña"**, una vez, con una cuenta propia: el correo tiene
+   que llegar. Desde A-16 (#45), `Mailer` verifica el certificado de Brevo.
+2. **Una incidencia de gravedad alta** en una obra de prueba: el correo tiene
+   que llegarles a los Gerentes y al Personal Administrativo (D-02, #46). El
+   enlace a la obra sale de `APP_URL` (o de `CORS_ORIGIN` si no está).
+3. **El login de Vercel con la consola limpia**, después de los PR #43 a #48,
+   que tocaron el front.
+
+**Decisiones pendientes, todas del equipo:**
+
+- **Obras viejas en `planificacion` sin planificación.** Desde D-04 (#47) toda
+  obra nueva arranca `creada`; las que ya existían no se tocaron. Pasarlas a
+  `creada` es una migración de datos: la consulta está en el PR #47.
+- **D-13:** la alerta de consumo compara cada máquina consigo misma. Hace falta
+  guardar un consumo esperado por máquina (migración) y decidir una ventana de
+  fechas.
+- **D-12:** la asistencia duplicada depende de si hay turnos.
+- **DEC-04** sigue postergada hasta que se cierre la posible venta. De ella
+  dependen B-01 y B-02.
 
 **Configuración del equipo:**
 
-- **Hecho el 2026-09-26:** el entorno `github-pages` admite solo `testing`, y
-  el ruleset "Proteger main" exige los cuatro chequeos, incluido el de Docker
-  (B-10). Verificado contra la API de GitHub.
-- **Pendiente, B-04:** poner `SENTRY_DSN` en Render → Environment ("Save and
-  deploy") y crear el monitor externo con los valores de `OPERACION.md` §5.
-  Antes del monitor, confirmar que el workspace de Render no tenga **otro
-  servicio web gratuito**: el monitor mantiene producción despierta y consume
-  casi todas las 750 horas del mes, y si se agotan Render suspende todo.
+- **B-04, pendiente:** poner `SENTRY_DSN` en Render → Environment y crear el
+  monitor externo con los valores de `OPERACION.md` §5. **Antes del monitor:**
+  el workspace de Render tiene **otro servicio web gratuito**, `sgso-backend`
+  (Node, de otro repositorio). Las 750 horas del mes son por workspace: con el
+  monitor despertando producción, los dos juntos las agotan y Render suspende
+  todo. Hay que apagar o mover ese servicio primero.
+- **Render:** el servicio de la API no tiene Health Check Path. Conviene ponerle
+  `/api/health`, que ya comprueba la base (B-05). El deploy automático ya espera
+  al CI (`autoDeployTrigger: checksPass`), que era lo opcional de B-06.
+- **GitHub:** la app de Claude no está instalada en el repositorio, así que una
+  sesión no recibe los eventos de sus PR (CI, comentarios) y tiene que
+  consultarlos. Se instala desde https://github.com/apps/claude.
+- **Vercel:** el conector de esta cuenta necesita re-autenticarse para el scope
+  `acostaalex10s-projects` (trampa 28).
+- **A-11:** la prueba gratuita de Strix terminó; el pentest queda sin
+  herramienta hasta decidir cómo hacerlo.
 
-**Decisiones:**
-
-- **DEC-04 queda postergada** hasta que se cierre la posible venta del sistema
-  (decisión del 2026-09-26). De ella dependen B-01 y B-02.
-- **#21: cerrado.** Se mergeó sin consulta (el permiso era solo para el PR del
-  paso 1), y el equipo decidió dejarlo el 2026-09-26: funciona, tiene pruebas y
-  el monitor de B-04 depende de su `"db":"ok"`.
-
-**Lo siguiente del plan, sin decisiones pendientes:** Ola 3 de
-`PLAN-PRODUCTO.md` (C-01, C-03, D-03, D-02, D-04, D-09). Conviene arrancarla
-con la cola vacía, o sea después del #23: cada rama nueva choca con las abiertas
-en la tabla de `CONTRIBUTING.md`.
+**Lo siguiente del plan.** Los puntos 8 y 9 de la Ola 3 están hechos. Sigue el
+10: **DEC-03** (documentos como archivos) es una decisión del equipo, y de ella
+depende D-01; **D-05** (registro de cambios) pide una tabla nueva, o sea una
+migración, así que se pregunta antes. Sin decisiones pendientes quedan **D-11**
+(poder marcar una falla como resuelta, S), **C-13** (una fecha imposible da 500
+en vez de 422) y **A-15** (RF20 por lista negra: cada importe nuevo hay que
+acordarse de quitarlo, como pasó con `certificado` en el #48).
 
 ---
 
@@ -199,6 +230,49 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
     pasándole un transporte que lo guarde, y mandarlo con `curl.exe` de
     Windows, que sí pasa el antivirus: así se hizo el 2026-09-26. La prueba de
     verdad es verlo aparecer en Sentry → Issues.
+22. **En la nube, Composer no baja `phpstan/phpstan`.** El paquete es solo
+    `dist` y el proxy del entorno no deja bajar el zip de la API de GitHub
+    ("Could not authenticate against github.com"). Se resuelve sembrando la
+    caché: `git fetch` del commit exacto que pide `composer.lock`, `git archive
+    --prefix=phpstan-phpstan-<sha corto>/` a un zip, y ponerlo en
+    `~/.cache/composer/files/phpstan/phpstan/` con el nombre que espera Composer
+    (el `sha1` de la URL del zip). Después, `composer install --prefer-source`:
+    el resto de los paquetes se clona con git, que el proxy sí deja pasar.
+    Además hace falta `COMPOSER_ALLOW_SUPERUSER=1`.
+23. **En la nube no hay Docker: MariaDB va por `apt`.** Con `mariadb-server`
+    instalado, `mkdir -p /run/mysqld && chown mysql:mysql /run/mysqld` y
+    `mysqld_safe --user=mysql --bind-address=127.0.0.1 --port=3306` en segundo
+    plano. **Se muere cuando el contenedor se duerme**, igual que el servidor de
+    la demo en `:8123`: si las pruebas de integración fallan todas juntas, lo
+    primero es levantarlos de nuevo.
+24. **`pkill -f` y `pgrep -f` se encuentran a sí mismos** en la nube: el patrón
+    aparece en su propia línea de comandos y matan su propio shell. Se usa el
+    truco del corchete (`pkill -f "[p]hp -S 127.0.0.1:8099"`), y matar y
+    levantar un servidor van en llamadas separadas.
+25. **Nunca reconstruir un SHA a mano.** La trampa 14 vale también para la
+    herramienta de merge: con un SHA completo armado de memoria respondió 409
+    ("Head branch was modified"). El SHA se lee con `git rev-parse` de la rama
+    remota recién traída.
+26. **Un `vendor/` enlazado entre worktrees carga el `src/` del otro.** El
+    autoloader de Composer resuelve la ruta real, y `php -S` además guarda en
+    caché las rutas resueltas. Cada worktree lleva su `vendor/` copiado, con
+    `composer dump-autoload`, y el servidor se reinicia.
+27. **Render despliega solo con el CI de `main` en verde**
+    (`autoDeployTrigger: checksPass`) y solo si el merge cambió `back/`. Después
+    de mergear, el deploy tarda lo que tarda ese CI, unos tres minutos: antes de
+    eso, "el deploy no aparece" no es una falla.
+28. **Desde la nube no se ve producción.** El proxy del entorno responde 403 a
+    `onrender.com` y `vercel.app`, y el conector de Vercel responde 403 para el
+    scope `acostaalex10s-projects` hasta que se re-autentique. Lo que sí
+    funciona es el conector de Render, en solo lectura: `list_deploys` para ver
+    que el deploy quedó "live" y `list_logs` para buscar errores.
+29. **Con MySQL, `lastInsertId()` vuelve a 0 después de cualquier otra
+    consulta.** Pasó en `AvanceController` (#41): el alta devolvía id 0. Se lee
+    apenas termina el `INSERT`, antes de sincronizar la obra o de mandar un
+    aviso.
+30. **`json_encode` saca el `.0` de los float**: `100.0` sale como `100`, que
+    PHP vuelve a leer como entero. En las pruebas de integración, los importes y
+    porcentajes se comparan con `assertNumero` de `CasoConBase`.
 
 ### Si la sesión corre en la nube y no en tu máquina
 
@@ -215,7 +289,8 @@ cargar Google Fonts detrás del proxy del entorno. **No es una regresión.** En 
 CI de GitHub da 28/28.
 
 **Las trampas 9, 10, 11, 13, 17 y 21 son de la máquina local** (Windows,
-antivirus, `back/.env`): en la nube no aplican. La 12 y la 14 sí. En la nube tampoco hay `back/.env`, así que
+antivirus, `back/.env`): en la nube no aplican. La 12 y la 14 sí, y de la 22 a
+la 28 son propias de la nube. En la nube tampoco hay `back/.env`, así que
 no hay forma de pegarle a producción por accidente, y así tiene que seguir.
 
 ---

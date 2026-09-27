@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/certificacion-api` | `main` @ `d80ddc8` (2026-09-27) | D-09: la certificación de RF15 la calcula la API, no el navegador | — |
+| `claude/traspaso-cierre-nube` | `main` @ `b6d42ea` (2026-09-27) | `TRASPASO.md` al día al cerrar la sesión en la nube: estado, lo que falta probar en producción y las trampas de la nube | — |
 
 ### Reglas
 
@@ -119,6 +119,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/verificacion-tls` | A-16: `Mailer` y `Geocoder` vuelven a verificar el certificado TLS; una prueba recorre `back/src` para que nada lo vuelva a apagar | PR #45 |
 | `claude/avisos-incidencias` | D-02: una incidencia alta o media avisa por correo según el protocolo del equipo; RF26 cumplido | PR #46 |
 | `claude/estado-creada` | D-04: una obra nueva arranca `creada` y pasa a `planificacion` al cargar su planificación | PR #47 |
+| `claude/certificacion-api` | D-09: la certificación de RF15 la calcula la API, al centavo, y no le llega al Personal Técnico; RF15 cumplido | PR #48 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
