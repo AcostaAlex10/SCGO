@@ -80,6 +80,7 @@ export default function ProyectosPage() {
   const FILTROS_ESTADO = [
     { v: "", l: "Todas" },
     { v: "en_ejecucion", l: "En ejecución" },
+    { v: "creada", l: "Creadas" },
     { v: "planificacion", l: "Planificación" },
     { v: "pausada", l: "Pausadas" },
     { v: "finalizada", l: "Finalizadas" },
@@ -111,7 +112,7 @@ export default function ProyectosPage() {
     try {
       if (editandoId) {
         // El estado solo viaja al editar: en el alta lo fija el backend en
-        // 'planificacion'. Cancelar es el unico valor que el formulario ofrece.
+        // 'creada'. Cancelar es el unico valor que el formulario ofrece.
         const cancelada = form.estado === "cancelada";
         await actualizarProyecto(editandoId, { ...datos, estado: form.estado });
         toast.success(cancelada ? "Obra cancelada" : "Proyecto actualizado");

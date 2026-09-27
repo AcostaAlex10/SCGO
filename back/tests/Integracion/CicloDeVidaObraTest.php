@@ -7,11 +7,13 @@ namespace Sgso\Tests\Integracion;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Sgso\InactividadController;
 use Sgso\MySqlProyectoRepository;
+use Sgso\PlanificacionController;
 use Sgso\ProyectoController;
 
 #[CoversClass(InactividadController::class)]
 #[CoversClass(ProyectoController::class)]
 #[CoversClass(MySqlProyectoRepository::class)]
+#[CoversClass(PlanificacionController::class)]
 final class CicloDeVidaObraTest extends CasoConBase
 {
     public function testRegistrarUnPeriodoVigentePausaUnaObraEnEjecucion(): void
@@ -118,6 +120,55 @@ final class CicloDeVidaObraTest extends CasoConBase
         self::assertSame('planificacion', $this->estadoDeLaObra($idProyecto));
     }
 
+    // ----------------------------------------------------------------
+    //  Creada y planificacion (D-04)
+    // ----------------------------------------------------------------
+
+    /** Una obra recien registrada todavia no tiene planificacion: esta creada. */
+    public function testUnaObraNuevaArrancaCreada(): void
+    {
+        $respuesta = $this->capturar(fn () => $this->proyectos()->registrar($this->datosParaModificar('en_ejecucion')));
+
+        self::assertSame(201, $respuesta['codigo']);
+        self::assertSame('creada', $respuesta['cuerpo']['estado']);
+        self::assertSame('creada', $this->estadoDeLaObra((int) $respuesta['cuerpo']['id']));
+    }
+
+    public function testCargarLaPlanificacionPasaLaObraAPlanificacion(): void
+    {
+        $idProyecto = $this->crearProyecto('creada');
+
+        $respuesta = $this->capturar(fn () => $this->planificacion()->crear((string) $idProyecto, ['fecha_carga' => '2026-03-01']));
+
+        self::assertSame(201, $respuesta['codigo']);
+        self::assertSame('planificacion', $this->estadoDeLaObra($idProyecto));
+    }
+
+    /** Sin planificacion, una obra que no arranco vuelve a estar solo creada. */
+    public function testBorrarLaPlanificacionAntesDeArrancarDevuelveLaObraACreada(): void
+    {
+        $idProyecto = $this->crearProyecto('planificacion');
+        $idPlan = $this->crearPlanificacion($idProyecto);
+
+        $respuesta = $this->capturar(fn () => $this->planificacion()->eliminar((string) $idPlan));
+
+        self::assertSame(200, $respuesta['codigo']);
+        self::assertSame('creada', $this->estadoDeLaObra($idProyecto));
+    }
+
+    /** Una obra que ya arranco no retrocede por perder la planificacion. */
+    public function testLaPlanificacionNoMueveUnaObraQueYaArranco(): void
+    {
+        $idProyecto = $this->crearProyecto('en_ejecucion');
+        $idPlan = $this->crearPlanificacion($idProyecto);
+
+        $this->capturar(fn () => $this->planificacion()->eliminar((string) $idPlan));
+        self::assertSame('en_ejecucion', $this->estadoDeLaObra($idProyecto));
+
+        $this->capturar(fn () => $this->planificacion()->crear((string) $idProyecto, ['fecha_carga' => '2026-03-01']));
+        self::assertSame('en_ejecucion', $this->estadoDeLaObra($idProyecto));
+    }
+
     private function inactividad(): InactividadController
     {
         return new InactividadController($this->base());
@@ -126,6 +177,11 @@ final class CicloDeVidaObraTest extends CasoConBase
     private function proyectos(): ProyectoController
     {
         return new ProyectoController(new MySqlProyectoRepository($this->base()));
+    }
+
+    private function planificacion(): PlanificacionController
+    {
+        return new PlanificacionController($this->base());
     }
 
     /** @return array<string, string> */

@@ -324,6 +324,25 @@ await page.waitForTimeout(800);
 chequear('al registrarla, la pantalla dice a cuantos se aviso por correo',
   (await page.getByText(`Se avisó por correo a ${esperados.media} persona`).count()) === 1);
 
+// ---- 13. Una obra nueva arranca creada y pasa a planificacion con su planificacion (D-04) ----
+const nueva = await api('POST', '/proyectos', {
+  nombre: 'Obra de contrato D-04', tipo: 'Vivienda', ubicacion: 'Posadas', encargado: 'Ing. Prueba',
+  fechaInicio: '2099-01-01', presupuesto: 1000000,
+});
+const idNueva = nueva.datos?.id;
+chequear('una obra nueva arranca creada', nueva.estado === 201 && nueva.datos?.estado === 'creada', `dio ${nueva.estado} y ${nueva.datos?.estado}`);
+
+await page.goto(BASE + '#/proyectos', { waitUntil: 'networkidle' });
+await page.waitForTimeout(1200);
+await page.getByRole('button', { name: 'Creadas', exact: true }).click();
+await page.waitForTimeout(500);
+chequear('el filtro de obras creadas la muestra',
+  (await page.getByText('Obra de contrato D-04', { exact: true }).count()) === 1);
+
+r = await api('POST', `/proyectos/${idNueva}/planificacion`, { fecha_carga: '2026-03-01' });
+chequear('cargar su planificacion la pasa a planificacion',
+  r.estado === 201 && await estadoObra(idNueva) === 'planificacion', `dio ${r.estado} y ${await estadoObra(idNueva)}`);
+
 await nav.close();
 console.log(`\n${ok.length}/${ok.length + mal.length} OK`);
 if (mal.length) process.exit(1);

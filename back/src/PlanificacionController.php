@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sgso;
 
 use PDO;
+use Sgso\Reglas\CicloDeVida;
 
 /**
  * Controlador de Planificacion. Cada proyecto tiene UNA planificacion
@@ -59,9 +60,14 @@ final class PlanificacionController
             'INSERT INTO planificacion (avance_esperado_total, fecha_carga, id_proyecto) VALUES (?, ?, ?)'
         );
         $stmt->execute([(float) ($datos['avance_esperado_total'] ?? 0), $datos['fecha_carga'], $idProyecto]);
+        // Antes de cualquier otra consulta: con MySQL, lastInsertId() vuelve a 0.
+        $idPlanificacion = (int) $this->db->lastInsertId();
+
+        // Una obra creada pasa a planificacion (D-04).
+        $this->moverObra($idProyecto, CicloDeVida::alCargarPlanificacion(...));
 
         $this->json(201, [
-            'id_planificacion' => (int) $this->db->lastInsertId(),
+            'id_planificacion' => $idPlanificacion,
             'avance_esperado_total' => (float) ($datos['avance_esperado_total'] ?? 0),
             'fecha_carga' => $datos['fecha_carga'],
             'id_proyecto' => (int) $idProyecto,
@@ -99,13 +105,35 @@ final class PlanificacionController
     /** DELETE /api/planificacion/{id} */
     public function eliminar(string $id): void
     {
-        $stmt = $this->db->prepare('DELETE FROM planificacion WHERE id_planificacion = ?');
+        $stmt = $this->db->prepare('SELECT id_proyecto FROM planificacion WHERE id_planificacion = ?');
         $stmt->execute([$id]);
-        if ($stmt->rowCount() === 0) {
+        $idProyecto = $stmt->fetchColumn();
+        if ($idProyecto === false) {
             $this->json(404, ['error' => 'Planificacion no encontrada']);
             return;
         }
+
+        $this->db->prepare('DELETE FROM planificacion WHERE id_planificacion = ?')->execute([$id]);
+        // Una obra que todavia no arranco vuelve a creada (D-04).
+        $this->moverObra((string) $idProyecto, CicloDeVida::alBorrarPlanificacion(...));
+
         $this->json(200, ['mensaje' => 'Planificacion eliminada']);
+    }
+
+    /**
+     * Aplica a la obra el estado que decida la regla, si decide uno.
+     *
+     * @param callable(string): ?string $regla
+     */
+    private function moverObra(string $idProyecto, callable $regla): void
+    {
+        $stmt = $this->db->prepare('SELECT estado FROM proyecto WHERE id_proyecto = ?');
+        $stmt->execute([$idProyecto]);
+        $estado = $stmt->fetchColumn();
+        $nuevo = $estado === false ? null : $regla((string) $estado);
+        if ($nuevo !== null) {
+            $this->db->prepare('UPDATE proyecto SET estado = ? WHERE id_proyecto = ?')->execute([$nuevo, $idProyecto]);
+        }
     }
 
     /** @param array<string,mixed> $datos @return array<string,string> */

@@ -11,7 +11,7 @@ están en `back/tests/`, y todo corre en el CI en cada pull request.
 | `inactividad.mjs` | pausar y reactivar la obra: período vigente, período histórico que no pausa, obra finalizada que no revive, eliminar el vigente |
 | `validaciones.mjs` | rango de fechas invertido, en las dos barreras: el `min` del navegador y la validación del simulador |
 | `persistencia.mjs` | la copia en `localStorage` y su invalidación al cambiar `datos.json` |
-| `contrato.mjs` | reglas que no tienen botón: borrar un reporte ya enviado, rechazar sin motivo, mandar un estado vacío, cargar avance en una obra cancelada; la paginación de los listados (C-03), con su "Ver más" en pantalla; la alerta de consumo de maquinaria en Alertas (D-03); y a cuántos avisa una incidencia según su gravedad (D-02) |
+| `contrato.mjs` | reglas que no tienen botón: borrar un reporte ya enviado, rechazar sin motivo, mandar un estado vacío, cargar avance en una obra cancelada; la paginación de los listados (C-03), con su "Ver más" en pantalla; la alerta de consumo de maquinaria en Alertas (D-03); a cuántos avisa una incidencia según su gravedad (D-02); y que una obra nueva arranque `creada` (D-04) |
 
 `contrato.mjs` es distinto de los otros cuatro: en vez de manejar la pantalla,
 le habla al simulador directo por `window.sgsoMockFetch`, la costura que expone

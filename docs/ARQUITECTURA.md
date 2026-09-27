@@ -170,6 +170,9 @@ creada → planificacion → en_ejecucion ⇄ pausada
 
 | Transición | Qué la provoca | Dónde |
 |---|---|---|
+| `→ creada` | el alta de la obra: toda obra nueva arranca así | `ProyectoController` |
+| `creada → planificacion` | se carga la planificación | `PlanificacionController` |
+| `planificacion → creada` | se borra la planificación antes de que la obra arranque | `PlanificacionController` |
 | `planificacion → en_ejecucion` | el primer avance mayor a cero | `AvanceController` |
 | `en_ejecucion` o `en_revision` `→ pausada` | un período de inactividad vigente | `InactividadController` |
 | `pausada → en_ejecucion` | se cierra el último período vigente | `InactividadController` |
