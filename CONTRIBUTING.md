@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/verificacion-tls` | `main` @ `d183059` (2026-09-27) | A-16: Mailer y Geocoder vuelven a verificar el certificado TLS | — |
+| `claude/avisos-incidencias` | `main` @ `b880006` (2026-09-27) | D-02: avisos por correo según la gravedad de la incidencia | — |
 
 ### Reglas
 
