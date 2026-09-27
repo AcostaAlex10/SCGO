@@ -6,6 +6,7 @@ namespace Sgso;
 
 use PDO;
 use Sgso\Http\Paginacion;
+use Sgso\Reglas\ConsumoMaquinaria;
 
 /**
  * Gestion de maquinaria. Cubre:
@@ -91,7 +92,7 @@ final class MaquinariaController
         );
         $stmt->execute([$idMaq]);
         $tot = $stmt->fetch();
-        $promedio = ((float) $tot['h']) > 0 ? ((float) $tot['c']) / ((float) $tot['h']) : 0;
+        $promedio = ConsumoMaquinaria::porHora((float) $tot['c'], (float) $tot['h']);
 
         // El promedio de arriba es sobre todos los registros, no sobre la pagina.
         $sql = 'SELECT * FROM registro_maquinaria WHERE id_maquinaria = ? ORDER BY fecha DESC, id_registro DESC';
@@ -102,7 +103,7 @@ final class MaquinariaController
         $stmt->execute([$idMaq]);
         $out = array_map(function (array $r) use ($promedio): array {
             $horas = (float) $r['horas_uso'];
-            $cph = $horas > 0 ? (float) $r['combustible_consumido'] / $horas : 0;
+            $cph = ConsumoMaquinaria::porHora((float) $r['combustible_consumido'], $horas);
             return [
                 'id_registro' => (int) $r['id_registro'],
                 'id_maquinaria' => (int) $r['id_maquinaria'],
@@ -113,8 +114,7 @@ final class MaquinariaController
                 'combustible_consumido' => (float) $r['combustible_consumido'],
                 'produccion_realizada' => (float) $r['produccion_realizada'],
                 'combustible_por_hora' => round($cph, 2),
-                // RF24: consumo anómalo si supera 1.5x el promedio de la maquina.
-                'alerta_consumo' => $promedio > 0 && $cph > $promedio * 1.5,
+                'alerta_consumo' => ConsumoMaquinaria::esAnomalo($cph, $promedio),
             ];
         }, $stmt->fetchAll());
         $this->json(200, $out);
