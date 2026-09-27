@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/avisos-incidencias` | `main` @ `b880006` (2026-09-27) | D-02: avisos por correo según la gravedad de la incidencia | — |
+| `claude/estado-creada` | `main` @ `52c099e` (2026-09-27) | D-04: una obra nueva arranca `creada` y pasa a `planificacion` al cargar su planificación | — |
 
 ### Reglas
 
