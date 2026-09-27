@@ -119,7 +119,28 @@ final class MaquinariaController
     {
         if (!$this->existeMaquina($idMaq)) { $this->json(404, ['error' => 'Maquinaria no encontrada']); return; }
         $fecha = (string) ($datos['fecha'] ?? '');
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) { $this->json(422, ['errors' => ['fecha' => 'Formato esperado: YYYY-MM-DD']]); return; }
+        $errores = [];
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) { $errores['fecha'] = 'Formato esperado: YYYY-MM-DD'; }
+
+        // Del uso cargado sale el promedio con el que se decide la alerta de
+        // consumo (RF24): un valor negativo corre el umbral de todos los demas.
+        foreach (['horas_uso', 'combustible_consumido', 'produccion_realizada'] as $campo) {
+            $valor = $datos[$campo] ?? null;
+            if ($valor !== null && $valor !== '' && (!is_numeric($valor) || (float) $valor < 0)) {
+                $errores[$campo] = 'Debe ser un número mayor o igual a 0';
+            }
+        }
+
+        // La obra es opcional, pero si viene tiene que existir: si no, el INSERT
+        // viola la clave foranea y el cliente recibe un 500.
+        $idProyecto = isset($datos['id_proyecto']) && is_numeric($datos['id_proyecto']) ? (int) $datos['id_proyecto'] : null;
+        if ($idProyecto !== null) {
+            $stmt = $this->db->prepare('SELECT id_proyecto FROM proyecto WHERE id_proyecto = ?');
+            $stmt->execute([$idProyecto]);
+            if ($stmt->fetch() === false) { $errores['id_proyecto'] = 'Obra inexistente'; }
+        }
+
+        if (!empty($errores)) { $this->json(422, ['errors' => $errores]); return; }
 
         $stmt = $this->db->prepare(
             'INSERT INTO registro_maquinaria (id_maquinaria, id_proyecto, fecha, operario, horas_uso, combustible_consumido, produccion_realizada)
@@ -127,7 +148,7 @@ final class MaquinariaController
         );
         $stmt->execute([
             $idMaq,
-            isset($datos['id_proyecto']) && is_numeric($datos['id_proyecto']) ? (int) $datos['id_proyecto'] : null,
+            $idProyecto,
             $fecha,
             trim((string) ($datos['operario'] ?? '')) ?: null,
             (float) ($datos['horas_uso'] ?? 0),
