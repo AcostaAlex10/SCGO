@@ -162,6 +162,7 @@ diferencia respecto del texto · *Pendiente* — no implementado.
 | RF23, RF24, RF27 y RF28 — uso de maquinaria sin valores negativos, alerta de consumo, fallas y rendimiento por operario | `back/tests/Integracion/MaquinariaTest.php`, `FRONT/scripts/pruebas/contrato.mjs` |
 | HU16 — gestión de cuentas: nunca sin un administrador activo | `back/tests/Integracion/UsuarioTest.php` |
 | RNF06 y A-14 — una baja, un cambio de rol, un restablecimiento o un login en otro lado cortan la sesión | `back/tests/Integracion/RevocacionDeSesionTest.php` |
+| RNF08 y C-03 — los listados que crecen se paginan a pedido, con el total real | `back/tests/Integracion/PaginacionTest.php`, `back/tests/Http/PaginacionTest.php`, `back/tests/Http/CorsTest.php`, `FRONT/scripts/pruebas/contrato.mjs` |
 | RF21 — cierre de obra por reporte final | `back/tests/Integracion/CierrePorReporteFinalTest.php` |
 | RF25 — pausa y reactivación por inactividad | `back/tests/Integracion/CicloDeVidaObraTest.php`, `FRONT/scripts/pruebas/inactividad.mjs` |
 | Ciclo de vida de la obra completo | `back/tests/Reglas/CicloDeVidaTest.php` |
@@ -186,7 +187,7 @@ La columna **Estado** dice si el sistema los cumple hoy.
 | RNF05 | almacenar la información de forma persistente e inmediata | Crítica | Cumple. Cada registro se escribe en la base en el momento. |
 | RNF06 | exigir usuario y contraseña para acceder | Crítica | Cumple: límite de intentos por cuenta, mínimo de 10 caracteres y rechazo de las contraseñas más usadas. Una baja, un cambio de rol o un restablecimiento de contraseña cortan la sesión en el momento (A-14). |
 | RNF07 | hacer respaldos automáticos diarios | Importante | **Sin verificar.** Depende del plan contratado en Aiven, y nunca se probó restaurar un respaldo (plan: B-01). |
-| RNF08 | soportar al menos 10 obras activas sin degradarse | Importante | **Sin verificar.** Con el volumen actual anda, pero ningún listado está paginado y no hubo prueba de carga (plan: C-03). |
+| RNF08 | soportar al menos 10 obras activas sin degradarse | Importante | **Sin verificar.** Los listados que crecen con el tiempo ya se pueden pedir por página, y la pantalla trae de a 50 las asistencias y los reportes (C-03). Falta una prueba de carga. |
 | RNF09 | minimizar el texto a tipear en obra: listas, selección rápida y carga numérica | Importante | **Parcial.** Hay listas para materiales y etapas; falta revisar el resto de los formularios de campo. |
 | RNF10 | sincronizar lo cargado en obra con la base en menos de 10 segundos, con conexión | Importante | Cumple con conexión, salvo el arranque en frío de RNF03. No hay modo offline, que está fuera de alcance. |
 
