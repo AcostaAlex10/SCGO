@@ -75,6 +75,29 @@ final class CicloDeVida
     }
 
     // ----------------------------------------------------------------
+    //  Alta y planificacion (ProyectoController, PlanificacionController)
+    // ----------------------------------------------------------------
+
+    /** Una obra recien registrada todavia no tiene planificacion. */
+    public const INICIAL = self::CREADA;
+
+    /** Cargar la planificacion pasa una obra creada a planificacion. */
+    public static function alCargarPlanificacion(string $estado): ?string
+    {
+        return $estado === self::CREADA ? self::PLANIFICACION : null;
+    }
+
+    /**
+     * Borrar la planificacion devuelve a creada una obra que todavia no
+     * arranco. Una que ya arranco no retrocede: su historia sigue siendo la
+     * de una obra en marcha.
+     */
+    public static function alBorrarPlanificacion(string $estado): ?string
+    {
+        return $estado === self::PLANIFICACION ? self::CREADA : null;
+    }
+
+    // ----------------------------------------------------------------
     //  Arranque por avance fisico (AvanceController)
     // ----------------------------------------------------------------
 

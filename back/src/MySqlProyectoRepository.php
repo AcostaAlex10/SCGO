@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sgso;
 
 use PDO;
+use Sgso\Reglas\CicloDeVida;
 
 
 /**
@@ -61,7 +62,7 @@ final class MySqlProyectoRepository implements ProyectoRepositoryInterface
             $datos['ubicacion'],
             $datos['encargado'],
             $datos['fechaInicio'],
-            $datos['estado'] ?? 'planificacion',
+            $datos['estado'] ?? CicloDeVida::INICIAL,
             (float) ($datos['avance'] ?? 0),
             (float) $datos['presupuesto'],
         ]);

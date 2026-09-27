@@ -106,9 +106,10 @@ final class ProyectoController
             return;
         }
 
-        // Toda obra nueva arranca en 'planificacion'. Sin esto, un POST podria
-        // crear una obra ya cancelada y saltearse la regla de transicion.
-        unset($datos['estado']);
+        // Toda obra nueva arranca creada: todavia no tiene planificacion (D-04).
+        // El estado no se toma del pedido: si no, un POST podria crear una obra
+        // ya cancelada y saltearse la regla de transicion.
+        $datos['estado'] = CicloDeVida::INICIAL;
 
         $proyecto = $this->repositorio->crear($datos);
         $this->responderJson(201, $proyecto);
