@@ -4,22 +4,41 @@ declare(strict_types=1);
 
 namespace Sgso;
 
+use Closure;
+use DateTimeImmutable;
 use PDO;
 use Sgso\Http\Paginacion;
+use Sgso\Reglas\ProtocoloIncidencias;
 
 /**
  * Controlador de Incidencias externas de obra (RF09): clima, fallas de
  * maquinaria, retrasos de proveedores, etc. La `gravedad` clasifica la
  * incidencia (RF26) y `dias_retraso` documenta su impacto en el cronograma,
- * lo que sirve para justificar extensiones de plazo (RF08).
+ * lo que sirve para justificar extensiones de plazo (RF08). Segun la gravedad,
+ * al registrarla se avisa por correo (RF26, D-02; ver ProtocoloIncidencias).
  */
 final class IncidenciaController
 {
     private const TIPOS = ['clima', 'falla_maquinaria', 'proveedor', 'otro'];
     private const GRAVEDADES = ['baja', 'media', 'alta'];
+    private const ETIQUETAS_TIPO = [
+        'clima' => 'Clima',
+        'falla_maquinaria' => 'Falla de maquinaria',
+        'proveedor' => 'Retraso de proveedor',
+        'otro' => 'Otro',
+    ];
 
-    public function __construct(private PDO $db)
+    /** @var Closure(list<string>, string, string): bool */
+    private Closure $enviarCorreo;
+
+    /**
+     * @param (Closure(list<string>, string, string): bool)|null $enviarCorreo
+     *        como sale el aviso de RF26: por defecto, Mailer. Las pruebas pasan
+     *        una que anota a quien se hubiera mandado.
+     */
+    public function __construct(private PDO $db, ?Closure $enviarCorreo = null)
     {
+        $this->enviarCorreo = $enviarCorreo ?? Mailer::enviar(...);
     }
 
     /** GET /api/proyectos/{idProyecto}/incidencias */
@@ -34,13 +53,19 @@ final class IncidenciaController
         $this->json(200, array_map([self::class, 'normalizar'], $stmt->fetchAll()));
     }
 
-    /** POST /api/proyectos/{idProyecto}/incidencias */
-    public function crear(string $idProyecto, array $datos): void
+    /**
+     * POST /api/proyectos/{idProyecto}/incidencias
+     *
+     * @param array<string, mixed> $datos
+     * @param array<string, mixed> $usuario el de la sesion, para decir en el aviso quien la cargo
+     */
+    public function crear(string $idProyecto, array $datos, array $usuario = []): void
     {
         // La obra debe existir.
-        $stmt = $this->db->prepare('SELECT id_proyecto FROM proyecto WHERE id_proyecto = ?');
+        $stmt = $this->db->prepare('SELECT nombre FROM proyecto WHERE id_proyecto = ?');
         $stmt->execute([$idProyecto]);
-        if ($stmt->fetch() === false) {
+        $obra = $stmt->fetchColumn();
+        if ($obra === false) {
             $this->json(404, ['error' => 'Obra no encontrada']);
             return;
         }
@@ -67,16 +92,93 @@ final class IncidenciaController
             trim((string) $datos['descripcion']),
             $diasRetraso,
         ]);
+        // Antes de cualquier otra consulta: con MySQL, lastInsertId() vuelve a 0.
+        $idIncidencia = (int) $this->db->lastInsertId();
 
-        $this->json(201, [
-            'id_incidencia' => (int) $this->db->lastInsertId(),
-            'id_proyecto' => (int) $idProyecto,
-            'fecha' => $datos['fecha'],
-            'tipo' => $datos['tipo'],
-            'gravedad' => $datos['gravedad'],
+        $incidencia = [
+            'fecha' => (string) $datos['fecha'],
+            'tipo' => (string) $datos['tipo'],
+            'gravedad' => (string) $datos['gravedad'],
             'descripcion' => trim((string) $datos['descripcion']),
             'dias_retraso' => $diasRetraso,
-        ]);
+        ];
+        $avisados = $this->avisar($incidencia, $idProyecto, (string) $obra, $usuario);
+
+        $this->json(201, ['id_incidencia' => $idIncidencia, 'id_proyecto' => (int) $idProyecto] + $incidencia + ['avisados' => $avisados]);
+    }
+
+    /**
+     * RF26 (D-02): avisa por correo segun la gravedad, con un solo correo para
+     * todos. Devuelve a cuantos se aviso: 0 si la gravedad no lo pide, si no hay
+     * cuentas activas a quien avisar o si el correo fallo. Un corte del correo
+     * no deshace la incidencia, que ya quedo guardada.
+     *
+     * @param array{fecha: string, tipo: string, gravedad: string, descripcion: string, dias_retraso: int} $incidencia
+     * @param array<string, mixed> $usuario
+     */
+    private function avisar(array $incidencia, string $idProyecto, string $obra, array $usuario): int
+    {
+        $roles = ProtocoloIncidencias::rolesAAvisar($incidencia['gravedad']);
+        if ($roles === []) {
+            return 0;
+        }
+
+        $marcas = implode(', ', array_fill(0, count($roles), '?'));
+        $stmt = $this->db->prepare("SELECT email FROM usuario WHERE activo = 1 AND rol IN ({$marcas}) ORDER BY email");
+        $stmt->execute($roles);
+        $para = array_map('strval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+        if ($para === []) {
+            return 0;
+        }
+
+        $autor = null;
+        if (isset($usuario['id_usuario'])) {
+            $stmt = $this->db->prepare('SELECT nombre FROM usuario WHERE id_usuario = ?');
+            $stmt->execute([(int) $usuario['id_usuario']]);
+            $nombre = $stmt->fetchColumn();
+            $autor = $nombre === false ? null : (string) $nombre;
+        }
+
+        [$asunto, $html] = self::correoDeAviso($incidencia, $idProyecto, $obra, $autor);
+
+        return ($this->enviarCorreo)($para, $asunto, $html) ? count($para) : 0;
+    }
+
+    /**
+     * El asunto y el cuerpo del aviso. Todo lo que escribio un usuario va
+     * escapado: el correo sale en nombre del sistema.
+     *
+     * @param array{fecha: string, tipo: string, gravedad: string, descripcion: string, dias_retraso: int} $incidencia
+     * @return array{0: string, 1: string}
+     */
+    private static function correoDeAviso(array $incidencia, string $idProyecto, string $obra, ?string $autor): array
+    {
+        $e = static fn (string $texto): string => htmlspecialchars($texto, ENT_QUOTES, 'UTF-8');
+
+        $datos = [
+            'Obra' => $obra,
+            'Tipo' => self::ETIQUETAS_TIPO[$incidencia['tipo']] ?? $incidencia['tipo'],
+            'Fecha' => (new DateTimeImmutable($incidencia['fecha']))->format('d/m/Y'),
+        ];
+        if ($incidencia['dias_retraso'] > 0) {
+            $datos['Días de retraso estimados'] = (string) $incidencia['dias_retraso'];
+        }
+        if ($autor !== null) {
+            $datos['Cargada por'] = $autor;
+        }
+
+        $html = '<h2>Incidencia de gravedad ' . $e($incidencia['gravedad']) . '</h2>';
+        foreach ($datos as $etiqueta => $valor) {
+            $html .= '<p><strong>' . $e($etiqueta) . ':</strong> ' . $e($valor) . '</p>';
+        }
+        $html .= '<p>' . nl2br($e($incidencia['descripcion'])) . '</p>';
+
+        $base = rtrim(getenv('APP_URL') ?: (getenv('CORS_ORIGIN') ?: ''), '/');
+        if ($base !== '') {
+            $html .= '<p><a href="' . $e($base . '/proyectos/' . $idProyecto) . '">Ver la obra en SCGO</a></p>';
+        }
+
+        return ["Incidencia de gravedad {$incidencia['gravedad']} en {$obra}", $html];
     }
 
     /** DELETE /api/proyectos/incidencia/{id} */

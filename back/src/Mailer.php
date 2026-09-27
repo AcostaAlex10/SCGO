@@ -13,7 +13,12 @@ namespace Sgso;
  */
 final class Mailer
 {
-    public static function enviar(string $para, string $asunto, string $html): bool
+    /**
+     * Un solo correo, aunque vaya a varios destinatarios.
+     *
+     * @param string|list<string> $para
+     */
+    public static function enviar(string|array $para, string $asunto, string $html): bool
     {
         $apiKey = getenv('BREVO_API_KEY') ?: '';
         $remitente = getenv('BREVO_SENDER') ?: '';
@@ -23,7 +28,7 @@ final class Mailer
 
         $payload = json_encode([
             'sender' => ['email' => $remitente, 'name' => 'SGSO'],
-            'to' => [['email' => $para]],
+            'to' => array_map(static fn (string $email): array => ['email' => $email], (array) $para),
             'subject' => $asunto,
             'htmlContent' => $html,
         ], JSON_UNESCAPED_UNICODE);

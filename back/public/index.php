@@ -212,7 +212,7 @@ $manejadores = [
     'asistencias.crear' => fn (array $p, ?array $u) => $asistencia->crear($p['id'], leerCuerpoJson()),
     'asistencia.eliminar' => fn (array $p, ?array $u) => $asistencia->eliminar($p['id']),
     'incidencias.listar' => fn (array $p, ?array $u) => $incidencia->listarPorProyecto($p['id'], paginaDelPedido()),
-    'incidencias.crear' => fn (array $p, ?array $u) => $incidencia->crear($p['id'], leerCuerpoJson()),
+    'incidencias.crear' => fn (array $p, ?array $u) => $incidencia->crear($p['id'], leerCuerpoJson(), (array) $u),
     'incidencia.eliminar' => fn (array $p, ?array $u) => $incidencia->eliminar($p['id']),
     'materiales.proyecto.listar' => fn (array $p, ?array $u) => $materialObra->listarPorProyecto($p['id']),
     'materiales.proyecto.asignar' => fn (array $p, ?array $u) => $materialObra->asignar($p['id'], leerCuerpoJson()),
