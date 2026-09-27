@@ -113,16 +113,24 @@ mismo UPDATE que guarda el token, así que no hay contador que limpiar ni forma 
 dejar a alguien sin poder entrar pidiendo recuperaciones de su cuenta.
 
 La pantalla dice lo mismo de siempre aunque el correo no salga, así que el
-síntoma es "pedí el mail y no llega". Antes de buscar un problema en Brevo,
-conviene descartar que sea esto:
+síntoma es "pedí el mail y no llega". Cada pedido deja una línea en los logs
+de Render, sin el email ni el token; se encuentra buscando `olvide:`:
 
-```sql
-SELECT email, reset_expira FROM usuario WHERE email = 'usuario@empresa.com';
-```
+| Línea | Qué pasó | Qué hacer |
+|---|---|---|
+| `no se mandó correo: el email no tiene cuenta o ya pidió uno hace menos de 5 minutos` | No hay cuenta con ese email, o el pedido anterior es de hace menos de 5 minutos | Revisar que la cuenta exista, o esperar |
+| `correo de recuperación enviado; el enlace apunta a …/restablecer` | Brevo aceptó el correo | Buscarlo en spam; que la dirección del enlace sea la del frontend |
+| `correo de recuperación enviado, pero el enlace no abre nada` | Faltan `APP_URL` y `CORS_ORIGIN` en Render | Cargar `APP_URL` con la URL del frontend |
+| `el correo de recuperación no salió` | Brevo no lo aceptó; la línea `Mailer:` de al lado dice por qué | Ver abajo |
 
-Si `reset_expira` está dentro de los próximos 55 a 60 minutos, el pedido es
-reciente y el correo ya salió: hay que buscarlo en la casilla, no volver a
-pedirlo. Para permitir un pedido nuevo en el acto:
+La línea `Mailer: no salió "…"` trae el motivo: una variable de Brevo que
+falta, la respuesta de Brevo (`401 unauthorized` es la API key, un remitente
+sin verificar también lo dice) o el error de red. La API key nunca aparece:
+se reemplaza por `[oculto]`.
+
+Un pedido que se aceptó reserva el token aunque el correo no salga, así que el
+siguiente vuelve a intentar recién a los 5 minutos. Para permitir un pedido
+nuevo en el acto:
 
 ```sql
 UPDATE usuario SET reset_expira = NULL WHERE email = 'usuario@empresa.com';
@@ -355,7 +363,8 @@ Usar "Re-run all jobs".
 contraseña, y solo para las incidencias de gravedad alta o media (D-02). La
 respuesta del alta trae `avisados`: si da 0 en una alta o una media, o no hay
 cuentas activas con esos roles, o Brevo no aceptó el correo (credenciales o
-remitente sin verificar). El enlace a la obra del correo usa `APP_URL`.
+remitente sin verificar). El enlace a la obra del correo usa `APP_URL`. Si Brevo no lo aceptó, la línea
+`Mailer: no salió "…"` del log de Render dice por qué.
 
 ### Entorno local (Windows)
 
