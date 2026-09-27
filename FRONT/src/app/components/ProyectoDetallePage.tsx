@@ -36,6 +36,8 @@ import { EnlaceDocumento } from "./EnlaceDocumento";
 // no muestre el día siguiente.
 const hoy = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
 const fmtFecha = (s: string) => new Date(s + "T00:00:00").toLocaleDateString("es-AR");
+// Importes al centavo, como los devuelve la API.
+const pesos = (n: number) => n.toLocaleString("es-AR", { maximumFractionDigits: 2 });
 
 // Etiquetas y colores para mostrar asistencia e incidencias.
 const ESTADO_ASIS: Record<EstadoAsistencia, { label: string; color: string }> = {
@@ -543,10 +545,10 @@ export default function ProyectoDetallePage() {
           <div className="flex items-center gap-2"><MapPin className="w-4 h-4" /> {proyecto.ubicacion}</div>
           <div className="flex items-center gap-2"><User className="w-4 h-4" /> {proyecto.encargado}</div>
           <div className="flex items-center gap-2"><Calendar className="w-4 h-4" /> Inicio: {fmtFecha(proyecto.fechaInicio)}</div>
-          {/* RF15: certificación por monto = presupuesto x % de avance (oculto al técnico, RF20) */}
-          {verCostos && proyecto.presupuesto != null && (
+          {/* RF15: certificación a la fecha, calculada por la API (D-09). No le llega al técnico (RF20). */}
+          {verCostos && proyecto.certificado != null && (
             <div className="flex items-center gap-2 md:col-span-3 pt-1" style={{ color: "var(--foreground)" }}>
-              <Wallet className="w-4 h-4" /> Certificación a la fecha: <b>${Math.round((proyecto.presupuesto * proyecto.avance) / 100).toLocaleString("es-AR")}</b>
+              <Wallet className="w-4 h-4" /> Certificación a la fecha: <b>${pesos(proyecto.certificado)}</b>
               <span className="text-muted-foreground">({proyecto.avance}% de ${proyecto.presupuesto.toLocaleString("es-AR")})</span>
             </div>
           )}
@@ -667,13 +669,14 @@ export default function ProyectoDetallePage() {
                 {verCostos && etapas.length > 0 && (() => {
                   const totalBase = etapas.reduce((a, e) => a + e.presupuesto_base, 0);
                   if (totalBase === 0) return null;
-                  const ejecutadoEst = proyecto ? Math.round((proyecto.presupuesto * (resumen?.avance_real ?? 0)) / 100) : 0;
+                  // El ejecutado estimado es el monto certificado, que calcula la API (D-09).
+                  const ejecutadoEst = proyecto?.certificado ?? 0;
                   return (
                     <div className="flex gap-6 text-sm pt-1 border-t">
-                      <span>Presup. base total: <b>${totalBase.toLocaleString("es-AR")}</b></span>
-                      <span>Ejecutado estimado: <b>${ejecutadoEst.toLocaleString("es-AR")}</b></span>
+                      <span>Presup. base total: <b>${pesos(totalBase)}</b></span>
+                      <span>Ejecutado estimado: <b>${pesos(ejecutadoEst)}</b></span>
                       <span style={{ color: totalBase - ejecutadoEst >= 0 ? "#22c55e" : "#ef4444" }}>
-                        Diferencia base: <b>${(totalBase - ejecutadoEst).toLocaleString("es-AR")}</b>
+                        Diferencia base: <b>${pesos(totalBase - ejecutadoEst)}</b>
                       </span>
                     </div>
                   );
