@@ -96,12 +96,15 @@ final class AvanceController
             $datos['observaciones'] ?? null,
             $planId,
         ]);
+        // Antes de sincronizar: con el driver de MySQL, cualquier SELECT o UPDATE
+        // posterior deja lastInsertId() en 0.
+        $idAvance = (int) $this->db->lastInsertId();
 
         // Transicion automatica de estado de la obra segun sus avances.
         $this->sincronizarProyecto($planId);
 
         $this->json(201, [
-            'id_avance' => (int) $this->db->lastInsertId(),
+            'id_avance' => $idAvance,
             'id_planificacion' => (int) $planId,
             'cantidad_ejecutada' => (float) $datos['cantidad_ejecutada'],
             'porcentaje_avance' => (float) $datos['porcentaje_avance'],
