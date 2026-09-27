@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sgso;
 
 use PDO;
+use Sgso\Http\Paginacion;
 use Sgso\Reglas\CicloDeVida;
 
 /**
@@ -49,14 +50,17 @@ final class ReporteController
          JOIN usuario u ON u.id_usuario = r.id_usuario';
 
     /** GET /api/reportes[?estado=...] */
-    public function listar(?string $estado): void
+    public function listar(?string $estado, ?Paginacion $pagina = null): void
     {
-        if ($estado !== null && $estado !== '') {
-            $stmt = $this->db->prepare(self::SELECT . ' WHERE r.estado = ? ORDER BY r.fecha_creacion DESC');
-            $stmt->execute([$estado]);
-        } else {
-            $stmt = $this->db->query(self::SELECT . ' ORDER BY r.fecha_creacion DESC');
+        $filtro = $estado !== null && $estado !== '' ? ' WHERE r.estado = ?' : '';
+        $parametros = $filtro !== '' ? [$estado] : [];
+        // El id desempata dos reportes creados en el mismo segundo.
+        $sql = self::SELECT . $filtro . ' ORDER BY r.fecha_creacion DESC, r.id_reporte DESC';
+        if ($pagina !== null) {
+            $sql .= $pagina->aplicar($this->db, 'SELECT COUNT(*) FROM reporte r' . $filtro, $parametros);
         }
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($parametros);
         $this->json(200, array_map([self::class, 'normalizar'], $stmt->fetchAll()));
     }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sgso;
 
 use PDO;
+use Sgso\Http\Paginacion;
 
 /**
  * Gestion de maquinaria. Cubre:
@@ -81,7 +82,7 @@ final class MaquinariaController
     }
 
     /** GET /api/maquinaria/{id}/registros  (RF23 + alerta RF24) */
-    public function listarRegistros(string $idMaq): void
+    public function listarRegistros(string $idMaq, ?Paginacion $pagina = null): void
     {
         // Promedio de combustible/hora de la maquina (para RF24).
         $stmt = $this->db->prepare(
@@ -92,7 +93,12 @@ final class MaquinariaController
         $tot = $stmt->fetch();
         $promedio = ((float) $tot['h']) > 0 ? ((float) $tot['c']) / ((float) $tot['h']) : 0;
 
-        $stmt = $this->db->prepare('SELECT * FROM registro_maquinaria WHERE id_maquinaria = ? ORDER BY fecha DESC, id_registro DESC');
+        // El promedio de arriba es sobre todos los registros, no sobre la pagina.
+        $sql = 'SELECT * FROM registro_maquinaria WHERE id_maquinaria = ? ORDER BY fecha DESC, id_registro DESC';
+        if ($pagina !== null) {
+            $sql .= $pagina->aplicar($this->db, 'SELECT COUNT(*) FROM registro_maquinaria WHERE id_maquinaria = ?', [$idMaq]);
+        }
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$idMaq]);
         $out = array_map(function (array $r) use ($promedio): array {
             $horas = (float) $r['horas_uso'];

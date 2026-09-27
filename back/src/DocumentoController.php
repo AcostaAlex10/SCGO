@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sgso;
 
 use PDO;
+use Sgso\Http\Paginacion;
 use Sgso\Reglas\Enlaces;
 
 /**
@@ -21,9 +22,13 @@ final class DocumentoController
     }
 
     /** GET /api/proyectos/{idProyecto}/documentos */
-    public function listarPorProyecto(string $idProyecto): void
+    public function listarPorProyecto(string $idProyecto, ?Paginacion $pagina = null): void
     {
-        $stmt = $this->db->prepare('SELECT * FROM documento WHERE id_proyecto = ? ORDER BY fecha_carga DESC, id_documento DESC');
+        $sql = 'SELECT * FROM documento WHERE id_proyecto = ? ORDER BY fecha_carga DESC, id_documento DESC';
+        if ($pagina !== null) {
+            $sql .= $pagina->aplicar($this->db, 'SELECT COUNT(*) FROM documento WHERE id_proyecto = ?', [$idProyecto]);
+        }
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$idProyecto]);
         $this->json(200, array_map([self::class, 'normalizar'], $stmt->fetchAll()));
     }

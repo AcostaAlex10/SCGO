@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sgso;
 
 use PDO;
+use Sgso\Http\Paginacion;
 
 /**
  * Controlador de Asistencia del personal en obra (RF06). Cada registro es
@@ -21,11 +22,13 @@ final class AsistenciaController
     }
 
     /** GET /api/proyectos/{idProyecto}/asistencias */
-    public function listarPorProyecto(string $idProyecto): void
+    public function listarPorProyecto(string $idProyecto, ?Paginacion $pagina = null): void
     {
-        $stmt = $this->db->prepare(
-            'SELECT * FROM asistencia WHERE id_proyecto = ? ORDER BY fecha DESC, id_asistencia DESC'
-        );
+        $sql = 'SELECT * FROM asistencia WHERE id_proyecto = ? ORDER BY fecha DESC, id_asistencia DESC';
+        if ($pagina !== null) {
+            $sql .= $pagina->aplicar($this->db, 'SELECT COUNT(*) FROM asistencia WHERE id_proyecto = ?', [$idProyecto]);
+        }
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$idProyecto]);
         $this->json(200, array_map([self::class, 'normalizar'], $stmt->fetchAll()));
     }

@@ -72,6 +72,15 @@ Piezas transversales: `Env` (lee `.env`), `Cors`, `Database` (conexión PDO
 La zona horaria está fijada en `America/Argentina/Buenos_Aires`: Render corre en
 UTC y las validaciones de fecha dependen del día local.
 
+**Paginación (C-03).** Los listados que crecen con el tiempo (asistencias,
+incidencias, avances, reportes, documentos, uso de maquinaria y consumos) aceptan
+`?limite=&desde=`. `Sgso\Http\Paginacion` valida los dos valores (un valor que no
+es entero es un 422; el límite máximo es 200), cuenta el listado completo y manda
+el total en `X-Total-Count`, que `Cors` expone para que el front lo pueda leer.
+Sin esos parámetros el listado responde entero, como siempre. Todos ordenan por
+fecha descendente y desempatan por id: sin un orden total, dos filas del mismo
+día podrían repetirse entre páginas.
+
 ### Sesión
 
 El login devuelve un JWT que viaja en `Authorization: Bearer <token>`. Cada login

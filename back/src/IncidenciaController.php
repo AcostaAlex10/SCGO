@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sgso;
 
 use PDO;
+use Sgso\Http\Paginacion;
 
 /**
  * Controlador de Incidencias externas de obra (RF09): clima, fallas de
@@ -22,11 +23,13 @@ final class IncidenciaController
     }
 
     /** GET /api/proyectos/{idProyecto}/incidencias */
-    public function listarPorProyecto(string $idProyecto): void
+    public function listarPorProyecto(string $idProyecto, ?Paginacion $pagina = null): void
     {
-        $stmt = $this->db->prepare(
-            'SELECT * FROM incidencia WHERE id_proyecto = ? ORDER BY fecha DESC, id_incidencia DESC'
-        );
+        $sql = 'SELECT * FROM incidencia WHERE id_proyecto = ? ORDER BY fecha DESC, id_incidencia DESC';
+        if ($pagina !== null) {
+            $sql .= $pagina->aplicar($this->db, 'SELECT COUNT(*) FROM incidencia WHERE id_proyecto = ?', [$idProyecto]);
+        }
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([$idProyecto]);
         $this->json(200, array_map([self::class, 'normalizar'], $stmt->fetchAll()));
     }

@@ -128,6 +128,32 @@ const creado = (cuerpo: unknown) => json(201, cuerpo);
 const sinContenido = () => json(200, { ok: true });
 const noEncontrado = (msg = "Recurso no encontrado") => json(404, { error: msg });
 const noAutenticado = () => json(401, { error: "No autenticado" });
+
+/**
+ * Igual que Sgso\Http\Paginacion (C-03): sin ?limite= el listado va entero;
+ * con limite y desde, la pagina y el total en X-Total-Count. Un valor que no
+ * es un entero es un 422, y el limite tiene un maximo de 200.
+ */
+function listado(filas: unknown[], params: URLSearchParams): Response {
+  const limite = params.get("limite") ?? "";
+  const desde = params.get("desde") ?? "";
+  if (limite === "" && desde === "") return ok(filas);
+  const entero = (v: string) => /^\d{1,9}$/.test(v);
+  const errores: Record<string, string> = {};
+  if (!entero(limite) || Number(limite) < 1) errores.limite = "Debe ser un entero mayor o igual a 1";
+  if (desde !== "" && !entero(desde)) errores.desde = "Debe ser un entero mayor o igual a 0";
+  if (Object.keys(errores).length) return json(422, { errors: errores });
+  const inicio = Number(desde || 0);
+  const pagina = filas.slice(inicio, inicio + Math.min(Number(limite), 200));
+  return json(200, pagina, { "X-Total-Count": String(filas.length) });
+}
+
+/** El ORDER BY de los listados de la API: lo mas reciente primero, y el id desempata. */
+function recientesPrimero(filas: Fila[], fecha: string, id: string): Fila[] {
+  return filas
+    .slice()
+    .sort((a, b) => String(b[fecha] ?? "").localeCompare(String(a[fecha] ?? "")) || Number(b[id]) - Number(a[id]));
+}
 const prohibido = () => json(403, { error: "No tiene permisos para esta operacion" });
 
 const num = (v: unknown, def = 0): number => {
@@ -370,7 +396,11 @@ function maquinariaConTotales() {
 }
 
 function registrosDeMaquina(idMaq: number) {
-  const regs = db.registros_maquinaria.filter((r) => Number(r.id_maquinaria) === idMaq);
+  const regs = recientesPrimero(
+    db.registros_maquinaria.filter((r) => Number(r.id_maquinaria) === idMaq),
+    "fecha",
+    "id_registro"
+  );
   const horas = regs.reduce((s, r) => s + num(r.horas_uso), 0);
   const combustible = regs.reduce((s, r) => s + num(r.combustible_consumido), 0);
   const promedio = horas > 0 ? combustible / horas : 0;
@@ -717,7 +747,7 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
     if (metodo === "GET" && s.length === 1) {
       const estado = params.get("estado");
       const filas = estado ? db.reportes.filter((r) => r.estado === estado) : db.reportes;
-      return ok(filas.map(reporteCompleto));
+      return listado(recientesPrimero(filas, "fecha_creacion", "id_reporte").map(reporteCompleto), params);
     }
     if (metodo === "POST" && s.length === 1) {
       const veto = exige(ROLES_DOC);
@@ -861,7 +891,7 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
       return eliminarDe(db.maquinaria, "id_maquinaria", idMaq);
     }
     if (s[2] === "registros") {
-      if (metodo === "GET") return ok(registrosDeMaquina(idMaq));
+      if (metodo === "GET") return listado(registrosDeMaquina(idMaq), params);
       if (metodo === "POST") {
         const veto = exige(ROLES_DOC);
         if (veto) return veto;
@@ -1038,10 +1068,13 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
     if (s[2] === "avances") {
       if (s[3] === "resumen" && metodo === "GET") return ok(resumenDe(idPlan));
       if (metodo === "GET") {
-        return ok(
-          db.avances
-            .filter((a) => Number(a.id_planificacion) === idPlan)
-            .sort((a, b) => String(a.fecha).localeCompare(String(b.fecha)))
+        return listado(
+          recientesPrimero(
+            db.avances.filter((a) => Number(a.id_planificacion) === idPlan),
+            "fecha",
+            "id_avance"
+          ),
+          params
         );
       }
       if (metodo === "POST") {
@@ -1127,7 +1160,10 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
       }
       if (s[3] === "consumos") {
         if (metodo === "GET") {
-          return ok(db.consumos.filter((c) => Number(c.id_asignacion) === idAsig));
+          return listado(
+            recientesPrimero(db.consumos.filter((c) => Number(c.id_asignacion) === idAsig), "fecha", "id_consumo"),
+            params
+          );
         }
         if (metodo === "POST") {
           const veto = exige(ROLES_AVANCE);
@@ -1371,6 +1407,9 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
               .map((f) => ({ ...f, vigente: periodoVigente(f) }))
           );
         }
+        // Los listados que crecen con el tiempo se paginan como en la API (C-03).
+        const fechaDe: Record<string, string> = { asistencias: "fecha", incidencias: "fecha", documentos: "fecha_carga" };
+        if (fechaDe[sub]) return listado(recientesPrimero(filas, fechaDe[sub], campoId), params);
         return ok(filas);
       }
       if (metodo === "POST") {

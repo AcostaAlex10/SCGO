@@ -15,6 +15,7 @@ use Sgso\DocumentoController;
 use Sgso\Env;
 use Sgso\EtapaPlanificacionController;
 use Sgso\Http\ManejadorErrores;
+use Sgso\Http\Paginacion;
 use Sgso\Http\Salud;
 use Sgso\Monitoreo\Sentry;
 use Sgso\InactividadController;
@@ -161,7 +162,7 @@ $manejadores = [
     'health.mostrar' => fn (array $p, ?array $u) => responder(200, Salud::comprobar($db)),
 
     // Reportes y aprobacion (RF21/RF17)
-    'reportes.listar' => fn (array $p, ?array $u) => $reporte->listar($_GET['estado'] ?? null),
+    'reportes.listar' => fn (array $p, ?array $u) => $reporte->listar($_GET['estado'] ?? null, paginaDelPedido()),
     'reportes.crear' => fn (array $p, ?array $u) => $reporte->crear(leerCuerpoJson(), (array) $u),
     'reportes.enviar' => fn (array $p, ?array $u) => $reporte->enviar($p['id']),
     'reportes.aprobar' => fn (array $p, ?array $u) => $reporte->aprobar($p['id'], leerCuerpoJson()),
@@ -176,7 +177,7 @@ $manejadores = [
     'maquinaria.eliminar' => fn (array $p, ?array $u) => $maquinaria->eliminar($p['id']),
     'maquinaria.registro.eliminar' => fn (array $p, ?array $u) => $maquinaria->eliminarRegistro($p['id']),
     'maquinaria.falla.eliminar' => fn (array $p, ?array $u) => $maquinaria->eliminarFalla($p['id']),
-    'maquinaria.registros.listar' => fn (array $p, ?array $u) => $maquinaria->listarRegistros($p['id']),
+    'maquinaria.registros.listar' => fn (array $p, ?array $u) => $maquinaria->listarRegistros($p['id'], paginaDelPedido()),
     'maquinaria.registros.crear' => fn (array $p, ?array $u) => $maquinaria->crearRegistro($p['id'], leerCuerpoJson()),
     'maquinaria.fallas.listar' => fn (array $p, ?array $u) => $maquinaria->listarFallas($p['id']),
     'maquinaria.fallas.crear' => fn (array $p, ?array $u) => $maquinaria->crearFalla($p['id'], leerCuerpoJson()),
@@ -202,24 +203,24 @@ $manejadores = [
     'avance.mostrar' => fn (array $p, ?array $u) => $avance->mostrar($p['id']),
     'avance.actualizar' => fn (array $p, ?array $u) => $avance->actualizar($p['id'], leerCuerpoJson()),
     'avance.eliminar' => fn (array $p, ?array $u) => $avance->eliminar($p['id']),
-    'avance.listar' => fn (array $p, ?array $u) => $avance->listarPorPlan($p['id']),
+    'avance.listar' => fn (array $p, ?array $u) => $avance->listarPorPlan($p['id'], paginaDelPedido()),
     'avance.crear' => fn (array $p, ?array $u) => $avance->crear($p['id'], leerCuerpoJson()),
     'avance.resumen' => fn (array $p, ?array $u) => $avance->resumen($p['id']),
 
     // Subrecursos de la obra
-    'asistencias.listar' => fn (array $p, ?array $u) => $asistencia->listarPorProyecto($p['id']),
+    'asistencias.listar' => fn (array $p, ?array $u) => $asistencia->listarPorProyecto($p['id'], paginaDelPedido()),
     'asistencias.crear' => fn (array $p, ?array $u) => $asistencia->crear($p['id'], leerCuerpoJson()),
     'asistencia.eliminar' => fn (array $p, ?array $u) => $asistencia->eliminar($p['id']),
-    'incidencias.listar' => fn (array $p, ?array $u) => $incidencia->listarPorProyecto($p['id']),
+    'incidencias.listar' => fn (array $p, ?array $u) => $incidencia->listarPorProyecto($p['id'], paginaDelPedido()),
     'incidencias.crear' => fn (array $p, ?array $u) => $incidencia->crear($p['id'], leerCuerpoJson()),
     'incidencia.eliminar' => fn (array $p, ?array $u) => $incidencia->eliminar($p['id']),
     'materiales.proyecto.listar' => fn (array $p, ?array $u) => $materialObra->listarPorProyecto($p['id']),
     'materiales.proyecto.asignar' => fn (array $p, ?array $u) => $materialObra->asignar($p['id'], leerCuerpoJson()),
-    'material.consumos.listar' => fn (array $p, ?array $u) => $materialObra->listarConsumos($p['id']),
+    'material.consumos.listar' => fn (array $p, ?array $u) => $materialObra->listarConsumos($p['id'], paginaDelPedido()),
     'material.consumos.crear' => fn (array $p, ?array $u) => $materialObra->crearConsumo($p['id'], leerCuerpoJson()),
     'material.asignacion.eliminar' => fn (array $p, ?array $u) => $materialObra->eliminarAsignacion($p['id']),
     'material.consumo.eliminar' => fn (array $p, ?array $u) => $materialObra->eliminarConsumo($p['id']),
-    'documentos.listar' => fn (array $p, ?array $u) => $documento->listarPorProyecto($p['id']),
+    'documentos.listar' => fn (array $p, ?array $u) => $documento->listarPorProyecto($p['id'], paginaDelPedido()),
     'documentos.crear' => fn (array $p, ?array $u) => $documento->crear($p['id'], leerCuerpoJson()),
     'documento.eliminar' => fn (array $p, ?array $u) => $documento->eliminar($p['id']),
     'inactividades.listar' => fn (array $p, ?array $u) => $inactividad->listarPorProyecto($p['id']),
@@ -311,6 +312,20 @@ function responder(int $codigo, mixed $cuerpo): void
 {
     http_response_code($codigo);
     echo json_encode($cuerpo, JSON_UNESCAPED_UNICODE);
+}
+/**
+ * La paginacion que pide el cliente con `?limite=&desde=` (C-03), o null si no
+ * pidio ninguna: entonces el listado va entero, como siempre. Si los valores no
+ * son validos corta con 422, en vez de adivinar y devolver una lista cortada.
+ */
+function paginaDelPedido(): ?Paginacion
+{
+    $pagina = Paginacion::desdeConsulta($_GET);
+    if (is_array($pagina)) {
+        responder(422, ['errors' => $pagina]);
+        exit;
+    }
+    return $pagina;
 }
 function noAutenticado(): void
 {
