@@ -54,6 +54,29 @@ final class CicloDeVidaTest extends TestCase
     }
 
     // ----------------------------------------------------------------
+    //  Alta y planificacion (D-04)
+    // ----------------------------------------------------------------
+
+    public function testUnaObraNuevaArrancaCreada(): void
+    {
+        self::assertSame(CicloDeVida::CREADA, CicloDeVida::INICIAL);
+    }
+
+    #[DataProvider('estados')]
+    public function testSoloUnaObraCreadaPasaAPlanificacionAlCargarLaPlanificacion(string $estado): void
+    {
+        $esperado = $estado === CicloDeVida::CREADA ? CicloDeVida::PLANIFICACION : null;
+        self::assertSame($esperado, CicloDeVida::alCargarPlanificacion($estado));
+    }
+
+    #[DataProvider('estados')]
+    public function testSoloUnaObraEnPlanificacionVuelveACreadaAlBorrarLaPlanificacion(string $estado): void
+    {
+        $esperado = $estado === CicloDeVida::PLANIFICACION ? CicloDeVida::CREADA : null;
+        self::assertSame($esperado, CicloDeVida::alBorrarPlanificacion($estado));
+    }
+
+    // ----------------------------------------------------------------
     //  Arranque por avance
     // ----------------------------------------------------------------
 
