@@ -914,9 +914,40 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
       if (metodo === "PUT") {
         const e = db.etapas.find((x) => Number(x.id_etapa) === num(s[2]));
         if (!e) return noEncontrado("Etapa no encontrada");
-        Object.assign(e, cuerpo);
+        // Mismas validaciones que EtapaPlanificacionController::actualizar(): lo
+        // que no viene conserva lo guardado, y las fechas se comparan completas,
+        // aunque llegue una sola. Antes el simulador aceptaba cualquier cosa.
+        const errores: Record<string, string> = {};
+        if (cuerpo.nombre !== undefined && !texto(cuerpo.nombre)) errores.nombre = "No puede estar vacío";
+        if (cuerpo.peso_porcentual !== undefined) {
+          const peso = num(cuerpo.peso_porcentual);
+          if (peso < 0 || peso > 100) errores.peso_porcentual = "Debe ser un número entre 0 y 100";
+        }
+        validarRango(
+          cuerpo.fecha_inicio !== undefined ? texto(cuerpo.fecha_inicio) : texto(e.fecha_inicio),
+          cuerpo.fecha_fin !== undefined ? texto(cuerpo.fecha_fin) : texto(e.fecha_fin),
+          errores
+        );
+        if (cuerpo.presupuesto_base !== undefined && num(cuerpo.presupuesto_base) < 0) {
+          errores.presupuesto_base = "Debe ser un número mayor o igual a 0";
+        }
+        if (!errores.peso_porcentual && cuerpo.peso_porcentual !== undefined) {
+          const sumaOtras = db.etapas
+            .filter((x) => Number(x.id_planificacion) === Number(e.id_planificacion) && x !== e)
+            .reduce((t, x) => t + num(x.peso_porcentual), 0);
+          if (sumaOtras + num(cuerpo.peso_porcentual) > 100.01) {
+            errores.peso_porcentual =
+              `La suma de pesos superaría 100%. Suma de las otras etapas: ${sumaOtras.toFixed(2)}%. ` +
+              `Peso disponible: ${Math.max(0, 100 - sumaOtras).toFixed(2)}%.`;
+          }
+        }
+        if (Object.keys(errores).length) return json(422, { errors: errores });
+
+        for (const campo of ["nombre", "peso_porcentual", "fecha_inicio", "fecha_fin", "orden", "presupuesto_base"]) {
+          if (cuerpo[campo] !== undefined) e[campo] = cuerpo[campo];
+        }
         guardar();
-        return ok(e);
+        return ok({ mensaje: "Etapa actualizada" });
       }
     }
     const idPlan = num(s[1]);

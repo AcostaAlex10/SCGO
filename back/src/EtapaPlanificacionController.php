@@ -117,7 +117,13 @@ final class EtapaPlanificacionController
             return;
         }
 
-        $errores = $this->validar($datos, true);
+        // La fecha que no viene se completa con la guardada: sin eso, la
+        // comparacion de inicio y fin no corria con una sola, y un PUT con solo
+        // fecha_fin anterior al inicio dejaba una etapa que termina antes de empezar.
+        $errores = $this->validar($datos + [
+            'fecha_inicio' => (string) $actual['fecha_inicio'],
+            'fecha_fin' => (string) $actual['fecha_fin'],
+        ], true);
         if (!empty($errores)) {
             $this->json(422, ['errors' => $errores]);
             return;
