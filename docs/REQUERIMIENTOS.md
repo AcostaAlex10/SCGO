@@ -136,7 +136,7 @@ diferencia respecto del texto · *Pendiente* — no implementado.
 | RF21 | permitir revisar, editar y aprobar reportes antes de emitir informes definitivos | Importante | Cumplido | `ReporteController`, `Sgso\Reglas\CicloDeVida` |
 | RF22 | permitir registrar ítems o excedentes no contemplados | Secundaria | Cumplido | `ItemExcedenteController` |
 | RF23 | registrar el rendimiento de maquinaria: horas, combustible y producción | Importante | Cumplido | `MaquinariaController` |
-| RF24 | comparar el consumo con el rendimiento esperado y alertar ante desvíos | Importante | **Parcial** | ver desvío 2 |
+| RF24 | comparar el consumo con el rendimiento esperado y alertar ante desvíos | Importante | **Parcial** | `AlertasPage`, `MaquinariaPage`; ver desvío 2 |
 | RF25 | permitir registrar períodos de inactividad con su motivo | Importante | Cumplido | `InactividadController`, `Sgso\Reglas\CicloDeVida` |
 | RF26 | clasificar incidencias por gravedad para activar protocolos de notificación | Secundaria | **Parcial** | ver desvío 3 |
 | RF27 | mantener el historial de fallas y reemplazos de cada máquina | Importante | **Parcial** | ver desvío 6 |
@@ -160,6 +160,7 @@ diferencia respecto del texto · *Pendiente* — no implementado.
 | RF20 — costos ocultos al Personal Técnico | `back/tests/Integracion/AnalisisTest.php` (backend), `FRONT/scripts/pruebas/humo.mjs` (pantallas) |
 | RF22 — ítems excedentes | `back/tests/Integracion/ItemExcedenteTest.php` |
 | RF23, RF24, RF27 y RF28 — uso de maquinaria sin valores negativos, alerta de consumo, fallas y rendimiento por operario | `back/tests/Integracion/MaquinariaTest.php`, `FRONT/scripts/pruebas/contrato.mjs` |
+| RF24 — la alerta de consumo en Alertas, con la misma regla que el listado de la máquina | `back/tests/Reglas/ConsumoMaquinariaTest.php`, `back/tests/Integracion/AnalisisTest.php`, `FRONT/scripts/pruebas/contrato.mjs` |
 | HU16 — gestión de cuentas: nunca sin un administrador activo | `back/tests/Integracion/UsuarioTest.php` |
 | RNF06 y A-14 — una baja, un cambio de rol, un restablecimiento o un login en otro lado cortan la sesión | `back/tests/Integracion/RevocacionDeSesionTest.php` |
 | RNF08 y C-03 — los listados que crecen se paginan a pedido, con el total real | `back/tests/Integracion/PaginacionTest.php`, `back/tests/Http/PaginacionTest.php`, `back/tests/Http/CorsTest.php`, `FRONT/scripts/pruebas/contrato.mjs` |
@@ -203,12 +204,13 @@ pueden demostrar.
    Render no conserva archivos entre reinicios, así que se optó por referenciar una
    URL externa. Se resuelve con almacenamiento de objetos (plan: DEC-03 y D-01). Hoy
    esta limitación además abre un agujero de seguridad (plan: A-01).
-2. **RF24 — la alerta de consumo existe pero no se ve en Alertas.**
-   `MaquinariaController` compara cada registro contra el promedio histórico de esa
-   máquina y marca `alerta_consumo` si lo supera en más de 1,5 veces. Dos
-   consecuencias: una máquina que siempre consume de más nunca alerta, porque no se
-   aparta de su propio promedio; y la alerta aparece solo en el listado de la
-   máquina, porque `AnalisisController` no la incluye (plan: D-03).
+2. **RF24 — la alerta de consumo compara la máquina consigo misma.** Cada
+   registro de uso se compara con el promedio histórico de su máquina y alerta si
+   lo supera en más de 1,5 veces (`Sgso\Reglas\ConsumoMaquinaria`). La alerta
+   aparece en el listado de la máquina y en Alertas (D-03). Pero RF24 pide
+   compararlo con el rendimiento esperado, y ese dato no se guarda: una máquina que
+   siempre consume de más nunca alerta, porque no se aparta de su propio promedio,
+   y un registro anómalo alerta para siempre (plan: D-13).
 3. **RF26 — la gravedad se clasifica, pero no dispara ningún aviso.** Falta el
    protocolo de notificación por nivel (plan: D-02).
 4. **RF15 — la certificación se calcula en el navegador.** El monto sale del
