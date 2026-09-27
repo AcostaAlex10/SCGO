@@ -139,10 +139,10 @@ diferencia respecto del texto · *Pendiente* — no implementado.
 | RF24 | comparar el consumo con el rendimiento esperado y alertar ante desvíos | Importante | **Parcial** | ver desvío 2 |
 | RF25 | permitir registrar períodos de inactividad con su motivo | Importante | Cumplido | `InactividadController`, `Sgso\Reglas\CicloDeVida` |
 | RF26 | clasificar incidencias por gravedad para activar protocolos de notificación | Secundaria | **Parcial** | ver desvío 3 |
-| RF27 | mantener el historial de fallas y reemplazos de cada máquina | Importante | Cumplido | `MaquinariaController` |
+| RF27 | mantener el historial de fallas y reemplazos de cada máquina | Importante | **Parcial** | ver desvío 6 |
 | RF28 | generar comparativas de rendimiento entre operarios | Secundaria | Cumplido | `MaquinariaController::rendimientoOperarios()` |
 
-**Resumen:** 23 cumplidos, 4 parciales y 1 pendiente.
+**Resumen:** 22 cumplidos, 5 parciales y 1 pendiente.
 
 ### Qué tiene pruebas automáticas hoy
 
@@ -151,18 +151,24 @@ diferencia respecto del texto · *Pendiente* — no implementado.
 | RF19 — permisos, endpoint por endpoint | `back/tests/Reglas/PermisosTest.php`, `back/tests/Ruteo/TablaTest.php` |
 | RF03 — planificación y etapas: una por obra, pesos que no pasan de 100, fin nunca antes del inicio | `back/tests/Integracion/PlanificacionTest.php`, `back/tests/Integracion/EtapaPlanificacionTest.php`, `FRONT/scripts/pruebas/contrato.mjs` |
 | RF05 — avance físico: arranca la obra, el porcentaje es el mayor cargado, nada de avance en una cancelada | `back/tests/Integracion/AvanceTest.php` |
+| RF04 — catálogo de materiales sin duplicados | `back/tests/Integracion/MaterialTest.php` |
+| RF06 y RF08 — asistencia diaria y su justificación | `back/tests/Integracion/AsistenciaTest.php` |
+| RF09 y RF26 — incidencias clasificadas por tipo y gravedad | `back/tests/Integracion/IncidenciaTest.php` |
 | RF10 y RF12 — materiales asignados, consumos y exceso | `back/tests/Integracion/MaterialObraTest.php`, `back/tests/Integracion/AnalisisTest.php` |
 | RF11 — alerta cuando el avance real queda debajo del esperado | `back/tests/Integracion/AnalisisTest.php` |
 | RF13 — presupuesto contra lo ejecutado | `back/tests/Integracion/AnalisisTest.php` |
 | RF20 — costos ocultos al Personal Técnico | `back/tests/Integracion/AnalisisTest.php` (backend), `FRONT/scripts/pruebas/humo.mjs` (pantallas) |
+| RF22 — ítems excedentes | `back/tests/Integracion/ItemExcedenteTest.php` |
+| RF23, RF24, RF27 y RF28 — uso de maquinaria sin valores negativos, alerta de consumo, fallas y rendimiento por operario | `back/tests/Integracion/MaquinariaTest.php`, `FRONT/scripts/pruebas/contrato.mjs` |
 | HU16 — gestión de cuentas: nunca sin un administrador activo | `back/tests/Integracion/UsuarioTest.php` |
 | RNF06 y A-14 — una baja, un cambio de rol, un restablecimiento o un login en otro lado cortan la sesión | `back/tests/Integracion/RevocacionDeSesionTest.php` |
 | RF21 — cierre de obra por reporte final | `back/tests/Integracion/CierrePorReporteFinalTest.php` |
 | RF25 — pausa y reactivación por inactividad | `back/tests/Integracion/CicloDeVidaObraTest.php`, `FRONT/scripts/pruebas/inactividad.mjs` |
 | Ciclo de vida de la obra completo | `back/tests/Reglas/CicloDeVidaTest.php` |
 
-El resto de los requerimientos funciona, pero **no tiene una prueba que avise si se
-rompe**. Ampliar esa cobertura es el ítem C-01 del [plan de producto](PLAN-PRODUCTO.md).
+Desde el PR #42 **los 16 controladores tienen pruebas de integración** (C-01 del
+[plan de producto](PLAN-PRODUCTO.md)). Las pruebas cubren lo que cada controlador hace;
+los requerimientos de la tabla son los que tienen reglas de negocio con nombre propio.
 
 ---
 
@@ -210,6 +216,10 @@ pueden demostrar.
    auditar (plan: D-09).
 5. **Estado `creada` sin uso.** El modelo de la obra tiene siete estados y `creada`
    no lo asigna nadie: toda obra nueva arranca en `planificacion` (plan: D-04).
+6. **RF27 — una falla no se puede marcar como resuelta.** Se cargan y se listan,
+   con su componente y si hubo reemplazo, pero no existe un `PUT` ni la pantalla
+   muestra el campo: el contador de fallas abiertas solo baja borrando la falla,
+   que es justamente el historial que RF27 pide conservar (plan: D-11).
 
 ---
 

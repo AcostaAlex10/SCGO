@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/pruebas-campo` | `main` @ `aedd966` (2026-09-27) | C-01, tercera parte: pruebas de integración de asistencia, incidencias, excedentes, maquinaria y catálogo de materiales, y lo que encuentren | — |
+| `claude/pruebas-campo` | `main` @ `aedd966` (2026-09-27) | C-01, tercera parte: pruebas de integración de asistencia, incidencias, excedentes, maquinaria y catálogo de materiales, y lo que encuentren | #42 |
 
 ### Reglas
 
