@@ -110,7 +110,7 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 | # | P | Qué falta | Req. | Tamaño | Quién |
 |---|---|---|---|---|---|
 | **D-01** | P1 | **Documentos como archivos** (DEC-03): subida con límite de tamaño, tipos permitidos y enlaces firmados. | RF07, RF16 | L | Claude |
-| **D-02** | P1 | **Avisos según la gravedad** de la incidencia. La gravedad ya se clasifica y el correo ya funciona; falta conectarlos. | RF26 | M | Codex |
+| **D-02** | P1 | **Hecho en el PR #46.** **Avisos según la gravedad** de la incidencia. Protocolo decidido por el equipo: una alta avisa por correo a Gerentes y Personal Administrativo activos; una media, al Personal Administrativo; una baja no avisa. Un solo correo por incidencia, con todo escapado, y quien la carga ve a cuántos se avisó. | RF26 | M | Codex |
 | **D-03** | P1 | **Hecho en el PR #44.** **La alerta de consumo de maquinaria no aparecía en Alertas.** Ahora el feed trae una alerta por máquina con consumos anómalos, con cuántos son, el último y su obra. La regla pasó a `Sgso\Reglas\ConsumoMaquinaria`, que usan el listado y el feed. | RF24 | S | Codex |
 | **D-04** | P2 | **Distinguir `creada` de `planificacion`**: hoy nadie asigna `creada`. | ciclo de vida | S | Codex |
 | **D-05** | P1 | **Registro de cambios:** quién modificó qué y cuándo. Ninguna tabla lo guarda hoy, salvo el autor del reporte. Es trazabilidad ante un reclamo y suele pedirse en un peritaje. | — | L | Claude |
@@ -214,3 +214,4 @@ del arreglo, CI en verde, el simulador al día y el número de PR anotado acá.
 | 2026-09-27 | C-03 hecho (PR #43): paginación a pedido de los siete listados que crecen, con el total en `X-Total-Count` (expuesto por CORS). El simulador pagina y ordena igual que la API: antes devolvía los avances del más viejo al más nuevo y el resto sin orden. |
 | 2026-09-27 | D-03 hecho (PR #44): el consumo anómalo de maquinaria llega al feed de Alertas, con la misma regla que el listado de la máquina. El simulador arma el mismo feed que la API: la gravedad de las alertas de avance usaba otros cortes, y la demo mostraba media una obra que en producción sale alta. Agregado D-13. |
 | 2026-09-27 | A-16 hecho (PR #45): `Mailer` y `Geocoder` vuelven a verificar el certificado TLS. Se encontró al preparar D-02, que va a mandar avisos con `Mailer`. |
+| 2026-09-27 | D-02 hecho (PR #46): una incidencia alta o media avisa por correo según el protocolo que decidió el equipo; RF26 pasa a cumplido. `Mailer` acepta varios destinatarios. |

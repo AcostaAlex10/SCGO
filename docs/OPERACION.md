@@ -349,6 +349,14 @@ pase.
 failed jobs" sobre un run anterior falla con `No artifacts named "github-pages"`.
 Usar "Re-run all jobs".
 
+### Correo
+
+**Los avisos de incidencias no llegan.** Salen por Brevo, como la recuperación de
+contraseña, y solo para las incidencias de gravedad alta o media (D-02). La
+respuesta del alta trae `avisados`: si da 0 en una alta o una media, o no hay
+cuentas activas con esos roles, o Brevo no aceptó el correo (credenciales o
+remitente sin verificar). El enlace a la obra del correo usa `APP_URL`.
+
 ### Entorno local (Windows)
 
 **Composer falla con `curl error 60`.** Hay un antivirus que intercepta TLS y su
