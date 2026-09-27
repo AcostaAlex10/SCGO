@@ -36,7 +36,9 @@ final class Mailer
                 'timeout' => 12,
                 'ignore_errors' => true,
             ],
-            'ssl' => ['verify_peer' => false, 'verify_peer_name' => false],
+            // Sin opciones 'ssl': PHP verifica el certificado de Brevo contra las
+            // raices del sistema. El pedido lleva la API key y el enlace para
+            // restablecer la contrasena (A-16).
         ]);
 
         $respuesta = @file_get_contents('https://api.brevo.com/v3/smtp/email', false, $contexto);

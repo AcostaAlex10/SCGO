@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/alerta-consumo` | `main` @ `05f11e0` (2026-09-27) | D-03: la alerta de consumo de maquinaria en Alertas | — |
+| `claude/verificacion-tls` | `main` @ `d183059` (2026-09-27) | A-16: Mailer y Geocoder vuelven a verificar el certificado TLS | — |
 
 ### Reglas
 
@@ -115,6 +115,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/pruebas-planificacion` | C-01, segunda parte: 35 pruebas de avances, planificación y etapas; el alta de avance que devolvía id 0 y la etapa que terminaba antes de empezar | PR #41 |
 | `claude/pruebas-campo` | C-01, tercera parte: 35 pruebas de lo que se carga en obra; el uso de maquinaria negativo o de una obra inexistente. C-01 completo | PR #42 |
 | `claude/paginacion` | C-03: paginación a pedido de los siete listados que crecen, con el total en `X-Total-Count`; "Ver más" en asistencias y reportes | PR #43 |
+| `claude/alerta-consumo` | D-03: el consumo anómalo de maquinaria en Alertas, con la regla en `Sgso\Reglas\ConsumoMaquinaria`; el simulador arma el mismo feed que la API | PR #44 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
