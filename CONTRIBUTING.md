@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/traspaso-cierre-nube` | `main` @ `b6d42ea` (2026-09-27) | `TRASPASO.md` al día al cerrar la sesión en la nube: estado, lo que falta probar en producción y las trampas de la nube | — |
+| `claude/diagnostico-correo` | `main` @ `0eb21fb` (2026-09-27) | Que un correo que no sale deje en el log de Render el motivo, y `/auth/olvide` diga qué hizo con cada pedido | #50 |
 
 ### Reglas
 
@@ -120,6 +120,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/avisos-incidencias` | D-02: una incidencia alta o media avisa por correo según el protocolo del equipo; RF26 cumplido | PR #46 |
 | `claude/estado-creada` | D-04: una obra nueva arranca `creada` y pasa a `planificacion` al cargar su planificación | PR #47 |
 | `claude/certificacion-api` | D-09: la certificación de RF15 la calcula la API, al centavo, y no le llega al Personal Técnico; RF15 cumplido | PR #48 |
+| `claude/traspaso-cierre-nube` | `TRASPASO.md` al día al cerrar la sesión en la nube: estado, lo que falta probar en producción y las trampas de la nube | PR #49 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir

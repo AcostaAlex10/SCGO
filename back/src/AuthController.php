@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sgso;
 
+use Closure;
 use PDO;
 use Sgso\Seguridad\IntentosLogin;
 use Sgso\Seguridad\PoliticaContrasena;
@@ -49,13 +50,23 @@ final class AuthController
 
     private IntentosLogin $intentos;
 
+    /** @var Closure(string, string, string): bool */
+    private Closure $enviarCorreo;
+
+    /**
+     * @param (Closure(string, string, string): bool)|null $enviarCorreo
+     *        como sale el correo de recuperacion: por defecto, Mailer. Las
+     *        pruebas pasan una que no sale a la red.
+     */
     public function __construct(
         private PDO $db,
         private string $jwtSecreto,
         private int $jwtSegundosValidez,
-        ?IntentosLogin $intentos = null
+        ?IntentosLogin $intentos = null,
+        ?Closure $enviarCorreo = null
     ) {
         $this->intentos = $intentos ?? new IntentosLogin($db);
+        $this->enviarCorreo = $enviarCorreo ?? Mailer::enviar(...);
     }
 
     /** @param array<string, mixed> $datos */
@@ -257,7 +268,12 @@ final class AuthController
         // Cero filas es el email que no existe y también el que ya pidió hace un
         // rato: los dos casos salen por acá con la misma respuesta de siempre. Un
         // 429 convertiría este endpoint en un delator de qué emails tienen cuenta.
-        if ($reserva->rowCount() === 1) {
+        //
+        // Lo que pasó queda en el log del servidor, sin el email ni el token: sin
+        // eso, "pedí el correo y no llega" no tenía por dónde empezar.
+        if ($reserva->rowCount() !== 1) {
+            error_log('olvide: no se mandó correo: el email no tiene cuenta o ya pidió uno hace menos de 5 minutos');
+        } else {
             $stmt = $this->db->prepare('SELECT nombre FROM usuario WHERE email = ?');
             $stmt->execute([$email]);
             $usuario = $stmt->fetch();
@@ -270,7 +286,13 @@ final class AuthController
                 . '<p><a href="' . htmlspecialchars($enlace) . '">' . htmlspecialchars($enlace) . '</a></p>'
                 . '<p>Si no solicitaste esto, ignorá este correo.</p>';
 
-            Mailer::enviar($email, 'Recuperá tu contraseña - SGSO', $html);
+            if (!($this->enviarCorreo)($email, 'Recuperá tu contraseña - SGSO', $html)) {
+                error_log('olvide: el correo de recuperación no salió (el motivo está en la línea de Mailer)');
+            } elseif ($base === '') {
+                error_log('olvide: correo de recuperación enviado, pero el enlace no abre nada: faltan APP_URL y CORS_ORIGIN');
+            } else {
+                error_log('olvide: correo de recuperación enviado; el enlace apunta a ' . $base . '/restablecer');
+            }
         }
 
         $this->json(200, $respuestaGenerica);
