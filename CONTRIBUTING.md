@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/pruebas-planificacion` | `main` @ `2805e80` (2026-09-27) | C-01, segunda parte: pruebas de integración de `AvanceController`, `PlanificacionController` y `EtapaPlanificacionController`, y lo que encuentren | — |
+| `claude/pruebas-planificacion` | `main` @ `2805e80` (2026-09-27) | C-01, segunda parte: pruebas de integración de `AvanceController`, `PlanificacionController` y `EtapaPlanificacionController`, y lo que encuentren | #41 |
 
 ### Reglas
 

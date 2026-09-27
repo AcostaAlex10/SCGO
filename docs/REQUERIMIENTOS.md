@@ -149,6 +149,8 @@ diferencia respecto del texto · *Pendiente* — no implementado.
 | Regla | Pruebas |
 |---|---|
 | RF19 — permisos, endpoint por endpoint | `back/tests/Reglas/PermisosTest.php`, `back/tests/Ruteo/TablaTest.php` |
+| RF03 — planificación y etapas: una por obra, pesos que no pasan de 100, fin nunca antes del inicio | `back/tests/Integracion/PlanificacionTest.php`, `back/tests/Integracion/EtapaPlanificacionTest.php`, `FRONT/scripts/pruebas/contrato.mjs` |
+| RF05 — avance físico: arranca la obra, el porcentaje es el mayor cargado, nada de avance en una cancelada | `back/tests/Integracion/AvanceTest.php` |
 | RF10 y RF12 — materiales asignados, consumos y exceso | `back/tests/Integracion/MaterialObraTest.php`, `back/tests/Integracion/AnalisisTest.php` |
 | RF11 — alerta cuando el avance real queda debajo del esperado | `back/tests/Integracion/AnalisisTest.php` |
 | RF13 — presupuesto contra lo ejecutado | `back/tests/Integracion/AnalisisTest.php` |
