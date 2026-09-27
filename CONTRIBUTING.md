@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/diagnostico-correo` | `main` @ `0eb21fb` (2026-09-27) | Que un correo que no sale deje en el log de Render el motivo, y `/auth/olvide` diga qué hizo con cada pedido | — |
+| `claude/diagnostico-correo` | `main` @ `0eb21fb` (2026-09-27) | Que un correo que no sale deje en el log de Render el motivo, y `/auth/olvide` diga qué hizo con cada pedido | #50 |
 
 ### Reglas
 
