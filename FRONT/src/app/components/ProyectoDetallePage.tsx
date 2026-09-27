@@ -14,7 +14,7 @@ import {
   listarAvances, resumenAvances, crearAvance,
   listarEtapas, crearEtapa, actualizarEtapa, eliminarEtapa,
   listarAsistencias, crearAsistencia, eliminarAsistencia,
-  listarIncidencias, crearIncidencia, eliminarIncidencia,
+  listarIncidencias, crearIncidencia, eliminarIncidencia, incidenciaRegistrada,
   listarCatalogoMateriales, listarMaterialesObra, asignarMaterial,
   eliminarAsignacionMaterial, crearConsumo,
   listarDocumentos, crearDocumento, eliminarDocumento,
@@ -285,14 +285,14 @@ export default function ProyectoDetallePage() {
     e.preventDefault();
     if (!id) return;
     try {
-      await crearIncidencia(id, {
+      const creada = await crearIncidencia(id, {
         fecha: formInc.fecha,
         tipo: formInc.tipo,
         gravedad: formInc.gravedad,
         descripcion: formInc.descripcion,
         dias_retraso: formInc.dias_retraso ? parseInt(formInc.dias_retraso, 10) : 0,
       });
-      toast.success("Incidencia registrada");
+      toast.success(incidenciaRegistrada(creada.avisados));
       setFormInc({ tipo: "clima", gravedad: "media", fecha: hoy(), descripcion: "", dias_retraso: "" });
       setIncidencias(await listarIncidencias(id));
     } catch (err) {

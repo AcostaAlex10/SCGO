@@ -302,6 +302,28 @@ chequear('la pantalla de alertas muestra la maquina y su obra',
   (await filaMaquina.count()) === 1 && (await filaMaquina.innerText()).includes(obra1),
   (await filaMaquina.count()) ? await filaMaquina.innerText() : 'no aparece');
 
+// ---- 12. Una incidencia avisa por correo segun su gravedad (D-02) ----
+// Protocolo de la API: alta a Gerentes y Personal Administrativo activos,
+// media solo al Personal Administrativo, baja a nadie. El simulador no manda
+// correos: responde a cuantos habria avisado.
+const cuentas = (await api('GET', '/usuarios')).datos.filter((u) => u.activo !== false);
+const cuantos = (...roles) => cuentas.filter((u) => roles.includes(u.rol)).length;
+const esperados = { alta: cuantos('Gerente', 'PersonalAdministrativo'), media: cuantos('PersonalAdministrativo'), baja: 0 };
+for (const gravedad of ['alta', 'media', 'baja']) {
+  r = await api('POST', '/proyectos/1/incidencias', { fecha: '2026-03-02', tipo: 'clima', gravedad, descripcion: `Prueba ${gravedad}` });
+  chequear(`una incidencia ${gravedad} avisa a ${esperados[gravedad]}`,
+    r.estado === 201 && r.datos?.avisados === esperados[gravedad], `dio ${r.estado} y ${r.datos?.avisados}`);
+}
+
+// En pantalla, quien la carga ve a cuantos se aviso. La gravedad por defecto es media.
+await page.goto(BASE + '#/proyectos/1', { waitUntil: 'networkidle' });
+await page.waitForTimeout(1500);
+await page.fill('#desc', 'Se corta la luz en la obra');
+await page.locator('form').filter({ has: page.locator('#desc') }).getByRole('button', { name: /Registrar/ }).click();
+await page.waitForTimeout(800);
+chequear('al registrarla, la pantalla dice a cuantos se aviso por correo',
+  (await page.getByText(`Se avisó por correo a ${esperados.media} persona`).count()) === 1);
+
 await nav.close();
 console.log(`\n${ok.length}/${ok.length + mal.length} OK`);
 if (mal.length) process.exit(1);

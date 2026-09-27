@@ -189,6 +189,11 @@ const ROLES_AVANCE = ["AdministradorSistema", "PersonalTecnico"];
 const ROLES_DOC = ["AdministradorSistema", "PersonalAdministrativo", "PersonalTecnico"];
 const ROLES_REPORTE_APROBAR = ["AdministradorSistema", "PersonalAdministrativo"];
 const ROLES_ADMIN = ["AdministradorSistema"];
+// A quien avisa una incidencia segun su gravedad: Sgso\Reglas\ProtocoloIncidencias (RF26, D-02).
+const AVISO_POR_GRAVEDAD: Record<string, string[]> = {
+  alta: ["Gerente", "PersonalAdministrativo"],
+  media: ["PersonalAdministrativo"],
+};
 
 interface Sesion {
   id_usuario: number;
@@ -1469,6 +1474,12 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
             vigente: periodoVigente(nuevo),
             estado_proyecto: sincronizarPorInactividad(idNum),
           });
+        }
+        if (sub === "incidencias") {
+          // El simulador no manda correos: responde a cuantos habria avisado la API.
+          const roles = AVISO_POR_GRAVEDAD[String(nuevo.gravedad)] ?? [];
+          const avisados = db.usuarios.filter((u) => u.activo !== false && roles.includes(String(u.rol))).length;
+          return creado({ ...nuevo, avisados });
         }
         return creado(nuevo);
       }

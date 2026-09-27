@@ -306,8 +306,13 @@ export async function listarIncidencias(idProyecto: string): Promise<Incidencia[
 export async function crearIncidencia(
   idProyecto: string,
   datos: { fecha: string; tipo: TipoIncidencia; gravedad: GravedadIncidencia; descripcion: string; dias_retraso?: number }
-): Promise<Incidencia> {
+): Promise<Incidencia & { avisados: number }> {
   return parse(await apiFetch(`/proyectos/${idProyecto}/incidencias`, { method: "POST", body: JSON.stringify(datos) }));
+}
+// Lo que se le muestra a quien carga la incidencia: si se aviso por correo segun la gravedad (RF26).
+export function incidenciaRegistrada(avisados: number): string {
+  if (avisados === 0) return "Incidencia registrada";
+  return `Incidencia registrada. Se avisó por correo a ${avisados} ${avisados === 1 ? "persona" : "personas"}.`;
 }
 export async function eliminarIncidencia(idIncidencia: number): Promise<void> {
   await parse(await apiFetch(`/proyectos/incidencia/${idIncidencia}`, { method: "DELETE" }));

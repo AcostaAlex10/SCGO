@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import {
   listarProyectos,
   listarAsistencias, crearAsistencia, eliminarAsistencia,
-  listarIncidencias, crearIncidencia, eliminarIncidencia,
+  listarIncidencias, crearIncidencia, eliminarIncidencia, incidenciaRegistrada,
   paginaVacia, sumarPagina, quitarDePagina,
   type Proyecto, type Asistencia, type Incidencia, type Pagina,
   type EstadoAsistencia, type TipoIncidencia, type GravedadIncidencia,
@@ -61,8 +61,8 @@ export default function SeguimientoPage() {
   async function guardarInc(e: React.FormEvent) {
     e.preventDefault(); if (!obra) return;
     try {
-      await crearIncidencia(obra, { fecha: formInc.fecha, tipo: formInc.tipo, gravedad: formInc.gravedad, descripcion: formInc.descripcion, dias_retraso: formInc.dias_retraso ? parseInt(formInc.dias_retraso, 10) : 0 });
-      toast.success("Incidencia registrada"); setFormInc({ tipo: "clima", gravedad: "media", fecha: hoy(), descripcion: "", dias_retraso: "" });
+      const creada = await crearIncidencia(obra, { fecha: formInc.fecha, tipo: formInc.tipo, gravedad: formInc.gravedad, descripcion: formInc.descripcion, dias_retraso: formInc.dias_retraso ? parseInt(formInc.dias_retraso, 10) : 0 });
+      toast.success(incidenciaRegistrada(creada.avisados)); setFormInc({ tipo: "clima", gravedad: "media", fecha: hoy(), descripcion: "", dias_retraso: "" });
       setIncidencias(await listarIncidencias(obra));
     } catch (err) { toast.error(err instanceof Error ? err.message : "Error"); }
   }
