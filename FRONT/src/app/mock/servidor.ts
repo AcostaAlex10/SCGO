@@ -865,6 +865,24 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
       if (metodo === "POST") {
         const veto = exige(ROLES_DOC);
         if (veto) return veto;
+        // Mismas reglas que MaquinariaController::crearRegistro(): maquina y obra
+        // existentes, fecha valida y ningun valor negativo, porque del uso cargado
+        // sale el promedio con el que se decide la alerta de consumo (RF24).
+        if (!db.maquinaria.some((m) => Number(m.id_maquinaria) === idMaq)) {
+          return noEncontrado("Maquinaria no encontrada");
+        }
+        const errores: Record<string, string> = {};
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(texto(cuerpo.fecha))) errores.fecha = "Formato esperado: YYYY-MM-DD";
+        for (const campo of ["horas_uso", "combustible_consumido", "produccion_realizada"]) {
+          const v = cuerpo[campo];
+          if (v !== undefined && v !== null && v !== "" && (Number.isNaN(Number(v)) || Number(v) < 0)) {
+            errores[campo] = "Debe ser un número mayor o igual a 0";
+          }
+        }
+        if (cuerpo.id_proyecto && !db.proyectos.some((p) => String(p.id) === String(cuerpo.id_proyecto))) {
+          errores.id_proyecto = "Obra inexistente";
+        }
+        if (Object.keys(errores).length) return json(422, { errors: errores });
         const nuevo: Fila = {
           id_registro: proximoId(db.registros_maquinaria, "id_registro"),
           id_maquinaria: idMaq,
@@ -887,7 +905,15 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
       if (metodo === "POST") {
         const veto = exige(ROLES_DOC);
         if (veto) return veto;
-        if (!texto(cuerpo.descripcion)) return json(422, { errors: { descripcion: "Obligatorio" } });
+        // Mismas reglas que MaquinariaController::crearFalla(): la fecha es
+        // obligatoria (antes el simulador ponia la de hoy) y la maquina tiene que existir.
+        if (!db.maquinaria.some((m) => Number(m.id_maquinaria) === idMaq)) {
+          return noEncontrado("Maquinaria no encontrada");
+        }
+        const erroresFalla: Record<string, string> = {};
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(texto(cuerpo.fecha))) erroresFalla.fecha = "Formato esperado: YYYY-MM-DD";
+        if (!texto(cuerpo.descripcion)) erroresFalla.descripcion = "Obligatorio";
+        if (Object.keys(erroresFalla).length) return json(422, { errors: erroresFalla });
         const nueva: Fila = {
           id_falla: proximoId(db.fallas_maquinaria, "id_falla"),
           id_maquinaria: idMaq,

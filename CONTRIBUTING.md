@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/pruebas-planificacion` | `main` @ `2805e80` (2026-09-27) | C-01, segunda parte: pruebas de integración de `AvanceController`, `PlanificacionController` y `EtapaPlanificacionController`, y lo que encuentren | #41 |
+| `claude/pruebas-campo` | `main` @ `aedd966` (2026-09-27) | C-01, tercera parte: pruebas de integración de asistencia, incidencias, excedentes, maquinaria y catálogo de materiales, y lo que encuentren | #42 |
 
 ### Reglas
 
@@ -112,6 +112,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/traspaso-nube` | `TRASPASO.md` al día para seguir en una sesión en la nube; la rama del #37 al historial | PR #38 |
 | `claude/pruebas-controladores` | C-01, primera parte: 38 pruebas de integración de materiales, análisis y usuarios; encontraron A-14 y A-15 | PR #39 |
 | `claude/revocar-sesiones` | A-14: una baja, un cambio de rol, un restablecimiento o un login en otro lado cortan el acceso en el primer pedido | PR #40 |
+| `claude/pruebas-planificacion` | C-01, segunda parte: 35 pruebas de avances, planificación y etapas; el alta de avance que devolvía id 0 y la etapa que terminaba antes de empezar | PR #41 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir

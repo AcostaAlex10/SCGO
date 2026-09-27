@@ -197,6 +197,21 @@ chequear('un peso mayor a 100 al editar devuelve 422', r.estado === 422, `dio ${
 r = await api('PUT', '/planificacion/etapa/1', { fecha_fin: '2026-07-20' });
 chequear('corregir solo la fecha de fin dentro del rango se acepta', r.estado === 200, `dio ${r.estado}`);
 
+// ---- 9. El uso de una maquina no acepta valores negativos ni obras inexistentes (C-01) ----
+// Del uso cargado sale el promedio de la alerta de consumo (RF24). La API los
+// aceptaba (y la obra inexistente le daba 500); el simulador no validaba nada.
+r = await api('POST', '/maquinaria/1/registros', { fecha: '2026-03-01', horas_uso: 4, combustible_consumido: -10 });
+chequear('un registro de maquinaria con combustible negativo devuelve 422', r.estado === 422, `dio ${r.estado}`);
+
+r = await api('POST', '/maquinaria/1/registros', { fecha: '2026-03-01', horas_uso: 4, id_proyecto: 99999 });
+chequear('un registro de maquinaria con una obra inexistente devuelve 422', r.estado === 422, `dio ${r.estado}`);
+
+r = await api('POST', '/maquinaria/1/fallas', { descripcion: 'Perdida de aceite' });
+chequear('una falla sin fecha devuelve 422', r.estado === 422, `dio ${r.estado}`);
+
+r = await api('POST', '/maquinaria/1/registros', { fecha: '2026-03-01', horas_uso: 4, combustible_consumido: 20 });
+chequear('un registro de maquinaria valido se acepta', r.estado === 201, `dio ${r.estado}`);
+
 await nav.close();
 console.log(`\n${ok.length}/${ok.length + mal.length} OK`);
 if (mal.length) process.exit(1);
