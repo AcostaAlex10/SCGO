@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/certificacion-api` | `main` @ `d80ddc8` (2026-09-27) | D-09: la certificación de RF15 la calcula la API, no el navegador | — |
+| `claude/traspaso-cierre-nube` | `main` @ `b6d42ea` (2026-09-27) | `TRASPASO.md` al día al cerrar la sesión en la nube: estado, lo que falta probar en producción y las trampas de la nube | — |
 
 ### Reglas
 
