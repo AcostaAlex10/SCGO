@@ -6,11 +6,13 @@ namespace Sgso\Tests\Integracion;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use Sgso\AnalisisController;
+use Sgso\MaquinariaController;
 
 /**
  * El tablero de analisis y el feed de alertas: RF11 (avance real contra el
  * esperado), RF12 (materiales excedidos), RF13 (presupuesto contra lo
- * ejecutado) y RF20 (el Personal Tecnico no ve importes).
+ * ejecutado), RF20 (el Personal Tecnico no ve importes) y RF24 (consumo
+ * anomalo de maquinaria).
  *
  * El avance esperado depende de la fecha de hoy: cada etapa aporta su peso en
  * proporcion al tiempo transcurrido. Para que las pruebas no dependan del dia
@@ -229,6 +231,97 @@ final class AnalisisTest extends CasoConBase
     }
 
     // ----------------------------------------------------------------
+    //  RF24: consumo anomalo de maquinaria (D-03)
+    // ----------------------------------------------------------------
+
+    /**
+     * El listado de la maquina ya marcaba el registro, pero el feed no lo
+     * incluia: nadie lo veia salvo que abriera esa maquina.
+     */
+    public function testUnConsumoAnomaloDeMaquinariaApareceEnLasAlertas(): void
+    {
+        $idObra = $this->crearProyecto('en_ejecucion', 'Obra Norte');
+        $idMaquina = $this->crearMaquina('Retroexcavadora');
+        $this->cargarUso($idMaquina, '2026-03-01', 1, 10, $idObra);
+        $this->cargarUso($idMaquina, '2026-03-02', 1, 10, $idObra);
+        // Promedio 20 l/h: 40 l/h supera el umbral de 30.
+        $this->cargarUso($idMaquina, '2026-03-03', 1, 40, $idObra);
+
+        $alertas = $this->alertasDeMaquinaria($this->resumen('Gerente')['cuerpo']);
+
+        self::assertCount(1, $alertas);
+        self::assertSame('Retroexcavadora', $alertas[0]['maquina']);
+        self::assertSame('Obra Norte', $alertas[0]['proyecto']);
+        self::assertSame('media', $alertas[0]['gravedad']);
+        self::assertStringContainsString('03/03/2026', $alertas[0]['mensaje']);
+    }
+
+    /** Una alerta por maquina, no una por registro: con cuantos son y el ultimo. */
+    public function testUnaAlertaPorMaquinaConCuantosRegistrosYElUltimo(): void
+    {
+        $idObra = $this->crearProyecto('en_ejecucion', 'Obra Sur');
+        $idMaquina = $this->crearMaquina('Grua');
+        for ($dia = 1; $dia <= 6; $dia++) {
+            $this->cargarUso($idMaquina, "2026-04-0{$dia}", 1, 10, $idObra);
+        }
+        // Promedio 140 / 8 = 17,5 l/h: el umbral es 26,25 y los dos de 40 lo superan.
+        $this->cargarUso($idMaquina, '2026-04-10', 1, 40, $idObra);
+        $this->cargarUso($idMaquina, '2026-04-08', 1, 40, $idObra);
+
+        $alertas = $this->alertasDeMaquinaria($this->resumen('Gerente')['cuerpo']);
+
+        self::assertCount(1, $alertas);
+        self::assertStringContainsString('2 registros', $alertas[0]['mensaje']);
+        self::assertStringContainsString('10/04/2026', $alertas[0]['mensaje']);
+    }
+
+    public function testUnaMaquinaSinDesviosNoAlerta(): void
+    {
+        $idMaquina = $this->crearMaquina('Hormigonera');
+        $this->cargarUso($idMaquina, '2026-03-01', 2, 20);
+        $this->cargarUso($idMaquina, '2026-03-02', 1, 12);
+        // Una carga sin horas no consume por hora: no alerta ni corre el promedio.
+        $this->cargarUso($idMaquina, '2026-03-03', 0, 50);
+
+        self::assertSame([], $this->alertasDeMaquinaria($this->resumen('Gerente')['cuerpo']));
+    }
+
+    /** Un uso sin obra asignada tambien alerta: la maquina es la que consume. */
+    public function testElUsoSinObraAlertaSinProyecto(): void
+    {
+        $idMaquina = $this->crearMaquina('Compactadora');
+        $this->cargarUso($idMaquina, '2026-03-01', 1, 10);
+        $this->cargarUso($idMaquina, '2026-03-02', 1, 10);
+        $this->cargarUso($idMaquina, '2026-03-03', 1, 40);
+
+        $alertas = $this->alertasDeMaquinaria($this->resumen('PersonalTecnico')['cuerpo']);
+
+        self::assertCount(1, $alertas);
+        self::assertNull($alertas[0]['proyecto']);
+    }
+
+    /**
+     * El feed y el listado de la maquina tienen que decir lo mismo: si uno
+     * marca un registro y el otro no, el usuario ve dos verdades.
+     */
+    public function testElFeedCuentaLosMismosRegistrosQueMarcaElListadoDeLaMaquina(): void
+    {
+        $idMaquina = $this->crearMaquina('Topadora');
+        // Promedio 210 / 14 = 15 l/h y umbral 22,5: superan el de 30 y el de 31; el de 20 no.
+        foreach ([[4, 40], [2, 20], [1, 10], [1, 30], [3, 60], [1, 31], [2, 19]] as $i => [$horas, $litros]) {
+            $this->cargarUso($idMaquina, '2026-05-0' . ($i + 1), $horas, $litros);
+        }
+
+        $listado = $this->capturar(fn () => (new MaquinariaController($this->base()))->listarRegistros((string) $idMaquina))['cuerpo'];
+        $marcados = count(array_filter($listado, fn (array $r): bool => $r['alerta_consumo']));
+        $alertas = $this->alertasDeMaquinaria($this->resumen('Gerente')['cuerpo']);
+
+        self::assertSame(2, $marcados);
+        self::assertCount(1, $alertas);
+        self::assertStringContainsString("{$marcados} registros", $alertas[0]['mensaje']);
+    }
+
+    // ----------------------------------------------------------------
     //  Ayudas
     // ----------------------------------------------------------------
 
@@ -278,6 +371,28 @@ final class AnalisisTest extends CasoConBase
             }
         }
         self::fail("La obra {$idProyecto} no esta en el resumen");
+    }
+
+    private function crearMaquina(string $nombre): int
+    {
+        $this->base()->prepare("INSERT INTO maquinaria (nombre, tipo) VALUES (?, 'Movimiento de suelos')")->execute([$nombre]);
+        return (int) $this->base()->lastInsertId();
+    }
+
+    private function cargarUso(int $idMaquina, string $fecha, float $horas, float $litros, ?int $idProyecto = null): void
+    {
+        $this->base()->prepare(
+            'INSERT INTO registro_maquinaria (id_maquinaria, id_proyecto, fecha, horas_uso, combustible_consumido) VALUES (?, ?, ?, ?, ?)'
+        )->execute([$idMaquina, $idProyecto, $fecha, $horas, $litros]);
+    }
+
+    /**
+     * @param array<string, mixed> $cuerpo
+     * @return list<array<string, mixed>>
+     */
+    private function alertasDeMaquinaria(array $cuerpo): array
+    {
+        return array_values(array_filter($cuerpo['alertas'], fn (array $a): bool => $a['tipo'] === 'maquinaria'));
     }
 
     /**
