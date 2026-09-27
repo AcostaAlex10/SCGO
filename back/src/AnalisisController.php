@@ -6,6 +6,7 @@ namespace Sgso;
 
 use DateTimeImmutable;
 use PDO;
+use Sgso\Reglas\Certificacion;
 use Sgso\Reglas\ConsumoMaquinaria;
 
 /**
@@ -100,7 +101,7 @@ final class AnalisisController
 
             if (!$ocultarCostos) {
                 $presupuesto = (float) $f['presupuesto'];
-                $ejecutado = round($presupuesto * $avanceReal / 100, 2);
+                $ejecutado = Certificacion::monto($presupuesto, $avanceReal);
                 $item['presupuesto'] = $presupuesto;
                 $item['ejecutado']   = $ejecutado;   // RF13 (estimado por avance)
                 $item['diferencia']  = round($presupuesto - $ejecutado, 2);

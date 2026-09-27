@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sgso;
 
 use PDO;
+use Sgso\Reglas\Certificacion;
 use Sgso\Reglas\CicloDeVida;
 
 
@@ -121,6 +122,8 @@ final class MySqlProyectoRepository implements ProyectoRepositoryInterface
 
     /**
      * Ajusta tipos: id como string (como en el repo JSON) y numericos como float.
+     * Suma el monto certificado a la fecha (RF15, D-09), que es un importe: el
+     * controlador lo quita junto con el presupuesto para el Personal Tecnico.
      * @param array<string, mixed> $fila
      * @return array<string, mixed>
      */
@@ -129,6 +132,7 @@ final class MySqlProyectoRepository implements ProyectoRepositoryInterface
         $fila['id'] = (string) $fila['id'];
         $fila['avance'] = (float) $fila['avance'];
         $fila['presupuesto'] = (float) $fila['presupuesto'];
+        $fila['certificado'] = Certificacion::monto($fila['presupuesto'], $fila['avance']);
         return $fila;
     }
 }
