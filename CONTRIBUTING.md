@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/revocar-sesiones` | `main` @ `057d078` (2026-09-26) | A-14: que una baja, un cambio de rol o un restablecimiento de contraseña corten el acceso en el momento | #40 |
+| `claude/pruebas-planificacion` | `main` @ `2805e80` (2026-09-27) | C-01, segunda parte: pruebas de integración de `AvanceController`, `PlanificacionController` y `EtapaPlanificacionController`, y lo que encuentren | — |
 
 ### Reglas
 
