@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/paginacion` | `main` @ `3d5a1c9` (2026-09-27) | C-03: paginación a pedido de los listados que crecen con el tiempo | — |
+| `claude/alerta-consumo` | `main` @ `05f11e0` (2026-09-27) | D-03: la alerta de consumo de maquinaria en Alertas | — |
 
 ### Reglas
 
