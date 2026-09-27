@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/traspaso-nube` | `main` @ `9e0ee67` (2026-09-26) | `TRASPASO.md` al día para seguir en una sesión en la nube; la rama del #37 al historial | #38 |
+| `claude/pruebas-controladores` | `main` @ `057d078` (2026-09-26) | C-01, primera parte: pruebas de integración de `MaterialObraController`, `AnalisisController` y `UsuarioController`; la rama del #38 al historial | #39 |
 
 ### Reglas
 
@@ -45,16 +45,15 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 ## 2. Pull requests
 
-El CI corre cuatro jobs. Los tres primeros son obligatorios en el ruleset de
-`main`; el de Docker todavía no (es B-10 en el plan de producto), pero si falla,
-falla por algo real.
+El CI corre cuatro jobs, y los cuatro son obligatorios en el ruleset de `main`
+(el de Docker, desde el 2026-09-26: B-10 en el plan de producto).
 
 | Chequeo | Qué verifica | ¿Obligatorio? |
 |---|---|---|
 | Backend (PHPStan + PHPUnit) | análisis estático y pruebas, incluidas las de integración contra MariaDB | sí |
 | Frontend (tipos + build) | que el frontend compile sin errores de tipos, y que `vercel.json` siga declarando los headers | sí |
 | Playwright (demo estática) | las cinco suites de punta a punta | sí |
-| Imagen Docker (arranque seguro) | que la API falle cerrado sin `JWT_SECRET` y no filtre detalles internos | no todavía |
+| Imagen Docker (arranque seguro) | que la API falle cerrado sin `JWT_SECRET` y no filtre detalles internos | sí |
 
 La descripción del PR dice qué cambia, por qué, y cómo se verificó. Si algo no se
 pudo verificar, se dice.
@@ -110,6 +109,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/registrar-decisiones` | DEC-04 postergada hasta cerrar la posible venta; B-10 y el entorno de Pages, hechos; el timeout del monitor, corregido | PR #35 |
 | `claude/codigo-muerto` | C-11: fuera 34 primitivos de shadcn, 37 dependencias del front que no usaba nadie y `JsonProyectoRepository`; `docs/STACK.md` | PR #36 |
 | `claude/codigo-muerto-2` | C-11, segunda parte: fuera `globals.css` e `ImageWithFallback.tsx`; #34, #35 y #36 al historial | PR #37 |
+| `claude/traspaso-nube` | `TRASPASO.md` al día para seguir en una sesión en la nube; la rama del #37 al historial | PR #38 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir

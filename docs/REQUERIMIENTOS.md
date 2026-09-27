@@ -149,7 +149,11 @@ diferencia respecto del texto · *Pendiente* — no implementado.
 | Regla | Pruebas |
 |---|---|
 | RF19 — permisos, endpoint por endpoint | `back/tests/Reglas/PermisosTest.php`, `back/tests/Ruteo/TablaTest.php` |
-| RF20 — costos ocultos al Personal Técnico | `FRONT/scripts/pruebas/humo.mjs` |
+| RF10 y RF12 — materiales asignados, consumos y exceso | `back/tests/Integracion/MaterialObraTest.php`, `back/tests/Integracion/AnalisisTest.php` |
+| RF11 — alerta cuando el avance real queda debajo del esperado | `back/tests/Integracion/AnalisisTest.php` |
+| RF13 — presupuesto contra lo ejecutado | `back/tests/Integracion/AnalisisTest.php` |
+| RF20 — costos ocultos al Personal Técnico | `back/tests/Integracion/AnalisisTest.php` (backend), `FRONT/scripts/pruebas/humo.mjs` (pantallas) |
+| HU16 — gestión de cuentas: nunca sin un administrador activo | `back/tests/Integracion/UsuarioTest.php` |
 | RF21 — cierre de obra por reporte final | `back/tests/Integracion/CierrePorReporteFinalTest.php` |
 | RF25 — pausa y reactivación por inactividad | `back/tests/Integracion/CicloDeVidaObraTest.php`, `FRONT/scripts/pruebas/inactividad.mjs` |
 | Ciclo de vida de la obra completo | `back/tests/Reglas/CicloDeVidaTest.php` |
