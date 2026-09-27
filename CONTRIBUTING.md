@@ -31,6 +31,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
 | `claude/traspaso-cierre-nube` | `main` @ `b6d42ea` (2026-09-27) | `TRASPASO.md` al día al cerrar la sesión en la nube: estado, lo que falta probar en producción y las trampas de la nube | — |
+| `claude/diagnostico-correo` | `main` @ `0eb21fb` (2026-09-27) | Que un correo que no sale deje en el log de Render el motivo, y `/auth/olvide` diga qué hizo con cada pedido | — |
 
 ### Reglas
 
