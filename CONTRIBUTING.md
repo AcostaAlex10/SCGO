@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/alerta-consumo` | `main` @ `05f11e0` (2026-09-27) | D-03: la alerta de consumo de maquinaria en Alertas | — |
+| `claude/verificacion-tls` | `main` @ `d183059` (2026-09-27) | A-16: Mailer y Geocoder vuelven a verificar el certificado TLS | — |
 
 ### Reglas
 
