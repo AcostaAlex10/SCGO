@@ -85,6 +85,71 @@ if (await page.locator('#eff').count()) {
   chequear('formulario de etapas presente', false, 'no se encontró #eff');
 }
 
+// ---- 3. El alta de obra sigue el CU1 (D-15, informe de testing) ----
+// DEF-02: con el formulario vacio, cada uno de los seis campos dice
+// "Obligatorio" y queda marcado; el navegador no muestra su propio aviso.
+await irA('/proyectos');
+await page.click('button:has-text("Nuevo Proyecto")');
+await page.waitForTimeout(500);
+const obrasAntes = await contar('proyectos', null);
+await page.click('button:has-text("Registrar Proyecto")');
+await page.waitForTimeout(500);
+const dialogo = page.getByRole('dialog');
+chequear('con el formulario vacio, los seis campos dicen "Obligatorio"',
+  (await dialogo.getByText('Obligatorio', { exact: true }).count()) === 6, `hay ${await dialogo.getByText('Obligatorio', { exact: true }).count()}`);
+chequear('y los seis quedan marcados como invalidos',
+  (await dialogo.locator('[aria-invalid="true"]').count()) === 6, `hay ${await dialogo.locator('[aria-invalid="true"]').count()}`);
+chequear('el navegador no suma su propio aviso',
+  (await page.evaluate(() => document.activeElement?.validationMessage ?? '')) === '');
+chequear('no se registra nada', (await contar('proyectos', null)) === obrasAntes);
+
+// DEF-03: Cancelar con datos cargados pide confirmar con el texto del CU1.
+await page.fill('#nombre', 'Obra que se cancela');
+chequear('al escribir, el campo deja de marcarse',
+  (await dialogo.locator('#nombre[aria-invalid="true"]').count()) === 0);
+let pregunta = '';
+page.once('dialog', async (d) => { pregunta = d.message(); await d.dismiss(); });
+await page.click('button:has-text("Cancelar")');
+await page.waitForTimeout(400);
+chequear('Cancelar pide "Confirmar cancelación de registro de obra"',
+  pregunta === 'Confirmar cancelación de registro de obra', pregunta);
+chequear('si no se confirma, el formulario sigue abierto con lo cargado',
+  (await dialogo.count()) === 1 && (await page.inputValue('#nombre')) === 'Obra que se cancela');
+page.once('dialog', (d) => d.accept());
+await page.click('button:has-text("Cancelar")');
+await page.waitForTimeout(400);
+chequear('si se confirma, se cierra', (await page.getByRole('dialog').count()) === 0);
+
+// DEF-01: el alta dice "Obra registrada con éxito".
+await page.click('button:has-text("Nuevo Proyecto")');
+await page.waitForTimeout(500);
+await page.fill('#nombre', `Obra de prueba ${Date.now()}`);
+await page.getByRole('dialog').getByRole('combobox').first().click();
+await page.getByRole('option', { name: 'Mantenimiento' }).click();
+await page.fill('#encargado', 'Responsable de prueba');
+await page.fill('#ubicacion', 'Posadas, Misiones');
+await page.fill('#fecha', hoy);
+await page.fill('#presupuesto', '100000');
+await page.click('button:has-text("Registrar Proyecto")');
+await page.waitForTimeout(1200);
+chequear('el alta dice "Obra registrada con éxito"',
+  (await page.locator('[data-sonner-toast]').filter({ hasText: 'Obra registrada con éxito' }).count()) === 1,
+  await page.locator('[data-sonner-toast]').allInnerTexts().then((t) => t.join(' | ')));
+chequear('y la obra queda registrada una vez', (await contar('proyectos', null)) === obrasAntes + 1);
+
+// ---- 4. Materiales permite descartar lo cargado sin guardar (DEF-06) ----
+await irA('/materiales');
+await page.getByRole('combobox').first().click();
+await page.getByRole('option', { name: 'Obra Vial Ruta 14' }).click();
+await page.waitForTimeout(1200);
+const consumosAntes = await contar('consumos', null);
+const campoConsumo = page.locator('input[placeholder^="Consumo"]').first();
+await campoConsumo.fill('10');
+await page.click('button:has-text("Cancelar")');
+await page.waitForTimeout(400);
+chequear('Cancelar en Materiales vacia lo cargado', (await campoConsumo.inputValue()) === '');
+chequear('y no registra ningun consumo', (await contar('consumos', null)) === consumosAntes);
+
 await nav.close();
 console.log(`\n${ok.length}/${ok.length + mal.length} OK`);
 if (mal.length) process.exit(1);

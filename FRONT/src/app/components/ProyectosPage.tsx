@@ -18,6 +18,15 @@ import { etiquetaEstado, sePuedeCancelar } from "../estadosObra";
 
 const FORM_VACIO = { nombre: "", tipo: "", ubicacion: "", encargado: "", fechaInicio: "", presupuesto: "", estado: "" };
 
+// Los seis datos que pide el CU1. Con el formulario incompleto, cada uno que
+// falta dice "Obligatorio" en rojo (D-15): el aviso del navegador marcaba solo
+// el primero.
+type CampoObra = "nombre" | "tipo" | "encargado" | "ubicacion" | "fechaInicio" | "presupuesto";
+const CAMPOS_OBRA: CampoObra[] = ["nombre", "tipo", "encargado", "ubicacion", "fechaInicio", "presupuesto"];
+const ID_CAMPO: Record<CampoObra, string> = {
+  nombre: "nombre", tipo: "tipo", encargado: "encargado", ubicacion: "ubicacion", fechaInicio: "fecha", presupuesto: "presupuesto",
+};
+
 // Fecha de hoy (YYYY-MM-DD) en la zona horaria LOCAL del usuario (no UTC),
 // para no permitir fechas de inicio en el pasado.
 const HOY = (() => {
@@ -48,6 +57,7 @@ export default function ProyectosPage() {
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
   const [form, setForm] = useState(FORM_VACIO);
+  const [errores, setErrores] = useState<Partial<Record<CampoObra, string>>>({});
 
   // Permisos del usuario logueado (RF19/RF20).
   const gestiona = puedeGestionarObras();
@@ -90,6 +100,7 @@ export default function ProyectosPage() {
   function abrirNuevo() {
     setEditandoId(null);
     setForm(FORM_VACIO);
+    setErrores({});
     setDialogAbierto(true);
   }
   function abrirEdicion(p: Proyecto) {
@@ -99,11 +110,54 @@ export default function ProyectosPage() {
       encargado: p.encargado, fechaInicio: p.fechaInicio, presupuesto: String(p.presupuesto),
       estado: p.estado,
     });
+    setErrores({});
     setDialogAbierto(true);
+  }
+
+  /** Cambia un dato y le saca la marca de error, si la tenía. */
+  function cambiar(campo: CampoObra, valor: string) {
+    setForm((f) => ({ ...f, [campo]: valor }));
+    setErrores((prev) => {
+      if (!prev[campo]) return prev;
+      const { [campo]: _, ...resto } = prev;
+      return resto;
+    });
+  }
+
+  function validar(): Partial<Record<CampoObra, string>> {
+    const encontrados: Partial<Record<CampoObra, string>> = {};
+    for (const campo of CAMPOS_OBRA) {
+      if (String(form[campo]).trim() === "") encontrados[campo] = "Obligatorio";
+    }
+    // El piso de hoy es solo para el alta, igual que ProyectoController::registrar().
+    if (!encontrados.fechaInicio && !editandoId && form.fechaInicio < HOY) {
+      encontrados.fechaInicio = "No puede ser anterior a hoy";
+    }
+    if (!encontrados.presupuesto && !(Number(form.presupuesto) >= 0)) {
+      encontrados.presupuesto = "Debe ser un número mayor o igual a cero";
+    }
+    return encontrados;
+  }
+
+  /**
+   * Cerrar el alta con datos cargados pide confirmación (CU1). Vale para el
+   * botón Cancelar, la cruz, Escape y el clic afuera: los cuatro descartan.
+   */
+  function cerrarDialogo() {
+    const hayDatos = CAMPOS_OBRA.some((c) => String(form[c]).trim() !== "");
+    if (!editandoId && hayDatos && !confirm("Confirmar cancelación de registro de obra")) return;
+    setDialogAbierto(false);
   }
 
   async function guardar(e: React.FormEvent) {
     e.preventDefault();
+    const encontrados = validar();
+    setErrores(encontrados);
+    const primero = CAMPOS_OBRA.find((c) => encontrados[c]);
+    if (primero) {
+      document.getElementById(ID_CAMPO[primero])?.focus();
+      return;
+    }
     const datos: ProyectoInput = {
       nombre: form.nombre, tipo: form.tipo, ubicacion: form.ubicacion,
       encargado: form.encargado, fechaInicio: form.fechaInicio,
@@ -118,7 +172,7 @@ export default function ProyectosPage() {
         toast.success(cancelada ? "Obra cancelada" : "Proyecto actualizado");
       } else {
         await crearProyecto(datos);
-        toast.success("Proyecto registrado con éxito");
+        toast.success("Obra registrada con éxito");
       }
       setDialogAbierto(false);
       await cargar();
@@ -243,22 +297,23 @@ export default function ProyectosPage() {
       )}
 
       {/* Dialog crear / editar */}
-      <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
+      <Dialog open={dialogAbierto} onOpenChange={(abierto) => (abierto ? setDialogAbierto(true) : cerrarDialogo())}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editandoId ? "Modificar Obra" : "Registrar Nueva Obra"}</DialogTitle>
             <DialogDescription>Complete la información del proyecto. Todos los campos son obligatorios.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={guardar} className="space-y-4">
+          <form onSubmit={guardar} noValidate className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2 col-span-2">
                 <Label htmlFor="nombre">Nombre del Proyecto *</Label>
-                <Input id="nombre" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} placeholder="Ej: Obra Vial Ruta 14" required />
+                <Input id="nombre" value={form.nombre} onChange={(e) => cambiar("nombre", e.target.value)} placeholder="Ej: Obra Vial Ruta 14" aria-required="true" aria-invalid={!!errores.nombre} />
+                <AvisoCampo mensaje={errores.nombre} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="tipo">Tipo de Obra *</Label>
-                <Select value={form.tipo} onValueChange={(v) => setForm({ ...form, tipo: v })} required>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar tipo" /></SelectTrigger>
+                <Select value={form.tipo} onValueChange={(v) => cambiar("tipo", v)}>
+                  <SelectTrigger id="tipo" aria-required="true" aria-invalid={!!errores.tipo}><SelectValue placeholder="Seleccionar tipo" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Infraestructura Vial">Infraestructura Vial</SelectItem>
                     <SelectItem value="Construcción Edilicia">Construcción Edilicia</SelectItem>
@@ -266,14 +321,17 @@ export default function ProyectosPage() {
                     <SelectItem value="Mantenimiento">Mantenimiento</SelectItem>
                   </SelectContent>
                 </Select>
+                <AvisoCampo mensaje={errores.tipo} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="encargado">Encargado *</Label>
-                <Input id="encargado" value={form.encargado} onChange={(e) => setForm({ ...form, encargado: e.target.value })} placeholder="Ej: Ing. Roberto Suenaga" required />
+                <Input id="encargado" value={form.encargado} onChange={(e) => cambiar("encargado", e.target.value)} placeholder="Ej: Ing. Roberto Suenaga" aria-required="true" aria-invalid={!!errores.encargado} />
+                <AvisoCampo mensaje={errores.encargado} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="ubicacion">Ubicación *</Label>
-                <Input id="ubicacion" value={form.ubicacion} onChange={(e) => setForm({ ...form, ubicacion: e.target.value })} placeholder="Ciudad, Provincia" required />
+                <Input id="ubicacion" value={form.ubicacion} onChange={(e) => cambiar("ubicacion", e.target.value)} placeholder="Ciudad, Provincia" aria-required="true" aria-invalid={!!errores.ubicacion} />
+                <AvisoCampo mensaje={errores.ubicacion} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="fecha">Fecha de Inicio *</Label>
@@ -282,11 +340,13 @@ export default function ProyectosPage() {
                     empezó su fecha es pasada, y con el min puesto el navegador
                     daba el formulario por inválido: no se podía guardar ningún
                     cambio sobre una obra en marcha. */}
-                <Input id="fecha" type="date" min={editandoId ? undefined : HOY} value={form.fechaInicio} onChange={(e) => setForm({ ...form, fechaInicio: e.target.value })} required />
+                <Input id="fecha" type="date" min={editandoId ? undefined : HOY} value={form.fechaInicio} onChange={(e) => cambiar("fechaInicio", e.target.value)} aria-required="true" aria-invalid={!!errores.fechaInicio} />
+                <AvisoCampo mensaje={errores.fechaInicio} />
               </div>
               <div className="space-y-2 col-span-2">
                 <Label htmlFor="presupuesto">Presupuesto Estimado (ARS) *</Label>
-                <Input id="presupuesto" type="number" value={form.presupuesto} onChange={(e) => setForm({ ...form, presupuesto: e.target.value })} placeholder="0.00" min="0" step="0.01" required />
+                <Input id="presupuesto" type="number" value={form.presupuesto} onChange={(e) => cambiar("presupuesto", e.target.value)} placeholder="0.00" min="0" step="0.01" aria-required="true" aria-invalid={!!errores.presupuesto} />
+                <AvisoCampo mensaje={errores.presupuesto} />
               </div>
               {/* Estado: solo al editar, y solo para cancelar. El estado original
                   sale del listado, asi las opciones no cambian si el usuario
@@ -314,7 +374,7 @@ export default function ProyectosPage() {
               )}
             </div>
             <div className="flex justify-end gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => setDialogAbierto(false)}>Cancelar</Button>
+              <Button type="button" variant="outline" onClick={cerrarDialogo}>Cancelar</Button>
               <Button type="submit">{editandoId ? "Guardar cambios" : "Registrar Proyecto"}</Button>
             </div>
           </form>
@@ -322,4 +382,9 @@ export default function ProyectosPage() {
       </Dialog>
     </div>
   );
+}
+
+/** El aviso en rojo debajo de un campo del formulario de obra. */
+function AvisoCampo({ mensaje }: { mensaje?: string }) {
+  return mensaje ? <p className="text-xs text-destructive">{mensaje}</p> : null;
 }

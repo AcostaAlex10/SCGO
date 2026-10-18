@@ -43,6 +43,8 @@ export default function MaterialesPage() {
       setMateriales(await listarMaterialesObra(obra));
     } catch (err) { toast.error(err instanceof Error ? err.message : "Error"); }
   }
+  const hayPendientes = Object.values(consumoInput).some((v) => v.trim() !== "");
+
   async function registrarConsumo(idAsig: number) {
     if (!obra) return;
     const cant = parseFloat(consumoInput[idAsig] ?? "");
@@ -85,7 +87,14 @@ export default function MaterialesPage() {
               </form>
             )}
             {materiales.length === 0 ? <p className="text-muted-foreground text-sm">Sin materiales asignados.</p> : (
-              <div className="space-y-2">{materiales.map((m) => (
+              <div className="space-y-2">
+                {/* Descartar lo cargado sin guardar (CU22, D-15). */}
+                {registra && (
+                  <div className="flex justify-end">
+                    <Button size="sm" type="button" variant="outline" disabled={!hayPendientes} onClick={() => setConsumoInput({})}>Cancelar</Button>
+                  </div>
+                )}
+                {materiales.map((m) => (
                 <div key={m.id_asignacion} className="border rounded-md px-4 py-3 text-sm space-y-2">
                   <div className="flex items-center gap-3 flex-wrap">
                     <span className="font-medium">{m.nombre}</span>
@@ -101,7 +110,8 @@ export default function MaterialesPage() {
                     </div>
                   )}
                 </div>
-              ))}</div>
+              ))}
+              </div>
             )}
           </CardContent>
         </Card>
