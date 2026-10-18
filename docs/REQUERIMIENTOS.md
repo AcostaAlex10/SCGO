@@ -122,7 +122,7 @@ diferencia respecto del texto · *Pendiente* — no implementado.
 | RF07 | permitir adjuntar imágenes y reportes fotográficos del avance | Importante | **Pendiente** | ver desvío 1 |
 | RF08 | permitir registrar justificaciones cuando no se cumple el avance o hay inasistencias | Importante | Cumplido | `AsistenciaController`, `IncidenciaController` |
 | RF09 | permitir registrar incidencias externas: lluvias, fallas, retrasos de proveedores | Importante | Cumplido | `IncidenciaController` |
-| RF10 | permitir asignar materiales a una obra y registrar su consumo | Crítica | Cumplido | `MaterialObraController` |
+| RF10 | permitir asignar materiales a una obra y registrar su consumo | Crítica | Cumplido | `MaterialObraController`; un consumo no puede superar lo que queda asignado (`Sgso\Reglas\StockMaterial`) |
 | RF11 | generar alertas cuando el avance real sea inferior al planificado | Importante | Cumplido | `AnalisisController` |
 | RF12 | generar alertas cuando se excedan las cantidades presupuestadas o asignadas | Importante | Cumplido | `AnalisisController`, `MaterialObraController` |
 | RF13 | calcular la diferencia entre el presupuesto estimado y los gastos ejecutados | Importante | Cumplido | `AnalisisController` |

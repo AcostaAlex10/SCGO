@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/vite-8` | `main` @ `17a81b9` (2026-10-18) | Vite 8 con `@vitejs/plugin-react` 5.2, que lo admite; reemplaza al PR #59 de Dependabot | #61 |
+| `claude/consumo-sin-stock` | `main` @ `3134c14` (2026-10-18) | DEF-05 del informe de testing del Grupo 9: un consumo que supera lo que queda asignado se rechaza | #62 |
 
 ### Reglas
 
@@ -122,6 +122,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/certificacion-api` | D-09: la certificación de RF15 la calcula la API, al centavo, y no le llega al Personal Técnico; RF15 cumplido | PR #48 |
 | `claude/traspaso-cierre-nube` | `TRASPASO.md` al día al cerrar la sesión en la nube: estado, lo que falta probar en producción y las trampas de la nube | PR #49 |
 | `claude/diagnostico-correo` | A-17: un correo que no sale deja el motivo en el log de Render, y `/auth/olvide` dice qué hizo con cada pedido | PR #50 |
+| `claude/vite-8` | Vite 8 con `@vitejs/plugin-react` 5.2, que lo admite; reemplazó al PR #59 de Dependabot | PR #61 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir

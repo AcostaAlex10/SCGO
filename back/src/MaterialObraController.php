@@ -6,10 +6,12 @@ namespace Sgso;
 
 use PDO;
 use Sgso\Http\Paginacion;
+use Sgso\Reglas\StockMaterial;
 
 /**
  * Materiales asignados a una obra y sus consumos (RF10). Calcula el total
- * consumido vs. lo asignado para detectar excesos (RF12).
+ * consumido vs. lo asignado para detectar excesos (RF12), y rechaza un consumo
+ * que supere lo que queda (CU22).
  */
 final class MaterialObraController
 {
@@ -126,10 +128,59 @@ final class MaterialObraController
         $obs = isset($datos['observaciones']) && trim((string) $datos['observaciones']) !== ''
             ? trim((string) $datos['observaciones']) : null;
 
-        $stmt = $this->db->prepare('INSERT INTO consumo_material (id_asignacion, fecha, cantidad_consumida, observaciones) VALUES (?, ?, ?, ?)');
-        $stmt->execute([$idAsignacion, $fecha, (float) $cantidad, $obs]);
+        // Un consumo no puede superar lo que queda asignado (CU22). La fila de
+        // la asignacion queda bloqueada hasta el INSERT: sin eso, dos consumos
+        // simultaneos leen el mismo saldo y entran los dos.
+        $this->db->beginTransaction();
+        try {
+            $stmt = $this->db->prepare(
+                'SELECT am.cantidad_asignada, m.unidad,
+                        (SELECT COALESCE(SUM(cm.cantidad_consumida), 0)
+                           FROM consumo_material cm WHERE cm.id_asignacion = am.id_asignacion) AS consumido
+                 FROM asignacion_material am
+                 JOIN material m ON m.id_material = am.id_material
+                 WHERE am.id_asignacion = ?
+                 FOR UPDATE'
+            );
+            $stmt->execute([$idAsignacion]);
+            $saldo = $stmt->fetch();
+            if ($saldo === false) {
+                // La asignacion se borro entre la verificacion de arriba y el bloqueo.
+                $this->db->rollBack();
+                $this->json(404, ['error' => 'Asignación no encontrada']);
+                return;
+            }
 
-        $this->json(201, ['id_consumo' => (int) $this->db->lastInsertId()]);
+            $asignada = (float) $saldo['cantidad_asignada'];
+            $consumido = (float) $saldo['consumido'];
+            if (!StockMaterial::alcanza($asignada, $consumido, (float) $cantidad)) {
+                $this->db->rollBack();
+                $this->json(422, ['errors' => ['cantidad_consumida' => sprintf(
+                    'Stock insuficiente: quedan %s %s',
+                    self::cantidadLegible(StockMaterial::restante($asignada, $consumido)),
+                    $saldo['unidad']
+                )]]);
+                return;
+            }
+
+            $stmt = $this->db->prepare('INSERT INTO consumo_material (id_asignacion, fecha, cantidad_consumida, observaciones) VALUES (?, ?, ?, ?)');
+            $stmt->execute([$idAsignacion, $fecha, (float) $cantidad, $obs]);
+            $idConsumo = (int) $this->db->lastInsertId();
+            $this->db->commit();
+        } catch (\Throwable $error) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            throw $error;
+        }
+
+        $this->json(201, ['id_consumo' => $idConsumo]);
+    }
+
+    /** 6 -> "6", 2.5 -> "2,5": sin ceros de mas en el mensaje. */
+    private static function cantidadLegible(float $cantidad): string
+    {
+        return rtrim(rtrim(number_format($cantidad, 2, ',', ''), '0'), ',');
     }
 
     /** DELETE /api/proyectos/consumo/{idConsumo} */
