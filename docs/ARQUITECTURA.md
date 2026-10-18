@@ -63,6 +63,8 @@ Las decisiones que antes tomaba cada controlador por su cuenta viven en
   su gravedad (RF26).
 - **`Certificacion`** — el monto certificado de una obra a la fecha (RF15). La usan
   el detalle, el listado y el análisis de obras.
+- **`StockMaterial`** — cuánto queda de una asignación de material y si un consumo
+  entra en eso (RF10, CU22). Cuenta en centésimos.
 
 Una regla de estado se cambia ahí, no en un controlador.
 
