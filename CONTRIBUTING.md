@@ -124,6 +124,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/diagnostico-correo` | A-17: un correo que no sale deja el motivo en el log de Render, y `/auth/olvide` dice qué hizo con cada pedido | PR #50 |
 | `claude/vite-8` | Vite 8 con `@vitejs/plugin-react` 5.2, que lo admite; reemplazó al PR #59 de Dependabot | PR #61 |
 | `claude/consumo-sin-stock` | D-14: un consumo que supera lo que queda asignado se rechaza (DEF-05 del informe de testing del Grupo 9) | PR #62 |
+| `claude/textos-casos-de-uso` | D-15: textos, "Obligatorio" por campo y cancelaciones del CU1 y el CU22 (DEF-01, 02, 03 y 06 del informe de testing) | PR #63 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
