@@ -9,7 +9,7 @@ import { Package, Plus, Trash2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import {
   listarProyectos, listarCatalogoMateriales, listarMaterialesObra,
-  asignarMaterial, eliminarAsignacionMaterial, crearConsumo,
+  asignarMaterial, eliminarAsignacionMaterial, crearConsumo, enviarListaConsumos,
   type Proyecto, type Material, type AsignacionMaterial,
 } from "../api/proyectos";
 import { puedeGestionarObras, puedeRegistrarAvance } from "../auth/permisos";
@@ -44,6 +44,25 @@ export default function MaterialesPage() {
     } catch (err) { toast.error(err instanceof Error ? err.message : "Error"); }
   }
   const hayPendientes = Object.values(consumoInput).some((v) => v.trim() !== "");
+
+  /**
+   * Guarda y envía junta la lista de consumos cargados (CU22, D-16). La API la
+   * acepta entera o la rechaza entera: si un material no alcanza, no se guarda
+   * nada y lo cargado queda para corregirlo.
+   */
+  async function guardarYEnviar() {
+    if (!obra) return;
+    const consumos = Object.entries(consumoInput)
+      .filter(([, v]) => v.trim() !== "")
+      .map(([id, v]) => ({ id_asignacion: Number(id), cantidad_consumida: parseFloat(v) }));
+    if (consumos.some((c) => !(c.cantidad_consumida > 0))) { toast.error("Ingresá cantidades válidas"); return; }
+    try {
+      const { registrados } = await enviarListaConsumos(obra, { fecha: hoy(), consumos });
+      toast.success(`Lista de consumos enviada a planificación (${registrados} ${registrados === 1 ? "material" : "materiales"})`);
+      setConsumoInput({});
+      setMateriales(await listarMaterialesObra(obra));
+    } catch (err) { toast.error(err instanceof Error ? err.message : "Error"); }
+  }
 
   async function registrarConsumo(idAsig: number) {
     if (!obra) return;
@@ -88,10 +107,12 @@ export default function MaterialesPage() {
             )}
             {materiales.length === 0 ? <p className="text-muted-foreground text-sm">Sin materiales asignados.</p> : (
               <div className="space-y-2">
-                {/* Descartar lo cargado sin guardar (CU22, D-15). */}
+                {/* La lista de consumos del día: se guarda y se envía junta (CU22,
+                    D-16), o se descarta sin guardar (D-15). */}
                 {registra && (
-                  <div className="flex justify-end">
+                  <div className="flex justify-end gap-2">
                     <Button size="sm" type="button" variant="outline" disabled={!hayPendientes} onClick={() => setConsumoInput({})}>Cancelar</Button>
+                    <Button size="sm" type="button" disabled={!hayPendientes} onClick={guardarYEnviar}>Guardar y enviar</Button>
                   </div>
                 )}
                 {materiales.map((m) => (
