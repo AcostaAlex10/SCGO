@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/lista-consumos` | `main` @ `7a5088c` (2026-10-18) | D-16: la lista de consumos que se guarda y se envía junta (DEF-04 del informe de testing) | — |
+| `claude/lista-consumos` | `main` @ `7a5088c` (2026-10-18) | D-16: la lista de consumos que se guarda y se envía junta (DEF-04 del informe de testing) | #64 |
 
 ### Reglas
 
