@@ -9,7 +9,8 @@ use Sgso\MaterialObraController;
 
 /**
  * Materiales asignados a una obra y sus consumos (RF10), y la marca de exceso
- * (RF12). Es stock: un error aca hace que la obra compre de mas o se quede sin
+ * (RF12). Un consumo no puede superar lo que queda asignado (CU22). Es stock:
+ * un error aca hace que la obra compre de mas o se quede sin
  * material, y nadie se entera hasta que falta.
  */
 #[CoversClass(MaterialObraController::class)]
@@ -53,24 +54,62 @@ final class MaterialObraTest extends CasoConBase
     }
 
     /**
-     * RF12 pide alertar el exceso, no impedirlo: en obra se puede usar mas de lo
-     * previsto, y lo que importa es que quede registrado y a la vista.
+     * Un consumo que supera lo que queda de la asignacion se rechaza (CU22,
+     * DEF-05 del informe de testing): el material no esta, asi que no se pudo
+     * haber usado. La respuesta dice cuanto queda, para corregir la cantidad.
      */
-    public function testConsumirMasDeLoAsignadoSeRegistraYQuedaMarcadoComoExcedido(): void
+    public function testUnConsumoMayorALoQueQuedaSeRechazaYNoSeGuarda(): void
+    {
+        $idProyecto = $this->crearProyecto();
+        $idAsignacion = $this->asignarMaterial($idProyecto, $this->crearMaterial('Cemento', 'bolsa'), 10);
+        self::assertSame(201, $this->consumir($idAsignacion, 4)['codigo']);
+
+        $respuesta = $this->consumir($idAsignacion, 7);
+
+        self::assertSame(422, $respuesta['codigo']);
+        self::assertStringContainsString('Stock insuficiente', $respuesta['cuerpo']['errors']['cantidad_consumida']);
+        self::assertStringContainsString('quedan 6 bolsa', $respuesta['cuerpo']['errors']['cantidad_consumida']);
+        $fila = $this->listado($idProyecto)[0];
+        self::assertNumero(4.0, $fila['consumido']);
+        self::assertFalse($fila['excedido']);
+    }
+
+    public function testSePuedeConsumirExactamenteLoQueQueda(): void
+    {
+        $idProyecto = $this->crearProyecto();
+        $idAsignacion = $this->asignarMaterial($idProyecto, $this->crearMaterial(), 10);
+        $this->consumir($idAsignacion, 4);
+
+        self::assertSame(201, $this->consumir($idAsignacion, 6)['codigo']);
+        self::assertSame(422, $this->consumir($idAsignacion, 0.01)['codigo'], 'ya no queda nada');
+        self::assertNumero(0.0, $this->listado($idProyecto)[0]['restante']);
+    }
+
+    /** En coma flotante 3,3 + 3,3 + 3,4 da apenas mas de 10: no es un exceso. */
+    public function testLosDecimalesNoInventanUnExceso(): void
     {
         $idProyecto = $this->crearProyecto();
         $idAsignacion = $this->asignarMaterial($idProyecto, $this->crearMaterial(), 10);
 
-        $respuesta = $this->capturar(fn () => $this->materiales()->crearConsumo((string) $idAsignacion, [
-            'cantidad_consumida' => 12,
-            'fecha' => '2026-03-02',
-        ]));
+        foreach ([3.3, 3.3, 3.4] as $cantidad) {
+            self::assertSame(201, $this->consumir($idAsignacion, $cantidad)['codigo'], "consumo de {$cantidad}");
+        }
+        self::assertNumero(0.0, $this->listado($idProyecto)[0]['restante']);
+    }
 
-        self::assertSame(201, $respuesta['codigo']);
+    /**
+     * Los excesos cargados antes de este cambio siguen a la vista (RF12), y
+     * sobre una asignacion ya excedida no se acepta ningun consumo mas.
+     */
+    public function testUnaAsignacionYaExcedidaSigueMarcadaYNoAceptaMasConsumos(): void
+    {
+        $idProyecto = $this->crearProyecto();
+        $idAsignacion = $this->asignarMaterial($idProyecto, $this->crearMaterial(), 10);
+        $this->registrarConsumo($idAsignacion, 12);
 
+        self::assertSame(422, $this->consumir($idAsignacion, 1)['codigo']);
         $fila = $this->listado($idProyecto)[0];
         self::assertNumero(12.0, $fila['consumido']);
-        self::assertNumero(-2.0, $fila['restante']);
         self::assertTrue($fila['excedido']);
     }
 
@@ -263,6 +302,15 @@ final class MaterialObraTest extends CasoConBase
         $consumos = $this->base()->prepare('SELECT COUNT(*) FROM consumo_material WHERE id_asignacion = ?');
         $consumos->execute([$idAsignacion]);
         self::assertSame(0, (int) $consumos->fetchColumn());
+    }
+
+    /** @return array{codigo: int, cuerpo: mixed} */
+    private function consumir(int $idAsignacion, float $cantidad): array
+    {
+        return $this->capturar(fn () => $this->materiales()->crearConsumo((string) $idAsignacion, [
+            'cantidad_consumida' => $cantidad,
+            'fecha' => '2026-03-02',
+        ]));
     }
 
     private function materiales(): MaterialObraController
