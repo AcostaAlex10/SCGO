@@ -10,7 +10,7 @@ function figmaAssetResolver() {
     resolveId(id) {
       if (id.startsWith('figma:asset/')) {
         const filename = id.replace('figma:asset/', '')
-        return path.resolve(__dirname, 'src/assets', filename)
+        return path.resolve(import.meta.dirname, 'src/assets', filename)
       }
     },
   }
@@ -33,7 +33,7 @@ export default defineConfig({
   resolve: {
     alias: {
       // Alias @ to the src directory
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(import.meta.dirname, './src'),
     },
   },
 
@@ -41,12 +41,12 @@ export default defineConfig({
   assetsInclude: ['**/*.svg', '**/*.csv'],
 
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         // Con ARCHIVO_UNICO=1 se desactiva la division en chunks y todo el JS
         // sale en un bundle, para poder incrustarlo en un unico .html (ver
         // scripts/demo-un-archivo.mjs). El resto de los builds no se altera.
-        ...(process.env.ARCHIVO_UNICO === '1' ? { inlineDynamicImports: true } : {}),
+        ...(process.env.ARCHIVO_UNICO === '1' ? { codeSplitting: false } : {}),
       },
     },
   },
