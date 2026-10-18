@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/textos-casos-de-uso` | `main` @ `8930a04` (2026-10-18) | D-15: textos, "Obligatorio" por campo y cancelaciones del CU1 y el CU22 (DEF-01, 02, 03 y 06 del informe de testing) | #63 |
+| `claude/lista-consumos` | `main` @ `7a5088c` (2026-10-18) | D-16: la lista de consumos que se guarda y se envía junta (DEF-04 del informe de testing) | — |
 
 ### Reglas
 
