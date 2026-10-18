@@ -25,7 +25,7 @@ schema. Start here:
 ### Implemented architecture
 | Layer | Folder | Technology | Deployment |
 |---|---|---|---|
-| SPA | `FRONT/` | React 18 + Vite 6 + TypeScript | Vercel |
+| SPA | `FRONT/` | React 18 + Vite 8 + TypeScript | Vercel |
 | REST API | `back/` | PHP 8, no framework, PDO | Render (Docker, PHP + Apache) |
 | Database | `back/sql/` | MariaDB / MySQL | Aiven |
 
@@ -85,7 +85,7 @@ cd back && composer phpstan      # PHPStan, level 5, must stay at zero errors
 
 ### Frontend stack
 - **React 18** + **React Router v7** (browser router)
-- **Vite 6** with `@vitejs/plugin-react`
+- **Vite 8** with `@vitejs/plugin-react`
 - **Tailwind CSS v4** via `@tailwindcss/vite` (no tailwind.config.js — config is in CSS)
 - **shadcn/ui** component library (`src/app/components/ui/`)
 - **Recharts** for charts
