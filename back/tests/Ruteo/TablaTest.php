@@ -76,6 +76,7 @@ final class TablaTest extends TestCase
             ['POST', '/proyectos/{id}/asistencias', Permisos::AVANCE],
             ['POST', '/proyectos/{id}/incidencias', Permisos::AVANCE],
             ['POST', '/proyectos/{id}/materiales', Permisos::GESTION_OBRA],
+            ['POST', '/proyectos/{id}/consumos', Permisos::AVANCE],
             ['POST', '/proyectos/{id}/documentos', Permisos::DOC],
             ['POST', '/proyectos/{id}/inactividades', Permisos::DOC],
             ['POST', '/proyectos/{id}/excedentes', Permisos::DOC],
