@@ -123,6 +123,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/traspaso-cierre-nube` | `TRASPASO.md` al día al cerrar la sesión en la nube: estado, lo que falta probar en producción y las trampas de la nube | PR #49 |
 | `claude/diagnostico-correo` | A-17: un correo que no sale deja el motivo en el log de Render, y `/auth/olvide` dice qué hizo con cada pedido | PR #50 |
 | `claude/vite-8` | Vite 8 con `@vitejs/plugin-react` 5.2, que lo admite; reemplazó al PR #59 de Dependabot | PR #61 |
+| `claude/consumo-sin-stock` | D-14: un consumo que supera lo que queda asignado se rechaza (DEF-05 del informe de testing del Grupo 9) | PR #62 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
