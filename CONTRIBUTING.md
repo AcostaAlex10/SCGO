@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/vite-8` | `main` @ `17a81b9` (2026-10-18) | Vite 8 con `@vitejs/plugin-react` 5.2, que lo admite; reemplaza al PR #59 de Dependabot | — |
+| `claude/vite-8` | `main` @ `17a81b9` (2026-10-18) | Vite 8 con `@vitejs/plugin-react` 5.2, que lo admite; reemplaza al PR #59 de Dependabot | #61 |
 
 ### Reglas
 
