@@ -1203,11 +1203,29 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
         if (metodo === "POST") {
           const veto = exige(ROLES_AVANCE);
           if (veto) return veto;
+          const asignacion = db.asignaciones.find((a) => Number(a.id_asignacion) === idAsig);
+          if (!asignacion) return json(404, { error: "Asignación no encontrada" });
+          const cantidad = num(cuerpo.cantidad_consumida);
+          if (!(cantidad > 0)) return json(422, { errors: { cantidad_consumida: "Cantidad inválida" } });
+          // Un consumo no puede superar lo que queda asignado (CU22, DEF-05).
+          // Misma cuenta en centésimos que Sgso\Reglas\StockMaterial.
+          const centesimos = (n: number) => Math.round(n * 100);
+          const asignada = num(asignacion.cantidad_asignada);
+          const consumido = consumidoDe(idAsig);
+          if (centesimos(cantidad) > centesimos(asignada) - centesimos(consumido)) {
+            const material = db.materiales.find((m) => Number(m.id_material) === Number(asignacion.id_material));
+            const queda = Math.max(0, centesimos(asignada) - centesimos(consumido)) / 100;
+            return json(422, {
+              errors: {
+                cantidad_consumida: `Stock insuficiente: quedan ${String(queda).replace(".", ",")} ${String(material?.unidad ?? "")}`,
+              },
+            });
+          }
           const nuevo: Fila = {
             id_consumo: proximoId(db.consumos, "id_consumo"),
             id_asignacion: idAsig,
             fecha: texto(cuerpo.fecha) || hoy(),
-            cantidad_consumida: num(cuerpo.cantidad_consumida),
+            cantidad_consumida: cantidad,
             observaciones: texto(cuerpo.observaciones) || null,
           };
           db.consumos.push(nuevo);

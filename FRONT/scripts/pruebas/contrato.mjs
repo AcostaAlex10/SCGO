@@ -361,6 +361,19 @@ const textoCertificado = esperado.toLocaleString('es-AR', { maximumFractionDigit
 chequear('la pantalla muestra el monto que dio la API',
   (await page.getByText(`Certificación a la fecha: $${textoCertificado}`).count()) === 1, textoCertificado);
 
+// ---- 15. Un consumo no puede superar lo que queda asignado (DEF-05) ----
+// El informe de testing encontro que se podia consumir mas de lo asignado. La
+// API lo rechaza con 422 y dice cuanto queda; el simulador hace lo mismo.
+const cemento = (await api('GET', '/proyectos/1/materiales')).datos.find((m) => m.nombre === 'Cemento');
+const queda = cemento.restante;
+r = await api('POST', `/proyectos/material/${cemento.id_asignacion}/consumos`, { fecha: '2026-03-02', cantidad_consumida: queda + 1 }, 'mock.3');
+chequear('un consumo mayor a lo que queda se rechaza diciendo cuanto queda',
+  r.estado === 422 && /Stock insuficiente: quedan .* bolsa/.test(r.datos?.errors?.cantidad_consumida ?? ''), `dio ${r.estado} ${JSON.stringify(r.datos)}`);
+chequear('el consumo rechazado no se guarda',
+  (await api('GET', '/proyectos/1/materiales')).datos.find((m) => m.nombre === 'Cemento').consumido === cemento.consumido);
+r = await api('POST', `/proyectos/material/${cemento.id_asignacion}/consumos`, { fecha: '2026-03-02', cantidad_consumida: queda }, 'mock.3');
+chequear('se puede consumir justo lo que queda', r.estado === 201, `dio ${r.estado}`);
+
 await nav.close();
 console.log(`\n${ok.length}/${ok.length + mal.length} OK`);
 if (mal.length) process.exit(1);
