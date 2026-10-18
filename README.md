@@ -45,7 +45,7 @@ El alcance completo, con el estado de cada requerimiento, está en
 
 | Pieza | Carpeta | Tecnología | Producción |
 |---|---|---|---|
-| Frontend | `FRONT/` | React 18, Vite 6, TypeScript, Tailwind CSS 4 | Vercel |
+| Frontend | `FRONT/` | React 18, Vite 8, TypeScript, Tailwind CSS 4 | Vercel |
 | API REST | `back/` | PHP 8.3, PDO, Composer | Render (Docker) |
 | Base de datos | `back/sql/` | MariaDB / MySQL | Aiven |
 

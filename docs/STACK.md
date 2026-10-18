@@ -8,7 +8,7 @@ Qué usa el sistema hoy, con las versiones de los lockfiles. Actualizado el
 | Qué | Tecnología |
 |---|---|
 | Base | React 18.3.1 y TypeScript 7.0.2 (TypeScript solo verifica tipos: no compila) |
-| Build | Vite 6.4.3 con `@vitejs/plugin-react` 4.7, sobre Node 24 |
+| Build | Vite 8.3.4 (rolldown) con `@vitejs/plugin-react` 5.2, sobre Node 24 |
 | Rutas | React Router 7.18.4: rutas normales en Vercel, con `#` en la demo |
 | Estilos | Tailwind CSS 4.3.3 y `tw-animate-css` |
 | Componentes | shadcn/ui (11 primitivos en `src/app/components/ui/`) sobre Radix UI: `checkbox`, `dialog`, `label`, `select` y `slot`; más `class-variance-authority`, `clsx` y `tailwind-merge` |
