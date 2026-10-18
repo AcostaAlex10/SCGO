@@ -121,6 +121,7 @@ final class Tabla
             new Ruta('POST', '/proyectos/{id}/incidencias', Permisos::AVANCE, false, 'incidencias.crear'),
             new Ruta('GET', '/proyectos/{id}/materiales', null, false, 'materiales.proyecto.listar'),
             new Ruta('POST', '/proyectos/{id}/materiales', Permisos::GESTION_OBRA, false, 'materiales.proyecto.asignar'),
+            new Ruta('POST', '/proyectos/{id}/consumos', Permisos::AVANCE, false, 'consumos.proyecto.crear'),
             new Ruta('GET', '/proyectos/{id}/documentos', null, false, 'documentos.listar'),
             new Ruta('POST', '/proyectos/{id}/documentos', Permisos::DOC, false, 'documentos.crear'),
             new Ruta('GET', '/proyectos/{id}/inactividades', null, false, 'inactividades.listar'),

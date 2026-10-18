@@ -177,6 +177,107 @@ final class MaterialObraController
         $this->json(201, ['id_consumo' => $idConsumo]);
     }
 
+    /**
+     * POST /api/proyectos/{idProyecto}/consumos
+     *
+     * La lista de consumos del dia que el encargado carga y envia junta (CU22,
+     * D-16): {"fecha": "YYYY-MM-DD", "consumos": [{"id_asignacion", "cantidad_consumida"}]}.
+     * Entra entera o no entra: si un material no alcanza, no se guarda ninguno.
+     *
+     * @param array<string, mixed> $datos
+     */
+    public function crearListaConsumos(string $idProyecto, array $datos): void
+    {
+        $stmt = $this->db->prepare('SELECT id_proyecto FROM proyecto WHERE id_proyecto = ?');
+        $stmt->execute([$idProyecto]);
+        if ($stmt->fetch() === false) { $this->json(404, ['error' => 'Obra no encontrada']); return; }
+
+        $fecha = (string) ($datos['fecha'] ?? '');
+        $lista = $datos['consumos'] ?? null;
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) {
+            $this->json(422, ['errors' => ['fecha' => 'Formato esperado: YYYY-MM-DD']]);
+            return;
+        }
+        if (!is_array($lista) || $lista === []) {
+            $this->json(422, ['errors' => ['consumos' => 'Cargá al menos un consumo']]);
+            return;
+        }
+
+        // Cantidad pedida por asignacion: dos renglones del mismo material suman.
+        $pedido = [];
+        foreach ($lista as $renglon) {
+            $idAsignacion = is_array($renglon) ? ($renglon['id_asignacion'] ?? null) : null;
+            $cantidad = is_array($renglon) ? ($renglon['cantidad_consumida'] ?? null) : null;
+            if (!is_numeric($idAsignacion) || !is_numeric($cantidad) || (float) $cantidad <= 0) {
+                $this->json(422, ['errors' => ['consumos' => 'Cada consumo necesita un material y una cantidad mayor a cero']]);
+                return;
+            }
+            $pedido[(int) $idAsignacion][] = (float) $cantidad;
+        }
+
+        $this->db->beginTransaction();
+        try {
+            // Las asignaciones quedan bloqueadas hasta el INSERT, como en el
+            // consumo suelto. Solo cuentan las de esta obra.
+            $marcas = implode(', ', array_fill(0, count($pedido), '?'));
+            $stmt = $this->db->prepare(
+                "SELECT am.id_asignacion, am.cantidad_asignada, m.nombre, m.unidad,
+                        (SELECT COALESCE(SUM(cm.cantidad_consumida), 0)
+                           FROM consumo_material cm WHERE cm.id_asignacion = am.id_asignacion) AS consumido
+                 FROM asignacion_material am
+                 JOIN material m ON m.id_material = am.id_material
+                 WHERE am.id_proyecto = ? AND am.id_asignacion IN ($marcas)
+                 FOR UPDATE"
+            );
+            $stmt->execute([$idProyecto, ...array_keys($pedido)]);
+            $saldos = [];
+            foreach ($stmt->fetchAll() as $fila) {
+                $saldos[(int) $fila['id_asignacion']] = $fila;
+            }
+
+            $errores = [];
+            foreach ($pedido as $idAsignacion => $cantidades) {
+                $saldo = $saldos[$idAsignacion] ?? null;
+                if ($saldo === null) {
+                    $errores["consumos.{$idAsignacion}"] = 'Ese material no está asignado a la obra';
+                    continue;
+                }
+                $asignada = (float) $saldo['cantidad_asignada'];
+                $consumido = (float) $saldo['consumido'];
+                if (!StockMaterial::alcanza($asignada, $consumido, array_sum($cantidades))) {
+                    $errores["consumos.{$idAsignacion}"] = sprintf(
+                        '%s: Stock insuficiente: quedan %s %s',
+                        $saldo['nombre'],
+                        self::cantidadLegible(StockMaterial::restante($asignada, $consumido)),
+                        $saldo['unidad']
+                    );
+                }
+            }
+            if ($errores !== []) {
+                $this->db->rollBack();
+                $this->json(422, ['errors' => $errores]);
+                return;
+            }
+
+            $insertar = $this->db->prepare('INSERT INTO consumo_material (id_asignacion, fecha, cantidad_consumida) VALUES (?, ?, ?)');
+            $registrados = 0;
+            foreach ($pedido as $idAsignacion => $cantidades) {
+                foreach ($cantidades as $cantidad) {
+                    $insertar->execute([$idAsignacion, $fecha, $cantidad]);
+                    $registrados++;
+                }
+            }
+            $this->db->commit();
+        } catch (\Throwable $error) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            throw $error;
+        }
+
+        $this->json(201, ['registrados' => $registrados]);
+    }
+
     /** 6 -> "6", 2.5 -> "2,5": sin ceros de mas en el mensaje. */
     private static function cantidadLegible(float $cantidad): string
     {
