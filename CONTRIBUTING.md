@@ -31,6 +31,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
 | `claude/diagnostico-correo` | `main` @ `0eb21fb` (2026-09-27) | Que un correo que no sale deje en el log de Render el motivo, y `/auth/olvide` diga qué hizo con cada pedido | #50 |
+| `claude/vite-8` | `main` @ `17a81b9` (2026-10-18) | Vite 8 con `@vitejs/plugin-react` 5.2, que lo admite; reemplaza al PR #59 de Dependabot | — |
 
 ### Reglas
 
