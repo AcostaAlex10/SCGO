@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sgso;
 
 use Sgso\Reglas\CicloDeVida;
+use Sgso\Reglas\Fecha;
 
 
 /**
@@ -90,7 +91,8 @@ final class ProyectoController
 
         // La fecha de inicio no puede ser anterior a hoy (solo al registrar).
         if (
-            isset($datos['fechaInicio']) && trim((string) $datos['fechaInicio']) !== ''
+            !isset($errores['fechaInicio'])
+            && isset($datos['fechaInicio']) && trim((string) $datos['fechaInicio']) !== ''
             && (string) $datos['fechaInicio'] < date('Y-m-d')
         ) {
             $errores['fechaInicio'] = 'La fecha de inicio no puede ser anterior a hoy';
@@ -195,6 +197,11 @@ final class ProyectoController
             if (!isset($datos[$campo]) || trim((string) $datos[$campo]) === '') {
                 $errores[$campo] = 'Obligatorio';
             }
+        }
+
+        // Sin trim: el repositorio guarda el valor tal cual, sin recortar.
+        if (!isset($errores['fechaInicio']) && !Fecha::esValida((string) $datos['fechaInicio'])) {
+            $errores['fechaInicio'] = 'Formato esperado: YYYY-MM-DD';
         }
 
         if (isset($datos['presupuesto']) && trim((string) $datos['presupuesto']) !== '' && !is_numeric($datos['presupuesto'])) {

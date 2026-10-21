@@ -56,6 +56,18 @@ final class AsistenciaTest extends CasoConBase
         self::assertCount(3, $this->listado($idProyecto));
     }
 
+    /** C-13: 2026-02-31 tiene la forma de una fecha pero no existe; daba 500 en la base. */
+    public function testUnaFechaImposibleDa422YNoGuardaNada(): void
+    {
+        $idProyecto = $this->crearProyecto();
+
+        $respuesta = $this->registrar($idProyecto, ['fecha' => '2026-02-31', 'trabajador' => 'Ana', 'estado' => 'presente']);
+
+        self::assertSame(422, $respuesta['codigo']);
+        self::assertSame('Formato esperado: YYYY-MM-DD', $respuesta['cuerpo']['errors']['fecha'] ?? null);
+        self::assertSame([], $this->listado($idProyecto));
+    }
+
     public function testFaltanCamposObligatorios(): void
     {
         $idProyecto = $this->crearProyecto();

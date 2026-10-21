@@ -6,6 +6,7 @@ namespace Sgso;
 
 use PDO;
 use Sgso\Http\Paginacion;
+use Sgso\Reglas\Fecha;
 
 /**
  * Controlador de Asistencia del personal en obra (RF06). Cada registro es
@@ -95,7 +96,7 @@ final class AsistenciaController
         if (!isset($datos['trabajador']) || trim((string) $datos['trabajador']) === '') {
             $errores['trabajador'] = 'Obligatorio';
         }
-        if (!isset($datos['fecha']) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $datos['fecha'])) {
+        if (!isset($datos['fecha']) || !Fecha::esValida((string) $datos['fecha'])) {
             $errores['fecha'] = 'Formato esperado: YYYY-MM-DD';
         }
         if (!isset($datos['estado']) || !in_array($datos['estado'], self::ESTADOS, true)) {
