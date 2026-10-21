@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/traspaso-21-10` | `main` @ `bcd75f2` (2026-10-21) | `TRASPASO.md` al día con #64, #72, #73 y #74: base de vuelta, Brevo pendiente y cinco trampas nuevas | — |
+| `claude/traspaso-21-10` | `main` @ `bcd75f2` (2026-10-21) | `TRASPASO.md` al día con #64, #72, #73 y #74: base de vuelta, Brevo pendiente y cuatro trampas nuevas | — |
 
 ### Reglas
 
@@ -39,7 +39,8 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 2. **Una rama por tarea**, corta, y con su fila en la tabla de arriba.
 3. **Pull request contra `main`.** No apilar un PR sobre la rama de otro PR: si se
    borra la rama base, GitHub cierra el PR apilado en vez de reapuntarlo.
-4. **Al mergear:** borrar la rama y pasarla al historial de abajo.
+4. **Al mergear:** borrar la rama. Su fila pasa al historial de abajo en el PR
+   siguiente que toque este archivo (ver la trampa 19 de `docs/TRASPASO.md`).
 
 ---
 
