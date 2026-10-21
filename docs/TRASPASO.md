@@ -119,7 +119,7 @@ ni por el repositorio**.
 - **Dependabot:** #54 (`react-is` 19), #58 (menores del front) y #60
   (`lucide-react` 1.57) están en verde; #55 (`react-router` 8) y #51
   (`phpstan` 2.3.1) fallan el CI. Antes de mergear cualquiera, la trampa 20.
-- **Prácticas de CMMI en el proceso** (rama `claude/practicas-cmmi`). Solo
+- **#69: prácticas de CMMI en el proceso.** Solo
   documentación: criterios de aceptación copiados del caso de uso y el RF en
   cada PR (`CONTRIBUTING.md` §2), una plantilla de PR con la lista de cierre, y
   un registro de riesgos en `OPERACION.md` §8. **Al equipo le queda** asignar un

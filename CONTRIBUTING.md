@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/practicas-cmmi` | `main` @ `8c5f342` (2026-10-21) | Cuatro prácticas de CMMI en el proceso: criterios de aceptación del caso de uso, trazabilidad al RF, registro de riesgos y una plantilla de PR con el cierre | — |
+| `claude/practicas-cmmi` | `main` @ `8c5f342` (2026-10-21) | Cuatro prácticas de CMMI en el proceso: criterios de aceptación del caso de uso, trazabilidad al RF, registro de riesgos y una plantilla de PR con el cierre | #69 |
 
 ### Reglas
 
