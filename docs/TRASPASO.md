@@ -4,11 +4,13 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-09-27, al cerrar la sesión en la nube que hizo C-01, C-03,
-  A-14, A-16 y D-02, D-03, D-04 y D-09
-- **Base:** `main` @ `b6d42ea`, CI en verde. Cada deploy de Render quedó "live" y sin
-  errores en los logs; lo que falta probar a mano en producción está en la sección 3
-- **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23)
+- **Actualizado:** 2026-10-21, al cerrar la sesión en la nube que hizo A-17, Vite 8
+  y los arreglos del informe de testing del Grupo 9 (D-14, D-15 y D-16)
+- **Base:** `main` @ `7a5088c`, CI en verde. **Producción está caída por la base**
+  (sección 3): el deploy del #62 quedó "live", pero ningún pedido que use la base
+  responde
+- **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23).
+  Desde el #65 tiene los seis arreglos del informe
 
 ---
 
@@ -62,6 +64,12 @@ día de dependencias.
 | #46 | D-02: una incidencia alta o media avisa por correo; RF26 cumplido |
 | #47 | D-04: una obra nueva arranca `creada` |
 | #48 | D-09: la certificación la calcula la API; RF15 cumplido |
+| #49 | Este archivo, al cerrar la sesión en la nube del 2026-09-27 |
+| #50 | A-17: un correo que no sale deja el motivo en el log de Render, y `/auth/olvide` dice qué hizo |
+| #61 | Vite 8.3.4 con `@vitejs/plugin-react` 5.2.0; reemplazó al #59 de Dependabot |
+| #62 | D-14 (DEF-05): un consumo que supera lo que queda asignado se rechaza con 422, con `Sgso\Reglas\StockMaterial` |
+| #63 | D-15 (DEF-01, 02, 03 y 06): textos del CU1 y el CU22, "Obligatorio" por campo, confirmar al cancelar el alta, "Cancelar" en Materiales |
+| #65 | **En `testing`:** los seis arreglos del informe, adaptados al código de la demo, y `GUIA-TESTERS.md` al día |
 
 **No queda ningún P0 de seguridad abierto.** De seguridad quedan A-09, A-11, A-12
 y A-15, ninguno bloqueante.
@@ -70,35 +78,78 @@ y A-15, ninguno bloqueante.
 
 ## 3. Qué hay en vuelo ahora mismo
 
-**Un solo PR abierto: el #23 (B-03, migraciones versionadas).** Se rebaseó
-sobre `main` como último paso de la sesión del 2026-09-27, después de mergear
-este traspaso, y quedó con el CI en verde y sin conflicto. **No se mergea hasta
-que alguien del equipo corra las migraciones en Aiven**: el PR saca el `CREATE
-TABLE` que creaba `intento_login` sola en cada arranque.
+### Producción no anda: dos cosas que solo puede arreglar alguien del equipo
 
-```bash
-php back/sql/migrar.php --estado   # informa, no toca nada
-php back/sql/migrar.php            # registra las versiones base y aplica 0004
-```
+1. **La base de Aiven no existe en el DNS.** Los logs de Render dicen
+   `getaddrinfo for constructionproyectmanagerdb-constructionproyectmanager.c.aivencloud.com failed: Name or service not known`.
+   Pasa cuando el servicio gratuito de Aiven queda apagado. Hay que entrar a la
+   consola de Aiven y encenderlo. Si al volver cambió el host, se actualiza
+   `DB_HOST` en Render → Environment. Después, `/api/health` tiene que contestar
+   `{"status":"ok","db":"ok"}`.
+2. **La clave de Brevo está deshabilitada.** "Olvidé mi contraseña" no manda nada,
+   y el log dice `401 Unauthorized: unauthorized API Key is not enabled` (lo
+   muestra gracias a A-17, #50). Hay que reactivar o regenerar la clave en Brevo y
+   ponerla en `BREVO_API_KEY` en Render → Environment. Afecta también los avisos
+   de incidencias (D-02).
 
-Con las credenciales de la base, desde la máquina de alguien del equipo: **una
-sesión en la nube no tiene esas credenciales, ni debe tenerlas**. Cuando el
-equipo confirme que corrieron, se mergea. Cualquier merge a `main` en el medio
-lo deja atrás y hay que rebasearlo (trampas 8 y 19): el #23 toca
-`CONTRIBUTING.md`, `PLAN-PRODUCTO.md`, `CLAUDE.md` y este archivo.
+Ninguna de las dos se arregla con código, y **ninguna credencial pasa por el chat
+ni por el repositorio**.
 
-**Para verificar en producción.** Desde la nube no se llega a `onrender.com` ni
-a `vercel.app` (trampa 28), así que cada deploy de Render se verificó como
-"live" y sin errores en los logs, pero hay cosas que solo se pueden probar a
-mano:
+### PR abiertos
+
+- **#64 (D-16, DEF-04): la lista de consumos que se guarda y se envía junta.**
+  Tiene el CI en verde. Queda esperando a que vuelva la base, porque después del
+  merge Render despliega y hay que verificar en producción, y hoy no se puede.
+  Cuando la base vuelva: actualizar la rama con `main` (choca en
+  `CONTRIBUTING.md`, trampa 19), esperar el CI, mergear y probar en producción una
+  lista con dos materiales y otra con uno sin stock (tiene que rechazar las dos
+  líneas).
+- **#23 (B-03, migraciones versionadas).** Quedó atrás de `main` y hay que
+  rebasearlo (trampas 8 y 19). **No se mergea hasta que alguien del equipo corra
+  las migraciones en Aiven**: el PR saca el `CREATE TABLE` que creaba
+  `intento_login` sola en cada arranque.
+
+  ```bash
+  php back/sql/migrar.php --estado   # informa, no toca nada
+  php back/sql/migrar.php            # registra las versiones base y aplica 0004
+  ```
+
+  Con las credenciales de la base, desde la máquina de alguien del equipo.
+- **Dependabot:** #54 (`react-is` 19), #58 (menores del front) y #60
+  (`lucide-react` 1.57) están en verde; #55 (`react-router` 8) y #51
+  (`phpstan` 2.3.1) fallan el CI. Antes de mergear cualquiera, la trampa 20.
+
+### El informe de testing del Grupo 9
+
+Los testers (repositorio `RybergB/Grupo9_CentralDeTesting`, TP1 del 2026-10-02)
+encontraron seis defectos en la demo. Están todos arreglados en `main`, menos
+DEF-04, que es el #64, y **los seis están en `testing`** desde el #65:
+
+| Defecto | Qué era | En `main` | En la demo |
+|---|---|---|---|
+| DEF-01 | El aviso al registrar una obra no decía "Obra registrada con éxito" | #63 | #65 |
+| DEF-02 | Un campo vacío mostraba el aviso del navegador, no "Obligatorio" | #63 | #65 |
+| DEF-03 | Cerrar el alta con datos cargados no pedía confirmación | #63 | #65 |
+| DEF-04 | No había forma de enviar la lista de consumos del día junta | #64, abierto | #65 |
+| DEF-05 | Un consumo mayor a lo asignado se guardaba igual | #62 | #65 |
+| DEF-06 | Materiales no tenía botón "Cancelar" | #63 | #65 |
+
+En `testing` no hay CI ni `tsconfig`. Se verificó con un script de Playwright
+que repite lo que verifican `tests/test_selenium_3.py` y
+`tests/test_materiales.py` del grupo: 14/14 con los arreglos, y falla sin
+ellos. **Las pruebas de Selenium del grupo, en Edge, no se corrieron**: es lo
+primero que conviene hacer en una máquina con Edge.
+
+**Para verificar en producción, cuando vuelvan la base y el correo:**
 
 1. **"Olvidé mi contraseña"**, una vez, con una cuenta propia: el correo tiene
-   que llegar. Desde A-16 (#45), `Mailer` verifica el certificado de Brevo.
+   que llegar. Si no llega, el log de Render dice por qué (A-17).
 2. **Una incidencia de gravedad alta** en una obra de prueba: el correo tiene
-   que llegarles a los Gerentes y al Personal Administrativo (D-02, #46). El
-   enlace a la obra sale de `APP_URL` (o de `CORS_ORIGIN` si no está).
-3. **El login de Vercel con la consola limpia**, después de los PR #43 a #48,
-   que tocaron el front.
+   que llegarles a los Gerentes y al Personal Administrativo (D-02, #46).
+3. **Un consumo mayor a lo que queda asignado** tiene que dar "Stock
+   insuficiente: quedan X" (#62).
+4. **El login de Vercel con la consola limpia**, después de Vite 8 (#61) y del
+   #63, que tocaron el front.
 
 **Decisiones pendientes, todas del equipo:**
 
@@ -273,15 +324,19 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
 30. **`json_encode` saca el `.0` de los float**: `100.0` sale como `100`, que
     PHP vuelve a leer como entero. En las pruebas de integración, los importes y
     porcentajes se comparan con `assertNumero` de `CasoConBase`.
+31. **Un merge a `testing` puede no publicar la demo.** El 2026-10-21 el squash
+    del #65 no disparó `pages-testing.yml`, aunque el workflow corre en cada
+    push a `testing`. Después de cada merge ahí, mirar Actions: si en un par de
+    minutos no hay run del commit nuevo, se corre el workflow a mano **sobre
+    `testing`**, nunca sobre `main` (trampa 15).
 
 ### Si la sesión corre en la nube y no en tu máquina
 
 Las cinco suites de Playwright necesitan Chromium. En el contenedor remoto el
-navegador preinstalado es una compilación más vieja que la que pide el paquete
-`playwright` del proyecto, y la carpeta cambió de nombre entre versiones
-(`chrome-linux` → `chrome-linux64`, `headless_shell` →
-`chrome-headless-shell`). Se resuelve armando enlaces simbólicos con los nombres
-nuevos apuntando a los binarios viejos y exportando `PLAYWRIGHT_BROWSERS_PATH`.
+navegador preinstalado (`/opt/pw-browsers`, `chromium-1194`) es una compilación
+más vieja que la que pide el último `playwright`. Lo más simple es instalar la
+versión que le corresponde: `npm install --no-save playwright@1.56.1` con
+`PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`.
 
 Además, `humo.mjs` da **24/28 en la nube**: las cuatro que fallan son las de
 "sin errores en consola", una por rol, por `ERR_CERT_AUTHORITY_INVALID` al
@@ -289,7 +344,7 @@ cargar Google Fonts detrás del proxy del entorno. **No es una regresión.** En 
 CI de GitHub da 28/28.
 
 **Las trampas 9, 10, 11, 13, 17 y 21 son de la máquina local** (Windows,
-antivirus, `back/.env`): en la nube no aplican. La 12 y la 14 sí, y de la 22 a
+antivirus, `back/.env`): en la nube no aplican. La 12, la 14 y la 31 sí, y de la 22 a
 la 28 son propias de la nube. En la nube tampoco hay `back/.env`, así que
 no hay forma de pegarle a producción por accidente, y así tiene que seguir.
 
@@ -315,6 +370,35 @@ done
 
 Las de integración del backend necesitan MariaDB y las variables
 `SGSO_TEST_DB_*`; si no están, esas pruebas se saltean solas.
+
+---
+
+### Armar el entorno en una máquina local
+
+Lo mínimo para correr los tres chequeos del CI y las suites, en este orden:
+
+1. **`git pull` en `main`** y leer la sección 3 de este archivo.
+2. **Backend:** `cd back && composer install`. Si Composer falla con `curl error
+   60`, es la trampa 11. PHPStan, con `--memory-limit=1G` (trampa 10).
+3. **Base de pruebas:** un MariaDB local (XAMPP, Docker o el instalador) con una
+   base **cuyo nombre tenga "test"**, por ejemplo `sgso_test`. Después:
+
+   ```bash
+   export SGSO_TEST_DB_HOST=127.0.0.1 SGSO_TEST_DB_PORT=3306
+   export SGSO_TEST_DB_NAME=sgso_test SGSO_TEST_DB_USER=root SGSO_TEST_DB_PASSWORD=<la tuya>
+   cd back && composer test
+   ```
+
+   Las pruebas de integración leen solo esas variables. **Nunca** apuntarlas a
+   Aiven, y ojo con `back/.env`, que sí apunta a producción (trampa 9).
+4. **Frontend:** `cd FRONT && npm ci --legacy-peer-deps && npm run typecheck`.
+5. **Playwright:** `npm install --no-save playwright` y, la primera vez,
+   `npx playwright install chromium` (trampa 12).
+6. **La demo, como la publica Pages**, con el bloque de arriba. En Windows,
+   copiar `dist/` en vez de enlazarlo (trampa 13).
+
+Para probar la demo de `testing` (la de los testers) se hace lo mismo desde un
+worktree de esa rama: `git worktree add ../scgo-testing origin/testing`.
 
 ---
 
