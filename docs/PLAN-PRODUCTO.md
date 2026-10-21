@@ -236,8 +236,8 @@ del arreglo, CI en verde, el simulador al día y el número de PR anotado acá.
 | 2026-09-27 | A-17 hecho (PR #50): la recuperación de contraseña no llegaba en producción y no había ningún rastro de por qué. Un correo que no sale deja el motivo en el log de Render. Se descartó que fuera A-16: PHP en la imagen de producción verifica contra los certificados del sistema. |
 | 2026-10-18 | D-14 hecho (PR #62): un consumo que supera lo que queda asignado se rechaza. Lo encontró el informe de testing del Grupo 9 (DEF-05, crítico), que también dejó D-15 y D-16. |
 | 2026-10-18 | D-15 hecho (PR #63): el alta de obra y Materiales siguen los textos del CU1 y el CU22 (DEF-01, 02, 03 y 06 del informe de testing). |
-| 2026-10-18 | D-16 hecho (PR #64): la lista de consumos se guarda y se envía junta (DEF-04). Con D-14 y D-15, quedan atendidos los seis defectos del informe de testing del Grupo 9. |
 | 2026-10-21 | D-11 hecho (PR #68): una falla de maquinaria se marca resuelta o se reabre sin borrarla; RF27 pasa a cumplido. |
 | 2026-10-21 | Requerimientos contrastados con los documentos del relevamiento: RF13 pasa a parcial ("ejecutado" es una estimación), y se proponen RF29 a RF33. Agregados DEC-08 y D-17 a D-21, todos a la espera de que Triwe los acepte. |
 | 2026-10-21 | A-18 hecho (PR #73): la imagen de la API no se construye con un PHP anterior a 8.3.36, que corrige dos fallas críticas de ejecución remota de código. |
 | 2026-10-21 | C-13 hecho (PR #72): una fecha imposible (2026-02-31) da 422 en vez de 500, con una sola regla en `Sgso\Reglas\Fecha`; el simulador rechaza lo mismo. |
+| 2026-10-21 | D-16 hecho (PR #64): la lista de consumos se guarda y se envía junta (DEF-04). Con D-14 y D-15, quedan atendidos los seis defectos del informe de testing del Grupo 9. |

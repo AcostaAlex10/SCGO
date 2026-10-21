@@ -1602,7 +1602,8 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
     if (sub === "consumos" && metodo === "POST") {
       const veto = exige(ROLES_AVANCE);
       if (veto) return veto;
-      const fecha = texto(cuerpo.fecha);
+      // Sin recortar, como Fecha::esValida en PHP y como el consumo individual.
+      const fecha = String(cuerpo.fecha ?? "");
       if (!fechaValida(fecha)) return json(422, { errors: { fecha: "Formato esperado: YYYY-MM-DD" } });
       const lista = Array.isArray(cuerpo.consumos) ? (cuerpo.consumos as Fila[]) : [];
       if (lista.length === 0) return json(422, { errors: { consumos: "Cargá al menos un consumo" } });
