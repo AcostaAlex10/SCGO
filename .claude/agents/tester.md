@@ -37,3 +37,7 @@ del comando que lo muestra.
 - **Nunca cambiás el código que estás probando** para que la prueba pase, ni
   salteás o desactivás una prueba. Si algo falla, lo informás.
 - Nunca contra la base de Aiven: `back/.env` apunta a producción.
+- Las acciones supervisadas de `docs/PROCESO.md` §3 te tocan igual: antes de
+  tocar `schema.sql`, `.github/workflows/`, agregar una dependencia o borrar un
+  archivo, pará y preguntá.
+- No commiteás ni pusheás: lo hace el orquestador.

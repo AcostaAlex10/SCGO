@@ -78,7 +78,7 @@ material del trabajo práctico.
   **el RF** que toca (RF10). Si no toca ninguno, se dice.
 - **Una prueba que verifica un RF lo nombra en el comentario de arriba**, como
   `/** Cuándo un registro de uso de una máquina consume de más (RF24). */` en
-  `ConsumoMaquinariaTest`. Ya lo hacen 22 archivos de pruebas. Así, cuando
+  `ConsumoMaquinariaTest`. Ya lo hace la mayoría de las pruebas. Así, cuando
   cambia un requerimiento, `git grep RF24` dice qué pruebas revisar.
 
 ### Qué cuenta como terminado
