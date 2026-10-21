@@ -4,9 +4,9 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-10-21, después de armar el entorno en una máquina local y
-  correr ahí las pruebas de Selenium del Grupo 9 en Edge
-- **Base:** `main` @ `229de52`, CI en verde. **Producción está caída por la base**
+- **Actualizado:** 2026-10-21, al sumar cuatro prácticas de CMMI al proceso
+  (criterios de aceptación, trazabilidad, riesgos y plantilla de PR)
+- **Base:** `main` @ `8c5f342`, CI en verde. **Producción está caída por la base**
   (sección 3): el deploy del #62 quedó "live", pero ningún pedido que use la base
   responde
 - **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23).
@@ -119,6 +119,11 @@ ni por el repositorio**.
 - **Dependabot:** #54 (`react-is` 19), #58 (menores del front) y #60
   (`lucide-react` 1.57) están en verde; #55 (`react-router` 8) y #51
   (`phpstan` 2.3.1) fallan el CI. Antes de mergear cualquiera, la trampa 20.
+- **Prácticas de CMMI en el proceso** (rama `claude/practicas-cmmi`). Solo
+  documentación: criterios de aceptación copiados del caso de uso y el RF en
+  cada PR (`CONTRIBUTING.md` §2), una plantilla de PR con la lista de cierre, y
+  un registro de riesgos en `OPERACION.md` §8. **Al equipo le queda** asignar un
+  responsable a cada riesgo, que hoy dicen "a asignar".
 
 ### El informe de testing del Grupo 9
 
@@ -424,5 +429,7 @@ Es la única defensa contra el próximo corte de luz.
 - **Si algo te hizo perder tiempo**, va a la sección 4. Esa lista es el activo
   más valioso del archivo.
 - **Lo que cambia de estado en el backlog** se anota en `PLAN-PRODUCTO.md`, no acá.
+- **Los riesgos** se revisan en `OPERACION.md` §8: si uno pasó, se anota; si
+  apareció uno nuevo, se agrega.
 - **Commiteá y pusheá seguido.** Una rama sin pushear es trabajo que el próximo
   corte se lleva.
