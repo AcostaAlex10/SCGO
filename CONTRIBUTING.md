@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/traspaso-entorno-local` | `main` @ `229de52` (2026-10-21) | Docs al día después de armar el entorno local: base de `TRASPASO.md`, D-16 con su PR, dos trampas nuevas y el resultado de Selenium del Grupo 9 en Edge | — |
+| `claude/traspaso-entorno-local` | `main` @ `229de52` (2026-10-21) | Docs al día después de armar el entorno local: base de `TRASPASO.md`, D-16 con su PR, dos trampas nuevas y el resultado de Selenium del Grupo 9 en Edge | #67 |
 
 ### Reglas
 
