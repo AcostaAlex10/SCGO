@@ -171,6 +171,26 @@ function consumidoDe(idAsignacion: number): number {
     .reduce((s, c) => s + num(c.cantidad_consumida), 0);
 }
 
+/**
+ * Si un consumo de `cantidad` no entra en lo que queda de la asignación, el
+ * mensaje de la API ("Stock insuficiente: quedan 6 bolsa"); si entra, null.
+ * Misma cuenta en centésimos que Sgso\Reglas\StockMaterial en main (CU22,
+ * DEF-05 del informe de testing del Grupo 9).
+ */
+function faltaStock(asignacion: Fila, cantidad: number): string | null {
+  const centesimos = (n: number) => Math.round(n * 100);
+  const asignada = centesimos(num(asignacion.cantidad_asignada));
+  const consumido = centesimos(consumidoDe(Number(asignacion.id_asignacion)));
+  if (centesimos(cantidad) <= asignada - consumido) return null;
+  const material = db.materiales.find((m) => Number(m.id_material) === Number(asignacion.id_material));
+  const queda = Math.max(0, asignada - consumido) / 100;
+  return `Stock insuficiente: quedan ${String(queda).replace(".", ",")} ${String(material?.unidad ?? "")}`;
+}
+
+function nombreMaterial(asignacion: Fila): string {
+  return String(db.materiales.find((m) => Number(m.id_material) === Number(asignacion.id_material))?.nombre ?? "Material");
+}
+
 function asignacionesDe(idProyecto: number): Fila[] {
   return db.asignaciones
     .filter((a) => Number(a.id_proyecto) === idProyecto)
@@ -776,11 +796,18 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
         if (metodo === "POST") {
           const veto = exige(ROLES_AVANCE);
           if (veto) return veto;
+          const asignacion = db.asignaciones.find((a) => Number(a.id_asignacion) === idAsig);
+          if (!asignacion) return json(404, { error: "Asignación no encontrada" });
+          const cantidad = num(cuerpo.cantidad_consumida);
+          if (!(cantidad > 0)) return json(422, { errors: { cantidad_consumida: "Cantidad inválida" } });
+          // Un consumo no puede superar lo que queda asignado (CU22, DEF-05).
+          const sinStock = faltaStock(asignacion, cantidad);
+          if (sinStock) return json(422, { errors: { cantidad_consumida: sinStock } });
           const nuevo: Fila = {
             id_consumo: proximoId(db.consumos, "id_consumo"),
             id_asignacion: idAsig,
             fecha: texto(cuerpo.fecha) || hoy(),
-            cantidad_consumida: num(cuerpo.cantidad_consumida),
+            cantidad_consumida: cantidad,
             observaciones: texto(cuerpo.observaciones) || null,
           };
           db.consumos.push(nuevo);
@@ -982,6 +1009,45 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
         guardar();
         return creado(nuevo);
       }
+    }
+
+    // La lista de consumos que se guarda y se envía junta (CU22, DEF-04).
+    // Entra entera o no entra, como en main.
+    if (sub === "consumos" && metodo === "POST") {
+      const veto = exige(ROLES_AVANCE);
+      if (veto) return veto;
+      const fecha = texto(cuerpo.fecha);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return json(422, { errors: { fecha: "Formato esperado: YYYY-MM-DD" } });
+      const lista = Array.isArray(cuerpo.consumos) ? (cuerpo.consumos as Fila[]) : [];
+      if (lista.length === 0) return json(422, { errors: { consumos: "Cargá al menos un consumo" } });
+      const pedido = new Map<number, number>();
+      for (const renglon of lista) {
+        const idAsig = num(renglon?.id_asignacion);
+        const cantidad = num(renglon?.cantidad_consumida);
+        if (!idAsig || !(cantidad > 0)) {
+          return json(422, { errors: { consumos: "Cada consumo necesita un material y una cantidad mayor a cero" } });
+        }
+        pedido.set(idAsig, (pedido.get(idAsig) ?? 0) + cantidad);
+      }
+      const errores: Record<string, string> = {};
+      for (const [idAsig, cantidad] of pedido) {
+        const asignacion = db.asignaciones.find((a) => Number(a.id_asignacion) === idAsig && Number(a.id_proyecto) === idNum);
+        if (!asignacion) { errores[`consumos.${idAsig}`] = "Ese material no está asignado a la obra"; continue; }
+        const sinStock = faltaStock(asignacion, cantidad);
+        if (sinStock) errores[`consumos.${idAsig}`] = `${nombreMaterial(asignacion)}: ${sinStock}`;
+      }
+      if (Object.keys(errores).length > 0) return json(422, { errors: errores });
+      for (const renglon of lista) {
+        db.consumos.push({
+          id_consumo: proximoId(db.consumos, "id_consumo"),
+          id_asignacion: num(renglon.id_asignacion),
+          fecha,
+          cantidad_consumida: num(renglon.cantidad_consumida),
+          observaciones: null,
+        });
+      }
+      guardar();
+      return json(201, { registrados: lista.length });
     }
 
     if (sub === "materiales") {

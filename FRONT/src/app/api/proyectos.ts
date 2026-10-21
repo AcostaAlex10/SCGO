@@ -278,6 +278,13 @@ export async function crearConsumo(
 ): Promise<{ id_consumo: number }> {
   return parse(await apiFetch(`/proyectos/material/${idAsignacion}/consumos`, { method: "POST", body: JSON.stringify(datos) }));
 }
+/** La lista de consumos del día, que entra entera o no entra (CU22, DEF-04). */
+export async function enviarListaConsumos(
+  idProyecto: string,
+  datos: { fecha: string; consumos: { id_asignacion: number; cantidad_consumida: number }[] }
+): Promise<{ registrados: number }> {
+  return parse(await apiFetch(`/proyectos/${idProyecto}/consumos`, { method: "POST", body: JSON.stringify(datos) }));
+}
 export async function eliminarConsumo(idConsumo: number): Promise<void> {
   await parse(await apiFetch(`/proyectos/consumo/${idConsumo}`, { method: "DELETE" }));
 }

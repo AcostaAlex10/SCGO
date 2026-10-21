@@ -138,7 +138,9 @@ Sirven para saber qué resultado es el correcto.
 
 **Alta de obras**
 
-- Nombre, tipo, ubicación, encargado, fecha de inicio y presupuesto son obligatorios.
+- Nombre, tipo, ubicación, encargado, fecha de inicio y presupuesto son obligatorios:
+  cada uno que falta dice «Obligatorio» en rojo. Al registrar, el aviso es «Obra
+  registrada con éxito», y cancelar un alta con datos cargados pide confirmación.
 - No se admiten dos obras con el mismo nombre y la misma ubicación.
 - La fecha de inicio no puede ser anterior al día de hoy.
 - La ubicación se valida contra un servicio de mapas; si no se puede verificar,
@@ -164,9 +166,13 @@ Cambian solos a partir del avance físico, no se eligen a mano:
 **Materiales**
 
 - Primero se asigna un material a la obra con una cantidad; después se registran
-  los consumos.
-- Cuando el consumo acumulado supera la cantidad asignada, la asignación se marca
-  como excedida y aparece la alerta correspondiente.
+  los consumos, de a uno («Registrar consumo») o varios juntos («Guardar y
+  enviar»). «Cancelar» descarta lo cargado sin guardar.
+- Un consumo no puede superar lo que queda asignado: se rechaza con «Stock
+  insuficiente: quedan X» y no se guarda. Con «Guardar y enviar», si un material
+  no alcanza no se guarda ninguno de la lista.
+- Las asignaciones que ya venían excedidas en los datos de la demo siguen
+  marcadas como excedidas, con su alerta.
 
 **Reportes**
 
@@ -197,10 +203,12 @@ Un camino de punta a punta que toca casi todo el sistema:
 3. Asignarle un material con una cantidad chica.
 4. Cerrar sesión y entrar como **Técnico**.
 5. Registrar un avance físico y comprobar que la obra pasó a "en ejecución".
-6. Registrar asistencia, una incidencia y un consumo que supere lo asignado.
+6. Registrar asistencia, una incidencia y un consumo. Probar también uno que
+   supere lo que queda: tiene que rechazarse.
 7. Crear un reporte y enviarlo a revisión.
 8. Volver como **Administrativo** y aprobarlo.
-9. Ir a Alertas y verificar que aparecen el desvío de avance y el material excedido.
+9. Ir a Alertas y verificar que aparecen el desvío de avance y los materiales
+   que ya venían excedidos en los datos de la demo.
 10. Entrar como **Gerente** y confirmar que ve todo pero no puede cargar nada.
 
 ---
