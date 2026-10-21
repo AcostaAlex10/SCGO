@@ -351,6 +351,11 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
     larga.** Tiene capturas con nombres muy largos y Windows corta en 260
     caracteres: `git clone` sale con 128 y deja el checkout a medias. Se clona
     con `git -c core.longpaths=true clone ...`.
+34. **En la nube, `gh pr create` falla** con "GraphQL is not available" (403):
+    el proxy solo deja la API REST. El PR se abre con `gh api
+    repos/AcostaAlex10/SCGO/pulls -X POST -f base=main -f head=<rama>
+    -F draft=true -f title=... -F body=@archivo.md`, y se edita con `-X PATCH`
+    sobre `pulls/<n>`.
 
 ### Si la sesión corre en la nube y no en tu máquina
 
@@ -367,7 +372,7 @@ CI de GitHub da 28/28.
 
 **Las trampas 9, 10, 11, 13, 17, 21 y 33 son de la máquina local** (Windows,
 antivirus, `back/.env`): en la nube no aplican. La 12, la 14 y la 31 sí, y de la 22 a
-la 28 son propias de la nube. En la nube tampoco hay `back/.env`, así que
+la 28 y la 34 son propias de la nube. En la nube tampoco hay `back/.env`, así que
 no hay forma de pegarle a producción por accidente, y así tiene que seguir.
 
 ---
