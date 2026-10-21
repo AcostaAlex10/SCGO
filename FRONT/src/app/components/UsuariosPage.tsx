@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import { Users, UserPlus, ShieldCheck, Ban, RotateCcw, ChevronDown, ChevronRight } from "lucide-react";
+import { Users, UserPlus, Ban, RotateCcw, ChevronDown, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import {
   listarUsuarios,
@@ -49,9 +49,16 @@ export default function UsuariosPage() {
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(FORM_VACIO);
   const [guardando, setGuardando] = useState(false);
-  // Usuario cuya baja espera confirmación (null = diálogo cerrado) y sección de bajas desplegada.
+  // Baja pendiente de confirmación: el usuario elegido se conserva al cerrar (para que el
+  // título no cambie durante la animación) y `confirmando` dice si el diálogo está abierto.
   const [bajaDe, setBajaDe] = useState<Usuario | null>(null);
+  const [confirmando, setConfirmando] = useState(false);
   const [verBajas, setVerBajas] = useState(false);
+  // Foco: al cancelar vuelve al botón de la fila; tras una acción que mueve filas, a un destino estable.
+  const volverAFila = useRef(false);
+  const pedirFoco = useRef(false);
+  const botonBajas = useRef<HTMLButtonElement>(null);
+  const tituloActivos = useRef<HTMLHeadingElement>(null);
   const yo = getUsuario();
 
   const cargar = () =>
@@ -63,6 +70,14 @@ export default function UsuariosPage() {
   useEffect(() => {
     cargar();
   }, []);
+
+  // Cuando la lista ya se redibujó tras una baja o reactivación, la fila tocada ya no existe:
+  // el foco va al botón de bajas si sigue estando, y si no al título de la tabla principal.
+  useEffect(() => {
+    if (!pedirFoco.current) return;
+    pedirFoco.current = false;
+    (botonBajas.current ?? tituloActivos.current)?.focus();
+  }, [usuarios]);
 
   async function crear(e: React.FormEvent) {
     e.preventDefault();
@@ -91,13 +106,16 @@ export default function UsuariosPage() {
     }
   }
 
-  async function alternarActivo(u: Usuario) {
+  async function alternarActivo(u: Usuario): Promise<boolean> {
     try {
       await actualizarUsuario(u.id_usuario, { activo: !u.activo });
       toast.success(u.activo ? `${u.nombre} dado de baja` : `${u.nombre} reactivado`);
+      pedirFoco.current = true;
       await cargar();
+      return true;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "No se pudo actualizar el usuario");
+      return false;
     }
   }
 
@@ -105,9 +123,16 @@ export default function UsuariosPage() {
   async function confirmarBaja() {
     if (!bajaDe) return;
     const u = bajaDe;
-    setBajaDe(null);
-    await alternarActivo(u);
+    setConfirmando(false);
+    // Si la API rechaza, la fila sigue ahí y el foco vuelve a su botón.
+    if (!(await alternarActivo(u))) enfocarFila(u);
   }
+
+  const enfocarFila = (u: Usuario) => document.getElementById(`baja-${u.id_usuario}`)?.focus();
+  const cancelarBaja = () => {
+    volverAFila.current = true;
+    setConfirmando(false);
+  };
 
   // Las dos listas salen del mismo estado, así que cada acción las actualiza a la vez.
   const activos = usuarios.filter((u) => u.activo);
@@ -192,7 +217,9 @@ export default function UsuariosPage() {
       {/* Listado */}
       <Card>
         <CardHeader>
-          <CardTitle>Usuarios del sistema ({activos.length})</CardTitle>
+          <CardTitle ref={tituloActivos} tabIndex={-1}>
+            Usuarios del sistema ({activos.length})
+          </CardTitle>
           <CardDescription>
             Cambiar un rol o dar de baja cierra la sesión activa de esa persona.
           </CardDescription>
@@ -210,7 +237,6 @@ export default function UsuariosPage() {
                     <th className="py-2 pr-4 font-medium">Nombre</th>
                     <th className="py-2 pr-4 font-medium">Email</th>
                     <th className="py-2 pr-4 font-medium">Rol</th>
-                    <th className="py-2 pr-4 font-medium">Estado</th>
                     <th className="py-2 font-medium text-right">Acciones</th>
                   </tr>
                 </thead>
@@ -231,17 +257,6 @@ export default function UsuariosPage() {
                             </Badge>
                           </div>
                         </td>
-                        <td className="py-3 pr-4">
-                          {u.activo ? (
-                            <span className="flex items-center gap-1" style={{ color: "#22c55e" }}>
-                              <ShieldCheck className="w-4 h-4" /> Activo
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-1 text-muted-foreground">
-                              <Ban className="w-4 h-4" /> Dado de baja
-                            </span>
-                          )}
-                        </td>
                         <td className="py-3">
                           <div className="flex items-center gap-2 justify-end">
                             <Select value={u.rol} onValueChange={(v) => cambiarRol(u, v as RolUsuario)}>
@@ -259,7 +274,11 @@ export default function UsuariosPage() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => setBajaDe(u)}
+                              id={`baja-${u.id_usuario}`}
+                              onClick={() => {
+                                setBajaDe(u);
+                                setConfirmando(true);
+                              }}
                               disabled={esYo}
                               aria-label={`Dar de baja a ${u.nombre}`}
                               title={esYo ? "No podés darte de baja a vos mismo" : "Dar de baja"}
@@ -285,6 +304,7 @@ export default function UsuariosPage() {
             <CardTitle>
               <button
                 type="button"
+                ref={botonBajas}
                 className="flex items-center gap-2 text-left"
                 aria-expanded={verBajas}
                 aria-controls="tabla-bajas"
@@ -296,54 +316,60 @@ export default function UsuariosPage() {
             </CardTitle>
             <CardDescription>Reactivar a una persona le devuelve el acceso al sistema.</CardDescription>
           </CardHeader>
-          {verBajas && (
-            <CardContent id="tabla-bajas">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-muted-foreground border-b">
-                      <th className="py-2 pr-4 font-medium">Nombre</th>
-                      <th className="py-2 pr-4 font-medium">Email</th>
-                      <th className="py-2 pr-4 font-medium">Rol</th>
-                      <th className="py-2 font-medium text-right">Acciones</th>
+          {/* Siempre en el DOM para que aria-controls apunte a algo; oculta mientras está colapsada */}
+          <CardContent id="tabla-bajas" hidden={!verBajas}>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-muted-foreground border-b">
+                    <th className="py-2 pr-4 font-medium">Nombre</th>
+                    <th className="py-2 pr-4 font-medium">Email</th>
+                    <th className="py-2 pr-4 font-medium">Rol</th>
+                    <th className="py-2 font-medium text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bajas.map((u) => (
+                    <tr key={u.id_usuario} className="border-b last:border-0">
+                      <td className="py-3 pr-4 font-medium">{u.nombre}</td>
+                      <td className="py-3 pr-4 text-muted-foreground">{u.email}</td>
+                      <td className="py-3 pr-4">
+                        <Badge style={{ background: COLOR_ROL[u.rol] }}>
+                          {ROLES.find((r) => r.valor === u.rol)?.etiqueta ?? u.rol}
+                        </Badge>
+                      </td>
+                      <td className="py-3">
+                        <div className="flex items-center gap-2 justify-end">
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => alternarActivo(u)}
+                            aria-label={`Reactivar a ${u.nombre}`}
+                            title="Reactivar"
+                          >
+                            <RotateCcw className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {bajas.map((u) => (
-                      <tr key={u.id_usuario} className="border-b last:border-0">
-                        <td className="py-3 pr-4 font-medium">{u.nombre}</td>
-                        <td className="py-3 pr-4 text-muted-foreground">{u.email}</td>
-                        <td className="py-3 pr-4">
-                          <Badge style={{ background: COLOR_ROL[u.rol] }}>
-                            {ROLES.find((r) => r.valor === u.rol)?.etiqueta ?? u.rol}
-                          </Badge>
-                        </td>
-                        <td className="py-3">
-                          <div className="flex items-center gap-2 justify-end">
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              onClick={() => alternarActivo(u)}
-                              aria-label={`Reactivar a ${u.nombre}`}
-                              title="Reactivar"
-                            >
-                              <RotateCcw className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          )}
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
         </Card>
       )}
 
       {/* Confirmación de la baja */}
-      <Dialog open={bajaDe !== null} onOpenChange={(abierto) => !abierto && setBajaDe(null)}>
-        <DialogContent>
+      <Dialog open={confirmando} onOpenChange={(abierto) => !abierto && cancelarBaja()}>
+        <DialogContent
+          onCloseAutoFocus={(e) => {
+            // No hay DialogTrigger: el foco lo devolvemos nosotros a la fila (si se canceló).
+            e.preventDefault();
+            if (volverAFila.current && bajaDe) enfocarFila(bajaDe);
+            volverAFila.current = false;
+          }}
+        >
           <DialogHeader>
             <DialogTitle>¿Dar de baja a {bajaDe?.nombre}?</DialogTitle>
             <DialogDescription>
@@ -351,10 +377,10 @@ export default function UsuariosPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setBajaDe(null)}>
+            <Button variant="outline" onClick={cancelarBaja}>
               Cancelar
             </Button>
-            <Button onClick={confirmarBaja}>Dar de baja</Button>
+            <Button variant="destructive" onClick={confirmarBaja}>Dar de baja</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
