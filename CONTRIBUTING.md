@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/traspaso-requerimientos` | `main` @ `fe06669` (2026-10-21) | `TRASPASO.md` al día con el #68 y el #70: D-11 hecho, los requerimientos propuestos, DEC-08 y dos trampas nuevas | — |
+| `claude/traspaso-requerimientos` | `main` @ `fe06669` (2026-10-21) | `TRASPASO.md` al día con el #68 y el #70: D-11 hecho, los requerimientos propuestos, DEC-08 y dos trampas nuevas | #71 |
 
 ### Reglas
 
