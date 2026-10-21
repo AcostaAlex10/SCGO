@@ -7,7 +7,7 @@ están en `back/tests/`, y todo corre en el CI en cada pull request.
 
 | Guion | Qué cubre |
 |---|---|
-| `humo.mjs` | los cuatro roles: login, RF19 (menú de Usuarios), RF20 (presupuesto oculto al Técnico), las ocho pantallas del menú y la recarga en `#/alertas` |
+| `humo.mjs` | los cuatro roles: login, RF19 (menú de Usuarios), RF20 (presupuesto oculto al Técnico), las ocho pantallas del menú y la recarga en `#/alertas`; además, con el administrador, la pantalla Usuarios: la tabla lista solo activos, la sección colapsable de dados de baja, el diálogo de confirmación, reactivar y el botón de baja deshabilitado para uno mismo |
 | `inactividad.mjs` | pausar y reactivar la obra: período vigente, período histórico que no pausa, obra finalizada que no revive, eliminar el vigente |
 | `validaciones.mjs` | rango de fechas invertido, en las dos barreras: el `min` del navegador y la validación del simulador |
 | `persistencia.mjs` | la copia en `localStorage` y su invalidación al cambiar `datos.json` |
