@@ -195,7 +195,7 @@ falta pasar de enlaces a archivos (desvío 1, plan: DEC-03 y D-01).
 | RF09 y RF26 — incidencias clasificadas por tipo y gravedad | `back/tests/Integracion/IncidenciaTest.php` |
 | RF15 y RF20 — el monto certificado lo calcula la API, al centavo, y no le llega al Personal Técnico | `back/tests/Reglas/CertificacionTest.php`, `back/tests/Integracion/CertificacionObraTest.php`, `FRONT/scripts/pruebas/contrato.mjs` |
 | RF26 — el aviso por correo según la gravedad | `back/tests/Reglas/ProtocoloIncidenciasTest.php`, `back/tests/Integracion/AvisoDeIncidenciaTest.php`, `FRONT/scripts/pruebas/contrato.mjs` |
-| RF10 y RF12 — materiales asignados, consumos y exceso | `back/tests/Integracion/MaterialObraTest.php`, `back/tests/Integracion/AnalisisTest.php` |
+| RF10 y RF12 — materiales asignados, consumos y exceso | `back/tests/Integracion/MaterialObraTest.php`, `back/tests/Integracion/ListaConsumosTest.php`, `back/tests/Integracion/AnalisisTest.php` |
 | RF11 — alerta cuando el avance real queda debajo del esperado | `back/tests/Integracion/AnalisisTest.php` |
 | RF13 — presupuesto contra lo ejecutado | `back/tests/Integracion/AnalisisTest.php` |
 | RF20 — costos ocultos al Personal Técnico | `back/tests/Integracion/AnalisisTest.php` (backend), `FRONT/scripts/pruebas/humo.mjs` (pantallas) |
