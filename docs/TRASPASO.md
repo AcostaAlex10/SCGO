@@ -4,10 +4,11 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-10-21, después de D-11 (#68) y de contrastar los
-  requerimientos con los documentos del relevamiento (#70)
-- **Base:** `main` @ `fe06669`, CI en verde. **Producción sigue caída por la
-  base** (sección 3): `/api/health` respondía 500 el 2026-10-21
+- **Actualizado:** 2026-10-21, después de A-18 (#73), C-13 (#72), D-16 (#64) y
+  D-22 (#74)
+- **Base:** `main` @ `bcd75f2`, CI en verde. **La base de Aiven volvió**:
+  `/api/health` responde `{"status":"ok","db":"ok"}`. **Sigue caído el correo**
+  (Brevo, sección 3)
 - **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23).
   Desde el #65 tiene los seis arreglos del informe
 
@@ -73,6 +74,11 @@ día de dependencias.
 | #67 | Este archivo, después de armar el entorno local; Selenium del Grupo 9 en Edge, 9/10 |
 | #68 | D-11: una falla de maquinaria se marca resuelta o se reabre sin borrarla; RF27 cumplido |
 | #70 | Requerimientos contrastados con el relevamiento: RF13 pasa a parcial, RF29 a RF33 propuestos, DEC-08 y D-17 a D-21 |
+| #71 | Este archivo, con el #68 y el #70 |
+| #72 | C-13: una fecha imposible da 422 y no 500, con `Sgso\Reglas\Fecha::esValida` en las 14 validaciones de 11 controladores. La fecha de inicio de la obra ahora se valida, y Documento e ItemExcedente ya no cambian en silencio una fecha mala por la de hoy. 14 pruebas de integración nuevas (821 pruebas en CI, sin salteadas) |
+| #73 | A-18 (P0): el aviso de php.net del 2026-10-21 trae dos RCE críticas (GHSA-w8hw-w9fx-j79w y GHSA-6wmf-4rv5-p3rp), corregidas en 8.3.36; el peor caso es Apache con mod_php, que es lo que usa `back/Dockerfile`. El `Dockerfile` corta el build si PHP no tiene el parche (mínimo por rama: 8.2.35, 8.3.36, 8.4.27, 8.5.12) y apaga `session.upload_progress`. Ya desplegado en Render |
+| #64 | D-16 (DEF-04): la lista de consumos se guarda y se envía junta. Con él quedan atendidos en `main` los seis defectos del informe del Grupo 9 |
+| #74 | D-22: en Usuarios, los dados de baja van a una sección plegable propia con "Reactivar", y dar de baja pide confirmación. No se borra de verdad: `reporte.id_usuario` es FK sin `ON DELETE` (RESTRICT) y el `DELETE` falla con 1451 |
 
 **No queda ningún P0 de seguridad abierto.** De seguridad quedan A-09, A-11, A-12
 y A-15, ninguno bloqueante.
@@ -81,32 +87,37 @@ y A-15, ninguno bloqueante.
 
 ## 3. Qué hay en vuelo ahora mismo
 
-### Producción no anda: dos cosas que solo puede arreglar alguien del equipo
+### La base volvió; el correo sigue caído
 
-1. **La base de Aiven no existe en el DNS.** Los logs de Render dicen
-   `getaddrinfo for constructionproyectmanagerdb-constructionproyectmanager.c.aivencloud.com failed: Name or service not known`.
-   Pasa cuando el servicio gratuito de Aiven queda apagado. Hay que entrar a la
-   consola de Aiven y encenderlo. Si al volver cambió el host, se actualiza
-   `DB_HOST` en Render → Environment. Después, `/api/health` tiene que contestar
-   `{"status":"ok","db":"ok"}`.
-2. **La clave de Brevo está deshabilitada.** "Olvidé mi contraseña" no manda nada,
-   y el log dice `401 Unauthorized: unauthorized API Key is not enabled` (lo
-   muestra gracias a A-17, #50). Hay que reactivar o regenerar la clave en Brevo y
-   ponerla en `BREVO_API_KEY` en Render → Environment. Afecta también los avisos
-   de incidencias (D-02).
+La base de Aiven volvió y el host no cambió: `/api/health` responde
+`{"status":"ok","db":"ok"}`. El PHP parcheado del #73 ya corre en producción
+(deploy automático de `e2bb7b2`, Live; no hizo falta limpiar caché).
 
-Ninguna de las dos se arregla con código, y **ninguna credencial pasa por el chat
-ni por el repositorio**.
+**Brevo sigue caído, y solo alguien del equipo lo arregla.** Los logs de Render
+dicen `Brevo contestó "HTTP/1.1 401 Unauthorized": unauthorized API Key is not
+enabled`. Hay que reactivar o generar la clave en Brevo (SMTP & API → API Keys)
+y ponerla en `BREVO_API_KEY` en Render → Environment. Después puede aparecer
+"unrecognised IP address" (Security → Authorised IPs) o un remitente sin
+verificar. Afecta la recuperación de contraseña y los avisos de incidencias
+(D-02).
+
+**Mientras Brevo no ande, para entrar a producción sin correo:** `php sql/seed.php`
+desde `back/`, con `SEED_ADMIN_EMAIL` y `SEED_ADMIN_PASSWORD` en el entorno, crea o
+actualiza un admin (`ON DUPLICATE KEY`: con un email que ya existe, le cambia la
+clave y lo reactiva). **Pega contra producción**, porque `back/.env` apunta ahí
+(trampa 9). Las cuentas de prueba se dan de baja desde Usuarios al terminar.
+
+**Pendiente chico: el renombre a SCGO del correo de recuperación.** El asunto
+todavía dice "Recuperá tu contraseña - SGSO" (`AuthController.php`, que también
+titula el cuerpo con SGSO), y el remitente de `Mailer.php` se llama `SGSO`. No
+tiene ítem en el plan.
+
+Esto no se arregla con código, y **ninguna credencial pasa por el chat ni por el
+repositorio**.
 
 ### PR abiertos
 
-- **#64 (D-16, DEF-04): la lista de consumos que se guarda y se envía junta.**
-  Tiene el CI en verde. Queda esperando a que vuelva la base, porque después del
-  merge Render despliega y hay que verificar en producción, y hoy no se puede.
-  Cuando la base vuelva: actualizar la rama con `main` (choca en
-  `CONTRIBUTING.md`, trampa 19), esperar el CI, mergear y probar en producción una
-  lista con dos materiales y otra con uno sin stock (tiene que rechazar las dos
-  líneas).
+- **#69 (`claude/practicas-cmmi`):** marco de proceso CMMI.
 - **#23 (B-03, migraciones versionadas).** Quedó atrás de `main` y hay que
   rebasearlo (trampas 8 y 19). **No se mergea hasta que alguien del equipo corra
   las migraciones en Aiven**: el PR saca el `CREATE TABLE` que creaba
@@ -118,22 +129,21 @@ ni por el repositorio**.
   ```
 
   Con las credenciales de la base, desde la máquina de alguien del equipo.
-- **Dependabot:** #54 (`react-is` 19), #58 (menores del front) y #60
-  (`lucide-react` 1.57) están en verde; #55 (`react-router` 8) y #51
-  (`phpstan` 2.3.1) fallan el CI. Antes de mergear cualquiera, la trampa 20.
+- **Dependabot:** #51, #54, #55, #58 y #60. Hoy no se volvió a mirar su CI.
+  Antes de mergear cualquiera, la trampa 20.
 
 ### El informe de testing del Grupo 9
 
 Los testers (repositorio `RybergB/Grupo9_CentralDeTesting`, TP1 del 2026-10-02)
-encontraron seis defectos en la demo. Están todos arreglados en `main`, menos
-DEF-04, que es el #64, y **los seis están en `testing`** desde el #65:
+encontraron seis defectos en la demo. Están todos arreglados en `main`
+(DEF-04 con el #64) y **los seis están en `testing`** desde el #65:
 
 | Defecto | Qué era | En `main` | En la demo |
 |---|---|---|---|
 | DEF-01 | El aviso al registrar una obra no decía "Obra registrada con éxito" | #63 | #65 |
 | DEF-02 | Un campo vacío mostraba el aviso del navegador, no "Obligatorio" | #63 | #65 |
 | DEF-03 | Cerrar el alta con datos cargados no pedía confirmación | #63 | #65 |
-| DEF-04 | No había forma de enviar la lista de consumos del día junta | #64, abierto | #65 |
+| DEF-04 | No había forma de enviar la lista de consumos del día junta | #64 | #65 |
 | DEF-05 | Un consumo mayor a lo asignado se guardaba igual | #62 | #65 |
 | DEF-06 | Materiales no tenía botón "Cancelar" | #63 | #65 |
 
@@ -149,7 +159,8 @@ esa comprobación pasa, pero después la prueba saca una captura con el cartel
 abierto, Edge la rechaza y cierra el cartel, y el `dismiss()` siguiente da
 `NoAlertPresentException`. Conviene avisarle al grupo.
 
-**Para verificar en producción, cuando vuelvan la base y el correo:**
+**Para verificar en producción.** La base ya anda, así que de la 3 en adelante se
+pueden probar ya; la 1 y la 2 esperan a Brevo:
 
 1. **"Olvidé mi contraseña"**, una vez, con una cuenta propia: el correo tiene
    que llegar. Si no llega, el log de Render dice por qué (A-17).
@@ -162,6 +173,10 @@ abierto, Edge la rechaza y cierra el cartel, y el `dismiss()` siguiente da
 5. **Marcar una falla de maquinaria como resuelta** y reabrirla (D-11, #68): el
    contador de fallas abiertas de la máquina tiene que bajar y volver a subir, y
    la falla seguir en el historial.
+6. **La lista de consumos (#64)**: una que entra entera, y otra con un material
+   sin stock que rechaza las dos líneas.
+7. **La pantalla de usuarios (#74)**: los dados de baja en su sección, "Reactivar"
+   y la confirmación al dar de baja.
 
 ### Los requerimientos, contrastados con el relevamiento (#70)
 
@@ -213,13 +228,15 @@ tres cosas:
 - **A-11:** la prueba gratuita de Strix terminó; el pentest queda sin
   herramienta hasta decidir cómo hacerlo.
 
-**Lo siguiente del plan.** Los puntos 8 y 9 de la Ola 3 están hechos. Sigue el
-10: **DEC-03** (documentos como archivos) es una decisión del equipo, y de ella
-depende D-01; **D-05** (registro de cambios) pide una tabla nueva, o sea una
-migración, así que se pregunta antes. **D-11** está hecho (#68). Sin decisiones
-pendientes quedan **C-13** (una fecha imposible da 500
-en vez de 422) y **A-15** (RF20 por lista negra: cada importe nuevo hay que
-acordarse de quitarlo, como pasó con `certificado` en el #48).
+**Lo siguiente del plan.** C-13 (#72) y D-11 (#68) ya están. Quedan:
+
+- **A-15:** RF20 por lista negra. Cada importe nuevo hay que acordarse de
+  quitarlo, como pasó con `certificado` en el #48.
+- **DEC-03 → D-01:** documentos como archivos. DEC-03 es una decisión del equipo.
+- **D-05** (registro de cambios): pide una tabla nueva, o sea una migración, así
+  que se pregunta antes.
+- **D-12** y **D-13**, que esperan decisiones del equipo (ver arriba).
+- **El asunto "SGSO"** del correo de recuperación (ver arriba).
 
 ---
 
@@ -376,6 +393,20 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
 35. **En PowerShell 5.1, `gh pr create --body "..."` se rompe** si el texto
     tiene comillas dobles: `gh` lo recibe partido en varios argumentos ("unknown
     argument"). Se escribe el cuerpo en un archivo y se pasa con `--body-file`.
+36. **Una sesión aislada en un worktree no puede operar git en otro worktree.**
+    Los subagentes heredan ese aislamiento, así que hay que entrar al worktree
+    (`EnterWorktree`) antes de delegar.
+37. **En un worktree no hay `back/vendor` ni `FRONT/node_modules`.** Se copian del
+    checkout principal: Composer no descarga (trampa 11) y `npm install` borra
+    Playwright (trampa 12).
+38. **Dos agentes que comparten `C:/tmp/scgo` y el `http-server` del puerto 8123 se
+    pisan las corridas de Playwright.** Uno por vez, o carpetas y puertos
+    distintos.
+39. **GitHub no tiene auto-merge habilitado en este repositorio.** "Mergear cuando
+    el CI esté en verde" lo hace alguien a mano.
+40. **Un merge de `main` con conflictos en `CONTRIBUTING.md` y en el registro de
+    `PLAN-PRODUCTO.md` se resuelve dejando las dos filas**, con el registro en
+    orden de merge.
 
 ### Si la sesión corre en la nube y no en tu máquina
 
