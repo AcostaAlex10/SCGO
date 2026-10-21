@@ -102,6 +102,9 @@ for (const cuenta of CUENTAS) {
   const VICTIMA = 'Claudia Rossi'; // Gerente: no es administrador ni "vos"
   const ctx = await navegador.newContext({ viewport: { width: 1400, height: 900 } });
   const page = await ctx.newPage();
+  const errores = [];
+  page.on('console', (m) => { if (m.type() === 'error') errores.push(m.text()); });
+  page.on('pageerror', (e) => errores.push('pageerror: ' + e.message));
   const texto = async (loc) => ((await loc.first().textContent({ timeout: 3000 }).catch(() => null)) ?? '');
   const conteo = async (re) => { const m = (await texto(page.getByText(re))).match(re); return m ? Number(m[1]) : null; };
   const seccion = () => page.getByRole('button', { name: /Usuarios dados de baja \((\d+)\)/ });
@@ -122,7 +125,7 @@ for (const cuenta of CUENTAS) {
   const n0 = await conteo(/Usuarios del sistema \((\d+)\)/);
   const m0 = await cuenta();
   chequear(ROL, 'Usuarios: el titulo cuenta solo los activos (N)', n0 === 5, `N=${n0}`);
-  const marcosEnTabla = await page.locator('tr', { hasText: 'Marcos Silva' }).count();
+  const marcosEnTabla = await page.locator('tr:visible', { hasText: 'Marcos Silva' }).count();
   chequear(ROL, 'Usuarios: un dado de baja no aparece en la tabla principal', marcosEnTabla === 0, `filas con Marcos Silva: ${marcosEnTabla}`);
 
   // Seccion colapsable: empieza colapsada y muestra M.
@@ -162,6 +165,14 @@ for (const cuenta of CUENTAS) {
   chequear(ROL, 'Usuarios: cancelar no cambia nada',
     (await conteo(/Usuarios del sistema \((\d+)\)/)) === 5 && (await cuenta()) === 1
       && (await page.getByRole('dialog').count()) === 0);
+  // Cancelar con Escape tambien cierra el dialogo sin cambiar nada.
+  await botonBaja.click({ timeout: 3000 }).catch(() => {});
+  const abrioEsc = (await page.getByRole('dialog').count()) === 1;
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(400);
+  chequear(ROL, 'Usuarios: Escape cierra el dialogo y no cambia N ni M',
+    abrioEsc && (await page.getByRole('dialog').count()) === 0
+      && (await conteo(/Usuarios del sistema \((\d+)\)/)) === 5 && (await cuenta()) === 1);
   // Confirmar.
   await botonBaja.click({ timeout: 3000 }).catch(() => {});
   await page.getByRole('dialog').getByRole('button', { name: /confirmar|dar de baja|aceptar|s[ií]/i }).last().click({ timeout: 3000 }).catch(() => {});
@@ -179,7 +190,8 @@ for (const cuenta of CUENTAS) {
   chequear(ROL, 'Usuarios: reactivar muestra el aviso "Claudia Rossi reactivado"',
     (await page.getByText(`${VICTIMA} reactivado`).count()) > 0);
   chequear(ROL, 'Usuarios: tras reactivar N+1 y M-1 sin dialogo',
-    (await conteo(/Usuarios del sistema \((\d+)\)/)) === 5 && (await cuenta()) === 1);
+    (await conteo(/Usuarios del sistema \((\d+)\)/)) === 5 && (await cuenta()) === 1
+      && (await page.getByRole('dialog').count()) === 0);
 
   // Si M queda en 0 la seccion desaparece (reactivar a Marcos Silva).
   if ((await seccion().first().getAttribute('aria-expanded', { timeout: 3000 }).catch(() => null)) !== 'true')
@@ -188,6 +200,9 @@ for (const cuenta of CUENTAS) {
   await page.waitForTimeout(800);
   chequear(ROL, 'Usuarios: con M=0 la seccion de bajas desaparece', reactivo && (await seccion().count()) === 0
     && (await conteo(/Usuarios del sistema \((\d+)\)/)) === 6);
+
+  const ruido = errores.filter((e) => !/favicon|Download the React DevTools/i.test(e));
+  chequear(ROL, 'Usuarios: sin errores de consola en usuarios dados de baja', ruido.length === 0, ruido.slice(0, 2).join(' | '));
 
   await ctx.close(); // contexto descartable: el estado del simulador no sobrevive
 }
