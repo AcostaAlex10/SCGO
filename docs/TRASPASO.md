@@ -4,8 +4,8 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-10-21, al sumar cuatro prácticas de CMMI al proceso
-  (criterios de aceptación, trazabilidad, riesgos y plantilla de PR)
+- **Actualizado:** 2026-10-21, al sumar el marco de proceso basado en CMMI
+  (`docs/PROCESO.md`) y los cinco agentes por rol
 - **Base:** `main` @ `8c5f342`, CI en verde. **Producción está caída por la base**
   (sección 3): el deploy del #62 quedó "live", pero ningún pedido que use la base
   responde
@@ -20,6 +20,7 @@ se perdió.** Una sesión nueva empieza leyendo esto.
 |---|---|
 | Este archivo | Dónde quedó todo y qué hay en vuelo **ahora** |
 | [CONTRIBUTING.md](../CONTRIBUTING.md) | Cómo se trabaja: ramas, PRs, qué cuenta como terminado |
+| [docs/PROCESO.md](PROCESO.md) | Quién hace qué: Claude orquesta, cinco agentes por rol, qué necesita a Alex antes |
 | [docs/PLAN-PRODUCTO.md](PLAN-PRODUCTO.md) | **El backlog real.** Todo lo que falta, con prioridad y tamaño |
 | [docs/REQUERIMIENTOS.md](REQUERIMIENTOS.md) | Qué tiene que hacer el sistema (RF y RNF) |
 | [docs/ARQUITECTURA.md](ARQUITECTURA.md) | Cómo está construido |
@@ -119,11 +120,13 @@ ni por el repositorio**.
 - **Dependabot:** #54 (`react-is` 19), #58 (menores del front) y #60
   (`lucide-react` 1.57) están en verde; #55 (`react-router` 8) y #51
   (`phpstan` 2.3.1) fallan el CI. Antes de mergear cualquiera, la trampa 20.
-- **#69: prácticas de CMMI en el proceso.** Solo
-  documentación: criterios de aceptación copiados del caso de uso y el RF en
-  cada PR (`CONTRIBUTING.md` §2), una plantilla de PR con la lista de cierre, y
-  un registro de riesgos en `OPERACION.md` §8. **Al equipo le queda** asignar un
-  responsable a cada riesgo, que hoy dicen "a asignar".
+- **#69: marco de proceso basado en CMMI.** Sin código: criterios de
+  aceptación copiados del caso de uso y el RF en cada PR (`CONTRIBUTING.md` §2),
+  una plantilla de PR con la lista de cierre, un registro de riesgos en
+  `OPERACION.md` §8 (todos a cargo de Alex) y `docs/PROCESO.md`. **Cambia la
+  forma de trabajar:** la sesión principal de Claude orquesta y delega en cinco
+  agentes por rol (`.claude/agents/`), cada uno con su modelo y su nivel de
+  autonomía. Los agentes se cargan al abrir una sesión nueva con este `main`.
 
 ### El informe de testing del Grupo 9
 
