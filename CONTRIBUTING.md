@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/falla-resuelta` | `main` @ `8c5f342` (2026-10-21) | D-11: marcar una falla de maquinaria como resuelta sin borrarla; RF27 cumplido | #68 |
+| `claude/requerimientos-relevamiento` | `main` @ `8c5f342` (2026-10-21) | Requerimientos contrastados con los documentos del relevamiento: RF13 pasa a parcial, RF29 a RF33 propuestos, DEC-08 y D-17 a D-21 en el plan. Solo docs | #70 |
 
 ### Reglas
 
@@ -128,6 +128,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/testing-arreglos-g9` | **Contra `testing`.** Los seis arreglos del informe del Grupo 9 en la demo, y `GUIA-TESTERS.md` al día | PR #65, en `testing` |
 | `claude/traspaso-local` | `TRASPASO.md` al día para seguir en una sesión local: los PR #50 a #65, la base y el correo caídos, y cómo armar el entorno | PR #66 |
 | `claude/traspaso-entorno-local` | Docs al día después de armar el entorno local: base de `TRASPASO.md`, D-16 con su PR, dos trampas nuevas y el resultado de Selenium del Grupo 9 en Edge | PR #67 |
+| `claude/falla-resuelta` | D-11: marcar una falla de maquinaria como resuelta sin borrarla; RF27 cumplido | PR #68 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir

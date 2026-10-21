@@ -40,6 +40,7 @@ decisión de ustedes, no de código.
 | **DEC-05** | Cómo se factura | Abierta. Condición fiscal y factura electrónica ante ARCA: consultarlo con un contador antes del primer cobro. | E-03, E-04 |
 | **DEC-06** | La rama `TP1-plan-de-testing` | **Resuelta:** borrada. Estaba vacía y el trabajo no correspondía a este repositorio. | — |
 | **DEC-07** | ¿El repositorio es público o privado? | **Resuelta:** sigue **público**, renombrado a `SCGO`. En GitHub Free la protección de `main` solo funciona en repositorios públicos, y se prefirió conservarla. La consecuencia es que el código es visible: **ningún dato de Triwe ni ninguna credencial puede entrar al repositorio**, lo que vuelve más importantes A-02 y A-08. Los datos de producción que se publicaron antes siguen en el historial; son de cuentas del equipo. | E-04 |
+| **DEC-08** | ¿Triwe quiere los RF propuestos RF29 a RF33? | Abierta (2026-10-21). Salen de contrastar los requerimientos con los documentos del relevamiento: gastos reales por obra, pedidos de material, cotizaciones de proveedores, horas aprobadas y pendientes ([REQUERIMIENTOS.md](REQUERIMIENTOS.md) §5). Recomendación: antes de decidir, hacer la entrevista a administración que quedó pendiente en el plan de entrevistas, porque RF29 a RF32 son sus circuitos, y acordar con la dirección técnica las reglas de costos que el estudio de viabilidad pedía validar. | D-17 a D-21 |
 
 ---
 
@@ -110,7 +111,7 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 
 | # | P | Qué falta | Req. | Tamaño | Quién |
 |---|---|---|---|---|---|
-| **D-01** | P1 | **Documentos como archivos** (DEC-03): subida con límite de tamaño, tipos permitidos y enlaces firmados. | RF07, RF16 | L | Claude |
+| **D-01** | P1 | **Documentos como archivos** (DEC-03): subida con límite de tamaño, tipos permitidos y enlaces firmados. Es lo que la dirección técnica llamó esencial en la entrevista del TP1: guardar desde el celular los archivos que llegan por WhatsApp. | RF07, RF16 | L | Claude |
 | **D-02** | P1 | **Hecho en el PR #46.** **Avisos según la gravedad** de la incidencia. Protocolo decidido por el equipo: una alta avisa por correo a Gerentes y Personal Administrativo activos; una media, al Personal Administrativo; una baja no avisa. Un solo correo por incidencia, con todo escapado, y quien la carga ve a cuántos se avisó. | RF26 | M | Codex |
 | **D-03** | P1 | **Hecho en el PR #44.** **La alerta de consumo de maquinaria no aparecía en Alertas.** Ahora el feed trae una alerta por máquina con consumos anómalos, con cuántos son, el último y su obra. La regla pasó a `Sgso\Reglas\ConsumoMaquinaria`, que usan el listado y el feed. | RF24 | S | Codex |
 | **D-04** | P2 | **Hecho en el PR #47.** **Distinguir `creada` de `planificacion`.** Toda obra nueva arranca `creada`; cargar su planificación la pasa a `planificacion`, y borrarla antes de arrancar la devuelve a `creada`. Las obras que ya existen no se tocaron: las que están en `planificacion` sin planificación cargada siguen así hasta que se decida migrarlas. | ciclo de vida | S | Codex |
@@ -125,6 +126,11 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 | **D-14** | P1 | **Hecho en el PR #62.** **Se podía consumir más material que el asignado.** DEF-05 del informe de testing del Grupo 9 (TP1, 2026-10-02), severidad crítica. El CU22 pide informar la falta de disponibilidad: la API rechaza con 422 un consumo que supera lo que queda y dice cuánto queda. La regla vive en `Sgso\Reglas\StockMaterial` y cuenta en centésimos; el saldo se lee con la asignación bloqueada para que dos consumos simultáneos no entren los dos. Los excesos cargados antes siguen marcados (RF12). | RF10 | S | Claude |
 | **D-15** | P2 | **Hecho en el PR #63.** **Las pantallas no siguen los textos del CU1 y el CU22.** DEF-01, DEF-02, DEF-03 y DEF-06 del informe de testing: el alta dice "Proyecto registrado con éxito" en vez de "Obra registrada con éxito"; los campos vacíos muestran el aviso del navegador solo en el primero, no "Obligatorio" en rojo en cada uno; Cancelar cierra el formulario sin confirmar; y Materiales no tiene cómo descartar lo cargado. Ahora el alta valida cada campo y marca en rojo los que faltan, cerrar el alta con datos pide confirmación y Materiales tiene un Cancelar; `validaciones.mjs` lo verifica. | RF01, RF10 | S | Claude |
 | **D-16** | P2 | **En curso en el PR #64**, con el CI en verde: espera que vuelva la base para mergearse y probarse en producción. **El consumo se carga de a un material.** DEF-04 del informe de testing: el CU22 pide cargar una lista de consumos y enviarla junta ("Guardar y enviar"). | RF10 | M | Claude |
+| **D-17** | P1 | *Propuesto, espera DEC-08.* **Gastos reales por obra.** Hoy el "ejecutado" de RF13 es presupuesto por avance, una estimación (desvío 3). Falta registrar lo gastado: precio de los materiales, horas, combustible y otros gastos, cada uno *provisional* hasta la factura y *confirmado* después, y que el análisis compare contra eso. Pide tablas nuevas (*migración*) y reglas de costos acordadas con administración. | RF13, RF29 | L | Claude |
+| **D-18** | P1 | *Propuesto, espera DEC-08.* **Pedidos de material desde la obra**, con estado (pedido, comprado, recibido), quién y cuándo. Reemplaza el pedido por WhatsApp como registro. *Migración.* | RF30 | M | Claude + Codex |
+| **D-19** | P2 | *Propuesto, espera DEC-08 y D-18.* **Cotizaciones de proveedores cargadas a mano** y comparadas por pedido: material, unidad, precio, fecha y vigencia. La captura automática de precios sigue fuera de alcance. *Migración.* | RF31 | M | Claude + Codex |
+| **D-20** | P2 | *Propuesto, espera DEC-08.* **Horas de entrada y salida** del personal y de los maquinistas, aprobadas por el encargado. Alimenta D-17. *Migración.* | RF32 | M | Claude + Codex |
+| **D-21** | P2 | *Propuesto, espera DEC-08.* **Pendientes con vencimiento y aviso** por correo, como D-02. *Migración.* | RF33 | S | Codex |
 | **D-10** | — | **Consulta de lotes a la municipalidad.** Aparece en el diagrama de contexto del relevamiento, sin requerimiento asociado. *Confirmar con Triwe si se necesita.* | — | — | Grupo |
 
 ---
@@ -178,6 +184,10 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 11. **D-07:** SCGO usable desde el celular.
 12. **C-02:** el contrato OpenAPI, que corta de raíz el problema del simulador duplicado.
 
+Si Triwe acepta los RF propuestos (**DEC-08**), van en este orden: **D-18**
+(pedidos), **D-17** (gastos reales, que vuelve a cumplido RF13), **D-19**
+(cotizaciones, que necesita los pedidos), **D-20** y **D-21**.
+
 ### Ola 4 — Entrega
 
 13. **DEC-02 y DEC-05.**
@@ -227,3 +237,4 @@ del arreglo, CI en verde, el simulador al día y el número de PR anotado acá.
 | 2026-10-18 | D-15 hecho (PR #63): el alta de obra y Materiales siguen los textos del CU1 y el CU22 (DEF-01, 02, 03 y 06 del informe de testing). |
 | 2026-10-21 | D-16 en curso (PR #64, CI en verde): espera que vuelva la base de producción para mergearse. |
 | 2026-10-21 | D-11 hecho (PR #68): una falla de maquinaria se marca resuelta o se reabre sin borrarla; RF27 pasa a cumplido. |
+| 2026-10-21 | Requerimientos contrastados con los documentos del relevamiento: RF13 pasa a parcial ("ejecutado" es una estimación), y se proponen RF29 a RF33. Agregados DEC-08 y D-17 a D-21, todos a la espera de que Triwe los acepte. |
