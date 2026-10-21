@@ -75,10 +75,10 @@ día de dependencias.
 | #68 | D-11: una falla de maquinaria se marca resuelta o se reabre sin borrarla; RF27 cumplido |
 | #70 | Requerimientos contrastados con el relevamiento: RF13 pasa a parcial, RF29 a RF33 propuestos, DEC-08 y D-17 a D-21 |
 | #71 | Este archivo, con el #68 y el #70 |
-| #72 | C-13: una fecha imposible da 422 y no 500, con `Sgso\Reglas\Fecha::esValida` en las 14 validaciones de 11 controladores. La fecha de inicio de la obra ahora se valida, y Documento e ItemExcedente ya no cambian en silencio una fecha mala por la de hoy. 14 pruebas de integración nuevas (821 pruebas en CI, sin salteadas) |
+| #72 | C-13: una fecha imposible da 422 y no 500, con una sola regla, `Sgso\Reglas\Fecha::esValida`, en los 11 controladores que reciben fechas. La fecha de inicio de la obra ahora se valida, y Documento e ItemExcedente ya no cambian en silencio una fecha mala por la de hoy. 14 pruebas de integración nuevas (821 pruebas en CI, sin salteadas) |
 | #73 | A-18 (P0): el aviso de php.net del 2026-10-21 trae dos RCE críticas (GHSA-w8hw-w9fx-j79w y GHSA-6wmf-4rv5-p3rp), corregidas en 8.3.36; el peor caso es Apache con mod_php, que es lo que usa `back/Dockerfile`. El `Dockerfile` corta el build si PHP no tiene el parche (mínimo por rama: 8.2.35, 8.3.36, 8.4.27, 8.5.12) y apaga `session.upload_progress`. Ya desplegado en Render |
 | #64 | D-16 (DEF-04): la lista de consumos se guarda y se envía junta. Con él quedan atendidos en `main` los seis defectos del informe del Grupo 9 |
-| #74 | D-22: en Usuarios, los dados de baja van a una sección plegable propia con "Reactivar", y dar de baja pide confirmación. No se borra de verdad: `reporte.id_usuario` es FK sin `ON DELETE` (RESTRICT) y el `DELETE` falla con 1451 |
+| #74 | D-22: en Usuarios, los dados de baja van a una sección plegable propia con "Reactivar", y dar de baja pide confirmación. No se borra de verdad: `reporte.id_usuario` (`fk_reporte_usuario`, la única FK hacia `usuario`) no tiene `ON DELETE` (RESTRICT), y el `DELETE` falla con 1451 para cualquier autor de un reporte |
 
 **No queda ningún P0 de seguridad abierto.** De seguridad quedan A-09, A-11, A-12
 y A-15, ninguno bloqueante.
@@ -91,7 +91,7 @@ y A-15, ninguno bloqueante.
 
 La base de Aiven volvió y el host no cambió: `/api/health` responde
 `{"status":"ok","db":"ok"}`. El PHP parcheado del #73 ya corre en producción
-(deploy automático de `e2bb7b2`, Live; no hizo falta limpiar caché).
+(deploy automático de `e2bb7b2`, Live, sin limpiar caché). El freno corre en cada build: si alguno falla ahí, se redespliega con "Clear build cache & deploy".
 
 **Brevo sigue caído, y solo alguien del equipo lo arregla.** Los logs de Render
 dicen `Brevo contestó "HTTP/1.1 401 Unauthorized": unauthorized API Key is not
@@ -102,9 +102,11 @@ verificar. Afecta la recuperación de contraseña y los avisos de incidencias
 (D-02).
 
 **Mientras Brevo no ande, para entrar a producción sin correo:** `php sql/seed.php`
-desde `back/`, con `SEED_ADMIN_EMAIL` y `SEED_ADMIN_PASSWORD` en el entorno, crea o
-actualiza un admin (`ON DUPLICATE KEY`: con un email que ya existe, le cambia la
-clave y lo reactiva). **Pega contra producción**, porque `back/.env` apunta ahí
+desde `back/`, con `SEED_ADMIN_PASSWORD` en el entorno (y `SEED_ADMIN_EMAIL`, que es opcional:
+por defecto `admin@sgso.com`), crea un admin. Con un email que ya existe
+(`ON DUPLICATE KEY UPDATE contrasena, activo`) le cambia la clave y lo reactiva,
+pero **no le cambia el rol**: para tener un admin hay que usar un email nuevo o
+uno que ya sea admin. **Pega contra producción**, porque `back/.env` apunta ahí
 (trampa 9). Las cuentas de prueba se dan de baja desde Usuarios al terminar.
 
 **Pendiente chico: el renombre a SCGO del correo de recuperación.** El asunto
@@ -117,7 +119,7 @@ repositorio**.
 
 ### PR abiertos
 
-- **#69 (`claude/practicas-cmmi`):** marco de proceso CMMI.
+- **#69 (`claude/practicas-cmmi`), borrador:** marco de proceso CMMI.
 - **#23 (B-03, migraciones versionadas).** Quedó atrás de `main` y hay que
   rebasearlo (trampas 8 y 19). **No se mergea hasta que alguien del equipo corra
   las migraciones en Aiven**: el PR saca el `CREATE TABLE` que creaba
@@ -129,8 +131,10 @@ repositorio**.
   ```
 
   Con las credenciales de la base, desde la máquina de alguien del equipo.
-- **Dependabot:** #51, #54, #55, #58 y #60. Hoy no se volvió a mirar su CI.
-  Antes de mergear cualquiera, la trampa 20.
+- **Dependabot:** #54 (`react-is` 19), #58 (menores del front) y #60
+  (`lucide-react` 1.57) están en verde; #51 (`phpstan` 2.3.1) falla en Backend
+  (PHPStan + PHPUnit) y #55 (`react-router` 8) en Playwright (`gh pr checks`,
+  2026-10-21). Antes de mergear cualquiera, la trampa 20.
 
 ### El informe de testing del Grupo 9
 
@@ -314,10 +318,11 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
     `testing`, así que alguna diferencia puede ser legítima.
 19. **La tabla de ramas abiertas choca en cada rebase.** Todas las ramas agregan
     su fila en el mismo lugar de `CONTRIBUTING.md`, así que después de cada
-    merge los demás PR tienen conflicto ahí. Se resuelve dejando **solo la fila
-    de la propia rama**, y la del PR recién mergeado se pasa al historial en un
-    commit aparte. El registro de `PLAN-PRODUCTO.md` choca igual: se dejan las
-    dos entradas, por fecha.
+    merge los demás PR tienen conflicto ahí. En `CONTRIBUTING.md`, la tabla de
+    ramas abiertas queda **solo con la fila de la propia rama**; la rama ya
+    mergeada pasa al historial en un PR posterior. El registro de
+    `PLAN-PRODUCTO.md` choca igual: ahí se dejan **las dos entradas**, en orden
+    de merge.
 20. **Un PR de Dependabot en verde puede ser vacío.** Si nadie importa el
     paquete, el CI pasa aunque la versión nueva rompa todo: pasó con el #19, el
     #26 y el #30. Antes de mergear uno, `git grep` del paquete en `FRONT/src`.
@@ -389,7 +394,8 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
     con los números de una sola rama, porque cada PR lo cambió en una línea
     distinta de la que choca. Después de cada rebase que toque estados de RF, se
     vuelve a contar la tabla. Al mergear, el repositorio **no permite merge
-    automático**: se mergea a mano con el CI en verde.
+    automático** (`gh api repos/AcostaAlex10/SCGO -q .allow_auto_merge` da
+    `false`): "mergear cuando el CI esté en verde" lo hace alguien a mano.
 35. **En PowerShell 5.1, `gh pr create --body "..."` se rompe** si el texto
     tiene comillas dobles: `gh` lo recibe partido en varios argumentos ("unknown
     argument"). Se escribe el cuerpo en un archivo y se pasa con `--body-file`.
@@ -398,15 +404,16 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
     (`EnterWorktree`) antes de delegar.
 37. **En un worktree no hay `back/vendor` ni `FRONT/node_modules`.** Se copian del
     checkout principal: Composer no descarga (trampa 11) y `npm install` borra
-    Playwright (trampa 12).
+    Playwright (trampa 12). Un `vendor/` copiado necesita `composer dump-autoload`
+    (trampa 26).
 38. **Dos agentes que comparten `C:/tmp/scgo` y el `http-server` del puerto 8123 se
     pisan las corridas de Playwright.** Uno por vez, o carpetas y puertos
     distintos.
-39. **GitHub no tiene auto-merge habilitado en este repositorio.** "Mergear cuando
-    el CI esté en verde" lo hace alguien a mano.
-40. **Un merge de `main` con conflictos en `CONTRIBUTING.md` y en el registro de
-    `PLAN-PRODUCTO.md` se resuelve dejando las dos filas**, con el registro en
-    orden de merge.
+39. **Si Render loguea `getaddrinfo for ...aivencloud.com failed: Name or service
+    not known`, la base no está.** El servicio gratuito de Aiven se apagó: se
+    enciende desde la consola de Aiven. Si al volver cambió el host, se actualiza
+    `DB_HOST` en Render → Environment. Después, `/api/health` tiene que dar
+    `{"status":"ok","db":"ok"}`.
 
 ### Si la sesión corre en la nube y no en tu máquina
 
@@ -421,8 +428,8 @@ Además, `humo.mjs` da **24/28 en la nube**: las cuatro que fallan son las de
 cargar Google Fonts detrás del proxy del entorno. **No es una regresión.** En el
 CI de GitHub da 28/28.
 
-**Las trampas 9, 10, 11, 13, 17, 21, 33 y 35 son de la máquina local** (Windows,
-antivirus, `back/.env`): en la nube no aplican. La 12, la 14 y la 31 sí, y de la 22 a
+**Las trampas 9, 10, 11, 13, 17, 21, 33, 35, 36, 37 y 38 son de la máquina local** (Windows,
+antivirus, `back/.env`): en la nube no aplican. La 12, la 14, la 19, la 31, la 34 y la 39 valen para las dos, y de la 22 a
 la 28 son propias de la nube. En la nube tampoco hay `back/.env`, así que
 no hay forma de pegarle a producción por accidente, y así tiene que seguir.
 
