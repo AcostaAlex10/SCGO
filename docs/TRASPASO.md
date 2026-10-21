@@ -71,6 +71,7 @@ día de dependencias.
 | #63 | D-15 (DEF-01, 02, 03 y 06): textos del CU1 y el CU22, "Obligatorio" por campo, confirmar al cancelar el alta, "Cancelar" en Materiales |
 | #65 | **En `testing`:** los seis arreglos del informe, adaptados al código de la demo, y `GUIA-TESTERS.md` al día |
 | #66 | Este archivo, para seguir en una sesión local |
+| #67 | Este archivo, después de armar el entorno local; Selenium del Grupo 9 en Edge, 9/10 |
 
 **No queda ningún P0 de seguridad abierto.** De seguridad quedan A-09, A-11, A-12
 y A-15, ninguno bloqueante.
@@ -192,8 +193,8 @@ abierto, Edge la rechaza y cierra el cartel, y el `dismiss()` siguiente da
 **Lo siguiente del plan.** Los puntos 8 y 9 de la Ola 3 están hechos. Sigue el
 10: **DEC-03** (documentos como archivos) es una decisión del equipo, y de ella
 depende D-01; **D-05** (registro de cambios) pide una tabla nueva, o sea una
-migración, así que se pregunta antes. Sin decisiones pendientes quedan **D-11**
-(poder marcar una falla como resuelta, S), **C-13** (una fecha imposible da 500
+migración, así que se pregunta antes. **D-11** está en el PR #68. Sin decisiones
+pendientes quedan **C-13** (una fecha imposible da 500
 en vez de 422) y **A-15** (RF20 por lista negra: cada importe nuevo hay que
 acordarse de quitarlo, como pasó con `certificado` en el #48).
 
