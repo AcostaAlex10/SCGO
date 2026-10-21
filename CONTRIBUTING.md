@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/textos-casos-de-uso` | `main` @ `8930a04` (2026-10-18) | D-15: textos, "Obligatorio" por campo y cancelaciones del CU1 y el CU22 (DEF-01, 02, 03 y 06 del informe de testing) | #63 |
+| `claude/traspaso-local` | `main` @ `7a5088c` (2026-10-21) | `TRASPASO.md` al día para seguir en una sesión local: los PR #50 a #65, la base y el correo caídos, y cómo armar el entorno | #66 |
 
 ### Reglas
 
@@ -124,6 +124,8 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/diagnostico-correo` | A-17: un correo que no sale deja el motivo en el log de Render, y `/auth/olvide` dice qué hizo con cada pedido | PR #50 |
 | `claude/vite-8` | Vite 8 con `@vitejs/plugin-react` 5.2, que lo admite; reemplazó al PR #59 de Dependabot | PR #61 |
 | `claude/consumo-sin-stock` | D-14: un consumo que supera lo que queda asignado se rechaza (DEF-05 del informe de testing del Grupo 9) | PR #62 |
+| `claude/textos-casos-de-uso` | D-15: textos, "Obligatorio" por campo y cancelaciones del CU1 y el CU22 (DEF-01, 02, 03 y 06 del informe de testing) | PR #63 |
+| `claude/testing-arreglos-g9` | **Contra `testing`.** Los seis arreglos del informe del Grupo 9 en la demo, y `GUIA-TESTERS.md` al día | PR #65, en `testing` |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
