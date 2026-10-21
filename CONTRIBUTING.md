@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/traspaso-local` | `main` @ `7a5088c` (2026-10-21) | `TRASPASO.md` al día para seguir en una sesión local: los PR #50 a #65, la base y el correo caídos, y cómo armar el entorno | #66 |
+| `claude/traspaso-entorno-local` | `main` @ `229de52` (2026-10-21) | Docs al día después de armar el entorno local: base de `TRASPASO.md`, D-16 con su PR, dos trampas nuevas y el resultado de Selenium del Grupo 9 en Edge | #67 |
 
 ### Reglas
 
@@ -126,6 +126,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/consumo-sin-stock` | D-14: un consumo que supera lo que queda asignado se rechaza (DEF-05 del informe de testing del Grupo 9) | PR #62 |
 | `claude/textos-casos-de-uso` | D-15: textos, "Obligatorio" por campo y cancelaciones del CU1 y el CU22 (DEF-01, 02, 03 y 06 del informe de testing) | PR #63 |
 | `claude/testing-arreglos-g9` | **Contra `testing`.** Los seis arreglos del informe del Grupo 9 en la demo, y `GUIA-TESTERS.md` al día | PR #65, en `testing` |
+| `claude/traspaso-local` | `TRASPASO.md` al día para seguir en una sesión local: los PR #50 a #65, la base y el correo caídos, y cómo armar el entorno | PR #66 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir

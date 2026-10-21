@@ -4,9 +4,9 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-10-21, al cerrar la sesión en la nube que hizo A-17, Vite 8
-  y los arreglos del informe de testing del Grupo 9 (D-14, D-15 y D-16)
-- **Base:** `main` @ `7a5088c`, CI en verde. **Producción está caída por la base**
+- **Actualizado:** 2026-10-21, después de armar el entorno en una máquina local y
+  correr ahí las pruebas de Selenium del Grupo 9 en Edge
+- **Base:** `main` @ `229de52`, CI en verde. **Producción está caída por la base**
   (sección 3): el deploy del #62 quedó "live", pero ningún pedido que use la base
   responde
 - **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23).
@@ -70,6 +70,7 @@ día de dependencias.
 | #62 | D-14 (DEF-05): un consumo que supera lo que queda asignado se rechaza con 422, con `Sgso\Reglas\StockMaterial` |
 | #63 | D-15 (DEF-01, 02, 03 y 06): textos del CU1 y el CU22, "Obligatorio" por campo, confirmar al cancelar el alta, "Cancelar" en Materiales |
 | #65 | **En `testing`:** los seis arreglos del informe, adaptados al código de la demo, y `GUIA-TESTERS.md` al día |
+| #66 | Este archivo, para seguir en una sesión local |
 
 **No queda ningún P0 de seguridad abierto.** De seguridad quedan A-09, A-11, A-12
 y A-15, ninguno bloqueante.
@@ -137,8 +138,14 @@ DEF-04, que es el #64, y **los seis están en `testing`** desde el #65:
 En `testing` no hay CI ni `tsconfig`. Se verificó con un script de Playwright
 que repite lo que verifican `tests/test_selenium_3.py` y
 `tests/test_materiales.py` del grupo: 14/14 con los arreglos, y falla sin
-ellos. **Las pruebas de Selenium del grupo, en Edge, no se corrieron**: es lo
-primero que conviene hacer en una máquina con Edge.
+ellos.
+
+**Las pruebas de Selenium del grupo se corrieron en Edge el 2026-10-21**, contra
+la demo publicada: 9/10. La que falla, `test_cancelar_solicita_confirmacion`, es
+un error de la prueba y no de la demo: el cartel aparece con el texto pedido y
+esa comprobación pasa, pero después la prueba saca una captura con el cartel
+abierto, Edge la rechaza y cierra el cartel, y el `dismiss()` siguiente da
+`NoAlertPresentException`. Conviene avisarle al grupo.
 
 **Para verificar en producción, cuando vuelvan la base y el correo:**
 
@@ -329,6 +336,13 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
     push a `testing`. Después de cada merge ahí, mirar Actions: si en un par de
     minutos no hay run del commit nuevo, se corre el workflow a mano **sobre
     `testing`**, nunca sobre `main` (trampa 15).
+32. **Una sesión en la nube no llega a la máquina local**: ni su PHP, ni
+    `back/.env`, ni Edge. Para trabajo local, abrir la sesión en la máquina
+    (Claude Desktop o `claude remote-control`).
+33. **El repositorio del Grupo 9 no se clona entero en una carpeta de ruta
+    larga.** Tiene capturas con nombres muy largos y Windows corta en 260
+    caracteres: `git clone` sale con 128 y deja el checkout a medias. Se clona
+    con `git -c core.longpaths=true clone ...`.
 
 ### Si la sesión corre en la nube y no en tu máquina
 
@@ -343,7 +357,7 @@ Además, `humo.mjs` da **24/28 en la nube**: las cuatro que fallan son las de
 cargar Google Fonts detrás del proxy del entorno. **No es una regresión.** En el
 CI de GitHub da 28/28.
 
-**Las trampas 9, 10, 11, 13, 17 y 21 son de la máquina local** (Windows,
+**Las trampas 9, 10, 11, 13, 17, 21 y 33 son de la máquina local** (Windows,
 antivirus, `back/.env`): en la nube no aplican. La 12, la 14 y la 31 sí, y de la 22 a
 la 28 son propias de la nube. En la nube tampoco hay `back/.env`, así que
 no hay forma de pegarle a producción por accidente, y así tiene que seguir.
