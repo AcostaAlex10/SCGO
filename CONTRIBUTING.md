@@ -33,6 +33,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 | `claude/traspaso-requerimientos` | `main` @ `fe06669` (2026-10-21) | `TRASPASO.md` al día con el #68 y el #70: D-11 hecho, los requerimientos propuestos, DEC-08 y dos trampas nuevas | #71 |
 | `claude/fecha-imposible` | `main` @ `d04d952` (2026-10-21) | C-13: una fecha imposible da 422 en vez de 500, con una sola validación de fecha para toda la API | #72 |
 | `claude/php-8.3.36` | `main` @ `d04d952` (2026-10-21) | A-18: la imagen de la API no se construye con un PHP anterior a 8.3.36 (dos RCE críticas), y `session.upload_progress` apagado | #73 |
+| `claude/usuarios-dados-de-baja` | `main` @ `f61b21c` (2026-10-21) | D-22: los usuarios dados de baja pasan a su propia sección, donde se reactivan; dar de baja pide confirmación. Sin borrado real | — |
 
 ### Reglas
 
