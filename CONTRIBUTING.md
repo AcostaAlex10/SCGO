@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/traspaso-local` | `main` @ `7a5088c` (2026-10-21) | `TRASPASO.md` al día para seguir en una sesión local: los PR #50 a #65, la base y el correo caídos, y cómo armar el entorno | #NN |
+| `claude/traspaso-local` | `main` @ `7a5088c` (2026-10-21) | `TRASPASO.md` al día para seguir en una sesión local: los PR #50 a #65, la base y el correo caídos, y cómo armar el entorno | #66 |
 
 ### Reglas
 
