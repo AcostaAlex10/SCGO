@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sgso;
 
 use PDO;
+use Sgso\Reglas\Fecha;
 
 /**
  * Items o trabajos excedentes no contemplados en la planificacion inicial
@@ -33,9 +34,11 @@ final class ItemExcedenteController
 
         $descripcion = trim((string) ($datos['descripcion'] ?? ''));
         $fecha = (string) ($datos['fecha'] ?? '');
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) { $fecha = date('Y-m-d'); }
 
         $errores = [];
+        // Ausente o vacía: hoy. Presente e inválida: error (antes se reemplazaba en silencio).
+        if ($fecha === '') { $fecha = date('Y-m-d'); }
+        elseif (!Fecha::esValida($fecha)) { $errores['fecha'] = 'Formato esperado: YYYY-MM-DD'; }
         if ($descripcion === '') { $errores['descripcion'] = 'Obligatorio'; }
         if (isset($datos['cantidad']) && $datos['cantidad'] !== '' && !is_numeric($datos['cantidad'])) {
             $errores['cantidad'] = 'Debe ser un número';

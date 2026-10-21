@@ -7,6 +7,7 @@ namespace Sgso;
 use PDO;
 use Sgso\Http\Paginacion;
 use Sgso\Reglas\CicloDeVida;
+use Sgso\Reglas\Fecha;
 
 /**
  * Controlador de Avances fisicos. Cada avance se carga contra una
@@ -279,7 +280,7 @@ final class AvanceController
             }
         }
         if (isset($datos['fecha'])) {
-            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $datos['fecha'])) {
+            if (!Fecha::esValida((string) $datos['fecha'])) {
                 $errores['fecha'] = 'Formato esperado: YYYY-MM-DD';
             }
         } elseif (!$parcial) {

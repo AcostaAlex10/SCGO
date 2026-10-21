@@ -15,6 +15,10 @@ cambia, se cambia acá primero.
 - **Estado:** contrastado contra el código el 2026-09-16. Lo que se afirma como
   cumplido está señalado en el código; lo que no se pudo verificar dice
   "sin verificar".
+- **Revisión del relevamiento:** el 2026-10-21 se contrastó contra todos los
+  documentos del relevamiento (TP1, plan de entrevistas, TP2 y el estudio de
+  viabilidad). De ahí salen el desvío 3, la sección "Lo que el relevamiento no
+  cubrió" y los RF propuestos RF29 a RF33.
 
 ---
 
@@ -68,6 +72,21 @@ maquinaria, y control de acceso por roles.
 > municipalidad. No tiene ningún requerimiento funcional asociado y no está
 > implementada (plan: D-10).
 
+### Lo que el relevamiento no cubrió
+
+- **Se entrevistó a una sola área.** El plan de entrevistas preveía tres:
+  dirección técnica, administración y un supervisor de campo. Solo se hizo la
+  primera; las otras dos quedaron sin fecha. Por eso no hay ningún requerimiento
+  de administración, aunque el TP2 le asigna "gestionar pagos, costos y
+  facturación".
+- **La compra con comparación de proveedores se perdió sin decisión.** En el TP1
+  era una de las dos funciones principales y fue lo primero que pidió la
+  dirección técnica. El TP2 excluyó solo el envío automático por WhatsApp, pero no
+  dejó ningún RF de pedidos, proveedores ni cotizaciones, mientras el estudio de
+  viabilidad dice que la comparación "se conserva". Se retoma en RF30 y RF31.
+- **Los RNF figuran como validados, pero no lo están.** El estudio de viabilidad
+  los llama "metas por comprobar". La sección 6 dice cuáles se cumplen hoy.
+
 ---
 
 ## 4. Historias de usuario
@@ -109,7 +128,8 @@ RF26 no tiene historia propia.
 ## 5. Requerimientos funcionales
 
 **Estado:** *Cumplido* — implementado y en uso · *Parcial* — implementado con una
-diferencia respecto del texto · *Pendiente* — no implementado.
+diferencia respecto del texto · *Pendiente* — no implementado · *Propuesto* —
+surgió del relevamiento pero todavía no lo aceptó Triwe.
 
 | RF | El sistema debe… | Prioridad | Estado | Dónde |
 |---|---|---|---|---|
@@ -125,7 +145,7 @@ diferencia respecto del texto · *Pendiente* — no implementado.
 | RF10 | permitir asignar materiales a una obra y registrar su consumo | Crítica | Cumplido | `MaterialObraController`; un consumo no puede superar lo que queda asignado (`Sgso\Reglas\StockMaterial`), y los consumos del día se envían juntos como lista |
 | RF11 | generar alertas cuando el avance real sea inferior al planificado | Importante | Cumplido | `AnalisisController` |
 | RF12 | generar alertas cuando se excedan las cantidades presupuestadas o asignadas | Importante | Cumplido | `AnalisisController`, `MaterialObraController` |
-| RF13 | calcular la diferencia entre el presupuesto estimado y los gastos ejecutados | Importante | Cumplido | `AnalisisController` |
+| RF13 | calcular la diferencia entre el presupuesto estimado y los gastos ejecutados | Importante | **Parcial** | `AnalisisController`; ver desvío 3 |
 | RF14 | generar reportes comparativos entre avance planificado y ejecutado | Importante | Cumplido | `AnalisisController`, `Dashboard` |
 | RF15 | traducir el porcentaje de avance en montos para generar certificaciones | Secundaria | Cumplido | `Sgso\Reglas\Certificacion`: la API devuelve el monto certificado de cada obra, al centavo; `ProyectoDetallePage` lo muestra |
 | RF16 | permitir almacenar y consultar documentación en PDF e imágenes | Importante | **Parcial** | ver desvío 1 |
@@ -139,10 +159,29 @@ diferencia respecto del texto · *Pendiente* — no implementado.
 | RF24 | comparar el consumo con el rendimiento esperado y alertar ante desvíos | Importante | **Parcial** | `AlertasPage`, `MaquinariaPage`; ver desvío 2 |
 | RF25 | permitir registrar períodos de inactividad con su motivo | Importante | Cumplido | `InactividadController`, `Sgso\Reglas\CicloDeVida` |
 | RF26 | clasificar incidencias por gravedad para activar protocolos de notificación | Secundaria | Cumplido | `IncidenciaController`, `Sgso\Reglas\ProtocoloIncidencias`: alta avisa por correo a Gerentes y Personal Administrativo; media, al Personal Administrativo; baja no avisa |
-| RF27 | mantener el historial de fallas y reemplazos de cada máquina | Importante | **Parcial** | ver desvío 3 |
+| RF27 | mantener el historial de fallas y reemplazos de cada máquina | Importante | Cumplido | `MaquinariaController`: una falla se marca resuelta o se reabre sin borrarla |
 | RF28 | generar comparativas de rendimiento entre operarios | Secundaria | Cumplido | `MaquinariaController::rendimientoOperarios()` |
 
 **Resumen:** 24 cumplidos, 3 parciales y 1 pendiente.
+
+### Propuestos a partir del relevamiento
+
+Salen de necesidades que aparecen en el TP1 y en el estudio de viabilidad pero
+que el TP2 no convirtió en requerimientos. **Ninguno está aceptado:** antes hay
+que validarlos con Triwe y hacer la entrevista a administración que quedó
+pendiente (plan: DEC-08). Todos piden tablas nuevas, o sea migraciones.
+
+| RF | El sistema debería… | Prioridad sugerida | Estado | Origen | Plan |
+|---|---|---|---|---|---|
+| RF29 | registrar los gastos reales de cada obra (materiales con precio, horas, combustible y otros), como *provisionales* hasta que llega la factura y *confirmados* después | Importante | Propuesto | TP1: el "centro de costos de obras" y la limitación del sistema contable, que no deja registrar sin factura. Lo necesita RF13 (desvío 3) | D-17 |
+| RF30 | registrar los pedidos de material desde la obra, con su estado (pedido, comprado, recibido), quién lo hizo y cuándo | Importante | Propuesto | TP1: hoy se pide por WhatsApp "para que quede registrado", y una compra fuera de protocolo puede hacer perder la retención impositiva | D-18 |
+| RF31 | permitir cargar cotizaciones de proveedores (material, unidad, precio, fecha y vigencia) y compararlas para un pedido | Importante | Propuesto | TP1: la primera necesidad que nombró la dirección técnica. La carga manual es la alternativa que propone el estudio de viabilidad a la captura automática, que sigue fuera de alcance | D-19 |
+| RF32 | registrar las horas de entrada y salida del personal y de los maquinistas, con la aprobación del encargado | Importante | Propuesto | TP1: horas cargadas de más que se pagaron igual | D-20 |
+| RF33 | permitir anotar pendientes con fecha de vencimiento y avisar cuando vencen | Secundaria | Propuesto | TP1: el error más común que mencionó la dirección técnica es olvidarse de lo que quedó a medias | D-21 |
+
+Lo que la dirección técnica llamó **esencial**, guardar en la nube y desde el
+celular los archivos que llegan por WhatsApp, ya está cubierto por RF07 y RF16:
+falta pasar de enlaces a archivos (desvío 1, plan: DEC-03 y D-01).
 
 ### Qué tiene pruebas automáticas hoy
 
@@ -213,10 +252,13 @@ pueden demostrar.
    compararlo con el rendimiento esperado, y ese dato no se guarda: una máquina que
    siempre consume de más nunca alerta, porque no se aparta de su propio promedio,
    y un registro anómalo alerta para siempre (plan: D-13).
-3. **RF27 — una falla no se puede marcar como resuelta.** Se cargan y se listan,
-   con su componente y si hubo reemplazo, pero no existe un `PUT` ni la pantalla
-   muestra el campo: el contador de fallas abiertas solo baja borrando la falla,
-   que es justamente el historial que RF27 pide conservar (plan: D-11).
+3. **RF13 — "ejecutado" es una estimación, no el gasto real.** RF13 pide la
+   diferencia entre el presupuesto y los gastos reales ejecutados, pero el sistema
+   no registra ningún gasto: los materiales no tienen precio y la asistencia no
+   guarda horas. `AnalisisController` calcula "ejecutado" como presupuesto por
+   porcentaje de avance, que es el monto de la certificación (RF15). El estudio de
+   viabilidad ya advertía que esa cuenta estima el valor del avance y no mide lo
+   gastado. Se resuelve con RF29 (plan: D-17).
 
 ---
 

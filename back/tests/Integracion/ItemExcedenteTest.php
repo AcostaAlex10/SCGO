@@ -72,6 +72,32 @@ final class ItemExcedenteTest extends CasoConBase
         self::assertSame(['2026-03-03', '2026-03-02', '2026-03-01'], array_column($this->listado($idObra), 'fecha'));
     }
 
+    /** C-13: una fecha que no existe daba 500 en la base. Ahora 422 y no se guarda nada. */
+    public function testUnaFechaImposibleOMalEscritaDa422YNoGuardaNada(): void
+    {
+        $idProyecto = $this->crearProyecto();
+
+        foreach (['2026-02-31', '03/02/2026'] as $fecha) {
+            $respuesta = $this->registrar($idProyecto, ['descripcion' => 'Muro extra', 'fecha' => $fecha]);
+
+            self::assertSame(422, $respuesta['codigo'], $fecha);
+            self::assertSame('Formato esperado: YYYY-MM-DD', $respuesta['cuerpo']['errors']['fecha'] ?? null, $fecha);
+        }
+        self::assertSame([], $this->listado($idProyecto));
+    }
+
+    /** Sin fecha se toma la de hoy: es lo que ya hacia, y la regla nueva no lo cambia. */
+    public function testSinFechaSeGuardaConLaDeHoy(): void
+    {
+        $idProyecto = $this->crearProyecto();
+
+        $respuesta = $this->registrar($idProyecto, ['descripcion' => 'Muro extra']);
+
+        self::assertSame(201, $respuesta['codigo']);
+        self::assertSame(date('Y-m-d'), $respuesta['cuerpo']['fecha']);
+        self::assertSame(date('Y-m-d'), $this->listado($idProyecto)[0]['fecha']);
+    }
+
     public function testUnaObraInexistenteDa404YEliminarDosVecesDa404(): void
     {
         $idProyecto = $this->crearProyecto();

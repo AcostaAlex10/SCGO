@@ -79,6 +79,21 @@ final class PlanificacionTest extends CasoConBase
         self::assertSame(404, $this->capturar(fn () => $this->planes()->obtenerPorProyecto((string) $idProyecto))['codigo']);
     }
 
+    /** C-13: una fecha de carga imposible da 422 con el texto de formato; ausente en el alta, 'Obligatorio'. */
+    public function testUnaFechaDeCargaImposibleDa422YUnaAusenteEsObligatoria(): void
+    {
+        $idProyecto = $this->crearProyecto();
+
+        $imposible = $this->capturar(fn () => $this->planes()->crear((string) $idProyecto, ['fecha_carga' => '2026-02-31']));
+        $ausente = $this->capturar(fn () => $this->planes()->crear((string) $idProyecto, ['avance_esperado_total' => 10]));
+
+        self::assertSame(422, $imposible['codigo']);
+        self::assertSame('Formato esperado: YYYY-MM-DD', $imposible['cuerpo']['errors']['fecha_carga'] ?? null);
+        self::assertSame(422, $ausente['codigo']);
+        self::assertSame('Obligatorio', $ausente['cuerpo']['errors']['fecha_carga'] ?? null);
+        self::assertSame(404, $this->capturar(fn () => $this->planes()->obtenerPorProyecto((string) $idProyecto))['codigo']);
+    }
+
     public function testActualizarSoloElAvanceEsperadoConservaLaFecha(): void
     {
         $idProyecto = $this->crearProyecto();

@@ -158,6 +158,21 @@ final class AvanceTest extends CasoConBase
         self::assertSame(0, $this->cantidadDeAvances($idPlan));
     }
 
+    /** C-13: un avance con fecha imposible daba 500; ahora 422 y la obra no se mueve. */
+    public function testUnaFechaImposibleDa422YNoGuardaElAvance(): void
+    {
+        $idProyecto = $this->crearProyecto('planificacion');
+        $idPlan = $this->crearPlanificacion($idProyecto);
+
+        $respuesta = $this->crear($idPlan, 25, '2026-02-31');
+
+        self::assertSame(422, $respuesta['codigo']);
+        self::assertSame('Formato esperado: YYYY-MM-DD', $respuesta['cuerpo']['errors']['fecha'] ?? null);
+        self::assertSame(0, $this->cantidadDeAvances($idPlan));
+        self::assertNumero(0.0, $this->avanceDeLaObra($idProyecto));
+        self::assertSame('planificacion', $this->estadoDeLaObra($idProyecto));
+    }
+
     public function testFaltanCamposObligatorios(): void
     {
         $idPlan = $this->planDeUnaObra();

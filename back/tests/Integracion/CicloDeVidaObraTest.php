@@ -169,6 +169,135 @@ final class CicloDeVidaObraTest extends CasoConBase
         self::assertSame('en_ejecucion', $this->estadoDeLaObra($idProyecto));
     }
 
+    // ----------------------------------------------------------------
+    //  Fechas imposibles (C-13): 422 con el texto de formato, no 500
+    // ----------------------------------------------------------------
+
+    public function testUnPeriodoConUnFinImposibleDaElErrorDeFormatoYNoElDeOrden(): void
+    {
+        $idProyecto = $this->crearProyecto();
+
+        // Como texto, '2026-02-31' es menor que el inicio: sin el guardia se
+        // veria "anterior al inicio" en lugar del error de formato.
+        $respuesta = $this->capturar(fn () => $this->inactividad()->crear((string) $idProyecto, [
+            'fecha_inicio' => '2026-03-15',
+            'fecha_fin' => '2026-02-31',
+            'motivo' => 'Lluvia',
+        ]));
+
+        self::assertSame(422, $respuesta['codigo']);
+        self::assertSame('Formato esperado: YYYY-MM-DD', $respuesta['cuerpo']['errors']['fecha_fin'] ?? null);
+        self::assertSame(0, $this->periodosDeLaObra($idProyecto));
+        self::assertSame('en_ejecucion', $this->estadoDeLaObra($idProyecto));
+    }
+
+    public function testUnPeriodoConUnInicioImposibleDa422(): void
+    {
+        $idProyecto = $this->crearProyecto();
+
+        $respuesta = $this->capturar(fn () => $this->inactividad()->crear((string) $idProyecto, [
+            'fecha_inicio' => '2026-02-31',
+            'motivo' => 'Lluvia',
+        ]));
+
+        self::assertSame(422, $respuesta['codigo']);
+        self::assertSame('Formato esperado: YYYY-MM-DD', $respuesta['cuerpo']['errors']['fecha_inicio'] ?? null);
+        self::assertSame(0, $this->periodosDeLaObra($idProyecto));
+    }
+
+    public function testUnPeriodoSinFinSeGuardaAbiertoConFinNulo(): void
+    {
+        $idProyecto = $this->crearProyecto();
+
+        $respuesta = $this->capturar(fn () => $this->inactividad()->crear((string) $idProyecto, [
+            'fecha_inicio' => date('Y-m-d'),
+            'fecha_fin' => '',
+            'motivo' => 'Lluvia',
+        ]));
+
+        self::assertSame(201, $respuesta['codigo']);
+        self::assertNull($respuesta['cuerpo']['fecha_fin']);
+        $stmt = $this->base()->prepare('SELECT fecha_fin FROM periodo_inactividad WHERE id_proyecto = ?');
+        $stmt->execute([$idProyecto]);
+        self::assertNull($stmt->fetchColumn());
+    }
+
+    public function testCerrarUnPeriodoConUnaFechaImposibleDa422YLoDejaAbierto(): void
+    {
+        $idProyecto = $this->crearProyecto('pausada');
+        $idPeriodo = $this->crearPeriodoInactividad($idProyecto, '2026-01-10');
+
+        $respuesta = $this->capturar(fn () => $this->inactividad()->cerrar((string) $idPeriodo, ['fecha_fin' => '2026-02-31']));
+
+        self::assertSame(422, $respuesta['codigo']);
+        self::assertSame('Formato esperado: YYYY-MM-DD', $respuesta['cuerpo']['errors']['fecha_fin'] ?? null);
+        $stmt = $this->base()->prepare('SELECT fecha_fin FROM periodo_inactividad WHERE id_periodo = ?');
+        $stmt->execute([$idPeriodo]);
+        self::assertNull($stmt->fetchColumn());
+        self::assertSame('pausada', $this->estadoDeLaObra($idProyecto));
+    }
+
+    public function testRegistrarUnaObraConUnaFechaDeInicioImposibleODeTextoDa422SoloDeFormato(): void
+    {
+        foreach (['2027-02-31', 'abc'] as $fecha) {
+            $respuesta = $this->capturar(fn () => $this->proyectos()->registrar(
+                ['fechaInicio' => $fecha] + $this->datosParaModificar('creada')
+            ));
+
+            self::assertSame(422, $respuesta['codigo'], $fecha);
+            self::assertSame(
+                'Formato esperado: YYYY-MM-DD',
+                $respuesta['cuerpo']['errors']['fechaInicio'] ?? null,
+                "'{$fecha}' no debe mostrar el error de 'anterior a hoy'"
+            );
+        }
+        self::assertSame(0, (int) $this->base()->query('SELECT COUNT(*) FROM proyecto')->fetchColumn());
+    }
+
+    public function testModificarUnaObraConUnaFechaDeInicioImposibleDa422YNoLaCambia(): void
+    {
+        $idProyecto = $this->crearProyecto();
+
+        $respuesta = $this->capturar(fn () => $this->proyectos()->modificar(
+            (string) $idProyecto,
+            ['fechaInicio' => '2027-02-31'] + $this->datosParaModificar('en_ejecucion')
+        ));
+
+        self::assertSame(422, $respuesta['codigo']);
+        self::assertSame('Formato esperado: YYYY-MM-DD', $respuesta['cuerpo']['errors']['fechaInicio'] ?? null);
+        self::assertSame('2026-01-15', $this->fechaDeInicioDeLaObra($idProyecto));
+    }
+
+    /** "Anterior a hoy" vale solo al registrar: al modificar, una fecha pasada valida se acepta. */
+    public function testModificarUnaObraConUnaFechaDeInicioPasadaValidaSeGuarda(): void
+    {
+        $idProyecto = $this->crearProyecto();
+
+        $respuesta = $this->capturar(fn () => $this->proyectos()->modificar(
+            (string) $idProyecto,
+            ['fechaInicio' => '2020-05-10'] + $this->datosParaModificar('en_ejecucion')
+        ));
+
+        self::assertSame(200, $respuesta['codigo']);
+        self::assertSame('2020-05-10', $this->fechaDeInicioDeLaObra($idProyecto));
+    }
+
+    private function periodosDeLaObra(int $idProyecto): int
+    {
+        $stmt = $this->base()->prepare('SELECT COUNT(*) FROM periodo_inactividad WHERE id_proyecto = ?');
+        $stmt->execute([$idProyecto]);
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    private function fechaDeInicioDeLaObra(int $idProyecto): string
+    {
+        $stmt = $this->base()->prepare('SELECT fecha_inicio FROM proyecto WHERE id_proyecto = ?');
+        $stmt->execute([$idProyecto]);
+
+        return (string) $stmt->fetchColumn();
+    }
+
     private function inactividad(): InactividadController
     {
         return new InactividadController($this->base());

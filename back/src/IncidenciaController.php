@@ -8,6 +8,7 @@ use Closure;
 use DateTimeImmutable;
 use PDO;
 use Sgso\Http\Paginacion;
+use Sgso\Reglas\Fecha;
 use Sgso\Reglas\ProtocoloIncidencias;
 
 /**
@@ -197,7 +198,7 @@ final class IncidenciaController
     private function validar(array $datos): array
     {
         $errores = [];
-        if (!isset($datos['fecha']) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $datos['fecha'])) {
+        if (!isset($datos['fecha']) || !Fecha::esValida((string) $datos['fecha'])) {
             $errores['fecha'] = 'Formato esperado: YYYY-MM-DD';
         }
         if (!isset($datos['tipo']) || !in_array($datos['tipo'], self::TIPOS, true)) {

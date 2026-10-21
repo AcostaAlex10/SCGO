@@ -45,6 +45,7 @@ final class TablaTest extends TestCase
 
             ['POST', '/maquinaria', Permisos::GESTION_OBRA],
             ['DELETE', '/maquinaria/registro/{id}', Permisos::DOC],
+            ['PUT', '/maquinaria/falla/{id}', Permisos::DOC],
             ['DELETE', '/maquinaria/falla/{id}', Permisos::DOC],
             ['POST', '/maquinaria/{id}/registros', Permisos::DOC],
             ['POST', '/maquinaria/{id}/fallas', Permisos::DOC],

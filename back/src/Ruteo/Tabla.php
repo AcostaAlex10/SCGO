@@ -39,6 +39,7 @@ final class Tabla
             new Ruta('PUT', '/maquinaria/falla', null, false, 'error.falta.falla'),
             new Ruta('DELETE', '/maquinaria/falla', null, false, 'error.falta.falla'),
             new Ruta('DELETE', '/maquinaria/registro/{id}', Permisos::DOC, false, 'maquinaria.registro.eliminar'),
+            new Ruta('PUT', '/maquinaria/falla/{id}', Permisos::DOC, false, 'maquinaria.falla.actualizar'),
             new Ruta('DELETE', '/maquinaria/falla/{id}', Permisos::DOC, false, 'maquinaria.falla.eliminar'),
             new Ruta('GET', '/maquinaria/{id}/registros', null, false, 'maquinaria.registros.listar'),
             new Ruta('POST', '/maquinaria/{id}/registros', Permisos::DOC, false, 'maquinaria.registros.crear'),

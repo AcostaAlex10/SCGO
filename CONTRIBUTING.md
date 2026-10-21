@@ -31,6 +31,9 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
 | `claude/lista-consumos` | `main` @ `7a5088c` (2026-10-18) | D-16: la lista de consumos que se guarda y se envía junta (DEF-04 del informe de testing) | #64 |
+| `claude/traspaso-requerimientos` | `main` @ `fe06669` (2026-10-21) | `TRASPASO.md` al día con el #68 y el #70: D-11 hecho, los requerimientos propuestos, DEC-08 y dos trampas nuevas | #71 |
+| `claude/fecha-imposible` | `main` @ `d04d952` (2026-10-21) | C-13: una fecha imposible da 422 en vez de 500, con una sola validación de fecha para toda la API | #72 |
+| `claude/php-8.3.36` | `main` @ `d04d952` (2026-10-21) | A-18: la imagen de la API no se construye con un PHP anterior a 8.3.36 (dos RCE críticas), y `session.upload_progress` apagado | #73 |
 
 ### Reglas
 
@@ -125,6 +128,11 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/vite-8` | Vite 8 con `@vitejs/plugin-react` 5.2, que lo admite; reemplazó al PR #59 de Dependabot | PR #61 |
 | `claude/consumo-sin-stock` | D-14: un consumo que supera lo que queda asignado se rechaza (DEF-05 del informe de testing del Grupo 9) | PR #62 |
 | `claude/textos-casos-de-uso` | D-15: textos, "Obligatorio" por campo y cancelaciones del CU1 y el CU22 (DEF-01, 02, 03 y 06 del informe de testing) | PR #63 |
+| `claude/testing-arreglos-g9` | **Contra `testing`.** Los seis arreglos del informe del Grupo 9 en la demo, y `GUIA-TESTERS.md` al día | PR #65, en `testing` |
+| `claude/traspaso-local` | `TRASPASO.md` al día para seguir en una sesión local: los PR #50 a #65, la base y el correo caídos, y cómo armar el entorno | PR #66 |
+| `claude/traspaso-entorno-local` | Docs al día después de armar el entorno local: base de `TRASPASO.md`, D-16 con su PR, dos trampas nuevas y el resultado de Selenium del Grupo 9 en Edge | PR #67 |
+| `claude/falla-resuelta` | D-11: marcar una falla de maquinaria como resuelta sin borrarla; RF27 cumplido | PR #68 |
+| `claude/requerimientos-relevamiento` | Requerimientos contrastados con los documentos del relevamiento: RF13 pasa a parcial, RF29 a RF33 propuestos, DEC-08 y D-17 a D-21 en el plan | PR #70 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
