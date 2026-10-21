@@ -128,6 +128,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/testing-arreglos-g9` | **Contra `testing`.** Los seis arreglos del informe del Grupo 9 en la demo, y `GUIA-TESTERS.md` al día | PR #65, en `testing` |
 | `claude/traspaso-local` | `TRASPASO.md` al día para seguir en una sesión local: los PR #50 a #65, la base y el correo caídos, y cómo armar el entorno | PR #66 |
 | `claude/traspaso-entorno-local` | Docs al día después de armar el entorno local: base de `TRASPASO.md`, D-16 con su PR, dos trampas nuevas y el resultado de Selenium del Grupo 9 en Edge | PR #67 |
+| `claude/falla-resuelta` | D-11: marcar una falla de maquinaria como resuelta sin borrarla; RF27 cumplido | PR #68 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
