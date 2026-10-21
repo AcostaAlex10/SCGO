@@ -375,3 +375,25 @@ raíces de Windows a un archivo PEM y pasándoselo a PHP:
 ```bash
 php -d curl.cainfo=RUTA/win-roots.pem composer.phar install
 ```
+
+---
+
+## 8. Riesgos
+
+Lo que puede dejar a SCGO sin servicio o sin datos, cómo nos enteramos y qué se
+hace. Los dos primeros ya pasaron en octubre de 2026, y producción quedó caída
+sin que ninguna alarma avisara.
+
+**Se revisa al cerrar cada sesión** (`TRASPASO.md` §6): si un riesgo pasó, se
+anota; si apareció uno nuevo, se agrega. **Cada riesgo tiene que tener un
+responsable**, que lo decide el equipo: hasta entonces dice "a asignar".
+
+| # | Riesgo | Probabilidad | Impacto | Cómo nos enteramos hoy | Qué se hace | Responsable |
+|---|---|---|---|---|---|---|
+| **R-01** | Aiven gratis apaga la base y deja de resolver en el DNS | **Alta**: pasó en octubre de 2026 | **Alto**: ningún pedido que use la base responde | Por un usuario, o por el log de Render (`getaddrinfo ... failed`). Con el monitor de B-04, en minutos | Encender el servicio en la consola de Aiven; si cambió el host, `DB_HOST` en Render. Verificar con `/api/health` | A asignar |
+| **R-02** | Brevo deshabilita la clave de la API | **Media**: pasó en octubre de 2026 | **Medio**: no sale la recuperación de contraseña ni los avisos de incidencias (D-02) | El log de Render: `Mailer: no salió "…"` (A-17) | Reactivar o regenerar la clave y ponerla en `BREVO_API_KEY` en Render | A asignar |
+| **R-03** | Render agota las 750 horas del workspace y suspende todo | **Media**: hay otro servicio gratuito en el workspace (`sgso-backend`) | **Alto**: producción suspendida hasta el mes siguiente | Ninguna alerta | Apagar o mover `sgso-backend` **antes** de crear el monitor de B-04 (§1 y §7) | A asignar |
+| **R-04** | Se pierden datos y no hay cómo restaurarlos | Baja | **Alto**: Aiven gratis no tiene SLA ni restaura un respaldo en una base nueva | Cuando ya pasó | B-01, atado a DEC-04: plan pago con respaldos y una restauración probada | A asignar |
+| **R-05** | Se pierde la única cuenta de administrador | Baja | **Alto**: nadie puede gestionar usuarios | Cuando ya pasó | B-08: crear un segundo administrador (§3) | A asignar |
+| **R-06** | Una credencial o un dato de Triwe entra al repositorio, que es público | Baja | **Alto**: queda visible para cualquiera (DEC-07) | Revisando el PR | Rotar la credencial en el momento: borrarla del historial no alcanza, porque ya pudo copiarse | A asignar |
+| **R-07** | El simulador acepta datos que la API rechaza | **Alta**: pasó tres veces | **Medio**: la demo de los testers muestra algo que el sistema real no hace | Los testers, o una suite de Playwright | Tocar las dos validaciones juntas (§7, "Modo de prueba"); C-02 lo corta de raíz | A asignar |
