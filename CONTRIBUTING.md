@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/falla-resuelta` | `main` @ `8c5f342` (2026-10-21) | D-11: marcar una falla de maquinaria como resuelta sin borrarla; RF27 cumplido | #68 |
+| `claude/requerimientos-relevamiento` | `main` @ `8c5f342` (2026-10-21) | Requerimientos contrastados con los documentos del relevamiento: RF13 pasa a parcial, RF29 a RF33 propuestos, DEC-08 y D-17 a D-21 en el plan. Solo docs | — |
 
 ### Reglas
 
