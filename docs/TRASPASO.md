@@ -4,11 +4,10 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-10-21, después de armar el entorno en una máquina local y
-  correr ahí las pruebas de Selenium del Grupo 9 en Edge
-- **Base:** `main` @ `229de52`, CI en verde. **Producción está caída por la base**
-  (sección 3): el deploy del #62 quedó "live", pero ningún pedido que use la base
-  responde
+- **Actualizado:** 2026-10-21, después de D-11 (#68) y de contrastar los
+  requerimientos con los documentos del relevamiento (#70)
+- **Base:** `main` @ `fe06669`, CI en verde. **Producción sigue caída por la
+  base** (sección 3): `/api/health` respondía 500 el 2026-10-21
 - **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23).
   Desde el #65 tiene los seis arreglos del informe
 
@@ -72,6 +71,8 @@ día de dependencias.
 | #65 | **En `testing`:** los seis arreglos del informe, adaptados al código de la demo, y `GUIA-TESTERS.md` al día |
 | #66 | Este archivo, para seguir en una sesión local |
 | #67 | Este archivo, después de armar el entorno local; Selenium del Grupo 9 en Edge, 9/10 |
+| #68 | D-11: una falla de maquinaria se marca resuelta o se reabre sin borrarla; RF27 cumplido |
+| #70 | Requerimientos contrastados con el relevamiento: RF13 pasa a parcial, RF29 a RF33 propuestos, DEC-08 y D-17 a D-21 |
 
 **No queda ningún P0 de seguridad abierto.** De seguridad quedan A-09, A-11, A-12
 y A-15, ninguno bloqueante.
@@ -158,6 +159,26 @@ abierto, Edge la rechaza y cierra el cartel, y el `dismiss()` siguiente da
    insuficiente: quedan X" (#62).
 4. **El login de Vercel con la consola limpia**, después de Vite 8 (#61) y del
    #63, que tocaron el front.
+5. **Marcar una falla de maquinaria como resuelta** y reabrirla (D-11, #68): el
+   contador de fallas abiertas de la máquina tiene que bajar y volver a subir, y
+   la falla seguir en el historial.
+
+### Los requerimientos, contrastados con el relevamiento (#70)
+
+Se releyeron los cuatro documentos del relevamiento (TP1, plan de entrevistas,
+TP2 y estudio de viabilidad) contra `REQUERIMIENTOS.md` y el código. Salieron
+tres cosas:
+
+- **RF13 pasa a parcial.** El "ejecutado" del análisis es presupuesto por avance,
+  una estimación: el sistema no registra ningún gasto real (desvío 3).
+- **El relevamiento quedó corto.** Solo se entrevistó a la dirección técnica;
+  administración y el supervisor de campo quedaron sin fecha. Y la comparación de
+  proveedores, que en el TP1 era una de las dos funciones principales, se perdió
+  sin que nadie lo decidiera.
+- **RF29 a RF33 quedan *propuestos*:** gastos reales por obra, pedidos de
+  material, cotizaciones de proveedores, horas aprobadas y pendientes. Ninguno
+  está aceptado. Esperan **DEC-08**, y en el plan son D-17 a D-21; todos piden
+  migraciones.
 
 **Decisiones pendientes, todas del equipo:**
 
@@ -170,6 +191,8 @@ abierto, Edge la rechaza y cierra el cartel, y el `dismiss()` siguiente da
 - **D-12:** la asistencia duplicada depende de si hay turnos.
 - **DEC-04** sigue postergada hasta que se cierre la posible venta. De ella
   dependen B-01 y B-02.
+- **DEC-08:** si Triwe quiere RF29 a RF33. Antes conviene hacer la entrevista a
+  administración que quedó pendiente, porque RF29 a RF32 son sus circuitos.
 
 **Configuración del equipo:**
 
@@ -193,7 +216,7 @@ abierto, Edge la rechaza y cierra el cartel, y el `dismiss()` siguiente da
 **Lo siguiente del plan.** Los puntos 8 y 9 de la Ola 3 están hechos. Sigue el
 10: **DEC-03** (documentos como archivos) es una decisión del equipo, y de ella
 depende D-01; **D-05** (registro de cambios) pide una tabla nueva, o sea una
-migración, así que se pregunta antes. **D-11** está en el PR #68. Sin decisiones
+migración, así que se pregunta antes. **D-11** está hecho (#68). Sin decisiones
 pendientes quedan **C-13** (una fecha imposible da 500
 en vez de 422) y **A-15** (RF20 por lista negra: cada importe nuevo hay que
 acordarse de quitarlo, como pasó con `certificado` en el #48).
@@ -344,6 +367,15 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
     larga.** Tiene capturas con nombres muy largos y Windows corta en 260
     caracteres: `git clone` sale con 128 y deja el checkout a medias. Se clona
     con `git -c core.longpaths=true clone ...`.
+34. **Un rebase puede combinar mal una cuenta sin dar conflicto.** Pasó con el
+    #70: el resumen de `REQUERIMIENTOS.md` ("N cumplidos, M parciales") quedó
+    con los números de una sola rama, porque cada PR lo cambió en una línea
+    distinta de la que choca. Después de cada rebase que toque estados de RF, se
+    vuelve a contar la tabla. Al mergear, el repositorio **no permite merge
+    automático**: se mergea a mano con el CI en verde.
+35. **En PowerShell 5.1, `gh pr create --body "..."` se rompe** si el texto
+    tiene comillas dobles: `gh` lo recibe partido en varios argumentos ("unknown
+    argument"). Se escribe el cuerpo en un archivo y se pasa con `--body-file`.
 
 ### Si la sesión corre en la nube y no en tu máquina
 
@@ -358,7 +390,7 @@ Además, `humo.mjs` da **24/28 en la nube**: las cuatro que fallan son las de
 cargar Google Fonts detrás del proxy del entorno. **No es una regresión.** En el
 CI de GitHub da 28/28.
 
-**Las trampas 9, 10, 11, 13, 17, 21 y 33 son de la máquina local** (Windows,
+**Las trampas 9, 10, 11, 13, 17, 21, 33 y 35 son de la máquina local** (Windows,
 antivirus, `back/.env`): en la nube no aplican. La 12, la 14 y la 31 sí, y de la 22 a
 la 28 son propias de la nube. En la nube tampoco hay `back/.env`, así que
 no hay forma de pegarle a producción por accidente, y así tiene que seguir.
