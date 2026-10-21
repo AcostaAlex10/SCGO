@@ -142,7 +142,7 @@ surgió del relevamiento pero todavía no lo aceptó Triwe.
 | RF07 | permitir adjuntar imágenes y reportes fotográficos del avance | Importante | **Pendiente** | ver desvío 1 |
 | RF08 | permitir registrar justificaciones cuando no se cumple el avance o hay inasistencias | Importante | Cumplido | `AsistenciaController`, `IncidenciaController` |
 | RF09 | permitir registrar incidencias externas: lluvias, fallas, retrasos de proveedores | Importante | Cumplido | `IncidenciaController` |
-| RF10 | permitir asignar materiales a una obra y registrar su consumo | Crítica | Cumplido | `MaterialObraController`; un consumo no puede superar lo que queda asignado (`Sgso\Reglas\StockMaterial`) |
+| RF10 | permitir asignar materiales a una obra y registrar su consumo | Crítica | Cumplido | `MaterialObraController`; un consumo no puede superar lo que queda asignado (`Sgso\Reglas\StockMaterial`), y los consumos del día se envían juntos como lista |
 | RF11 | generar alertas cuando el avance real sea inferior al planificado | Importante | Cumplido | `AnalisisController` |
 | RF12 | generar alertas cuando se excedan las cantidades presupuestadas o asignadas | Importante | Cumplido | `AnalisisController`, `MaterialObraController` |
 | RF13 | calcular la diferencia entre el presupuesto estimado y los gastos ejecutados | Importante | **Parcial** | `AnalisisController`; ver desvío 3 |
@@ -195,7 +195,7 @@ falta pasar de enlaces a archivos (desvío 1, plan: DEC-03 y D-01).
 | RF09 y RF26 — incidencias clasificadas por tipo y gravedad | `back/tests/Integracion/IncidenciaTest.php` |
 | RF15 y RF20 — el monto certificado lo calcula la API, al centavo, y no le llega al Personal Técnico | `back/tests/Reglas/CertificacionTest.php`, `back/tests/Integracion/CertificacionObraTest.php`, `FRONT/scripts/pruebas/contrato.mjs` |
 | RF26 — el aviso por correo según la gravedad | `back/tests/Reglas/ProtocoloIncidenciasTest.php`, `back/tests/Integracion/AvisoDeIncidenciaTest.php`, `FRONT/scripts/pruebas/contrato.mjs` |
-| RF10 y RF12 — materiales asignados, consumos y exceso | `back/tests/Integracion/MaterialObraTest.php`, `back/tests/Integracion/AnalisisTest.php` |
+| RF10 y RF12 — materiales asignados, consumos y exceso | `back/tests/Integracion/MaterialObraTest.php`, `back/tests/Integracion/ListaConsumosTest.php`, `back/tests/Integracion/AnalisisTest.php` |
 | RF11 — alerta cuando el avance real queda debajo del esperado | `back/tests/Integracion/AnalisisTest.php` |
 | RF13 — presupuesto contra lo ejecutado | `back/tests/Integracion/AnalisisTest.php` |
 | RF20 — costos ocultos al Personal Técnico | `back/tests/Integracion/AnalisisTest.php` (backend), `FRONT/scripts/pruebas/humo.mjs` (pantallas) |
