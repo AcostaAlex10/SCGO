@@ -6,6 +6,7 @@ namespace Sgso;
 
 use DateTime;
 use PDO;
+use Sgso\Reglas\Fecha;
 
 /**
  * CRUD de etapas de planificacion (1-a-muchos con planificacion).
@@ -313,7 +314,7 @@ final class EtapaPlanificacionController
         foreach (['fecha_inicio', 'fecha_fin'] as $campo) {
             if (!$parcial && !isset($datos[$campo])) {
                 $errores[$campo] = 'Obligatorio';
-            } elseif (isset($datos[$campo]) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $datos[$campo])) {
+            } elseif (isset($datos[$campo]) && !Fecha::esValida((string) $datos[$campo])) {
                 $errores[$campo] = 'Formato esperado: YYYY-MM-DD';
             }
         }

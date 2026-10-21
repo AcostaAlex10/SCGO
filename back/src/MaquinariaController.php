@@ -7,6 +7,7 @@ namespace Sgso;
 use PDO;
 use Sgso\Http\Paginacion;
 use Sgso\Reglas\ConsumoMaquinaria;
+use Sgso\Reglas\Fecha;
 
 /**
  * Gestion de maquinaria. Cubre:
@@ -126,7 +127,7 @@ final class MaquinariaController
         if (!$this->existeMaquina($idMaq)) { $this->json(404, ['error' => 'Maquinaria no encontrada']); return; }
         $fecha = (string) ($datos['fecha'] ?? '');
         $errores = [];
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) { $errores['fecha'] = 'Formato esperado: YYYY-MM-DD'; }
+        if (!Fecha::esValida($fecha)) { $errores['fecha'] = 'Formato esperado: YYYY-MM-DD'; }
 
         // Del uso cargado sale el promedio con el que se decide la alerta de
         // consumo (RF24): un valor negativo corre el umbral de todos los demas.
@@ -195,7 +196,7 @@ final class MaquinariaController
         $fecha = (string) ($datos['fecha'] ?? '');
         $descripcion = trim((string) ($datos['descripcion'] ?? ''));
         $errores = [];
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) { $errores['fecha'] = 'Formato esperado: YYYY-MM-DD'; }
+        if (!Fecha::esValida($fecha)) { $errores['fecha'] = 'Formato esperado: YYYY-MM-DD'; }
         if ($descripcion === '') { $errores['descripcion'] = 'Obligatorio'; }
         if (!empty($errores)) { $this->json(422, ['errors' => $errores]); return; }
 

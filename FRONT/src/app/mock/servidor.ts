@@ -559,6 +559,22 @@ function proyectoSegunRol(p: Fila, rol: string): Fila {
 
 /** Borra de una coleccion por id y devuelve la respuesta correspondiente. */
 /**
+ * Una fecha vale si tiene el formato AAAA-MM-DD exacto, el ano es >= 1000 (rango
+ * de DATE de MariaDB) y existe en el calendario. Misma regla que
+ * `Sgso\Reglas\Fecha::esValida` en el backend (C-13): "2026-02-31" se rechaza.
+ */
+function fechaValida(s: string): boolean {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (!m) return false;
+  const a = Number(m[1]);
+  const mes = Number(m[2]);
+  const d = Number(m[3]);
+  if (a < 1000) return false;
+  const f = new Date(Date.UTC(a, mes - 1, d));
+  return f.getUTCFullYear() === a && f.getUTCMonth() === mes - 1 && f.getUTCDate() === d;
+}
+
+/**
  * Valida un rango de fechas como lo hace el backend: formato ISO en las dos y
  * el fin nunca antes del inicio. El simulador tiene que rechazar lo mismo que
  * PHP, o la demo acepta datos que el sistema real no.
@@ -569,9 +585,8 @@ function validarRango(
   errores: Record<string, string>,
   inicioObligatorio = true
 ): void {
-  const iso = /^\d{4}-\d{2}-\d{2}$/;
-  if (inicioObligatorio && !iso.test(inicio)) errores.fecha_inicio = "Formato esperado: YYYY-MM-DD";
-  if (fin !== "" && !iso.test(fin)) errores.fecha_fin = "Formato esperado: YYYY-MM-DD";
+  if (inicioObligatorio && !fechaValida(inicio)) errores.fecha_inicio = "Formato esperado: YYYY-MM-DD";
+  if (fin !== "" && !fechaValida(fin)) errores.fecha_fin = "Formato esperado: YYYY-MM-DD";
   if (fin !== "" && !errores.fecha_inicio && !errores.fecha_fin && fin < inicio) {
     errores.fecha_fin = "La fecha de fin no puede ser anterior al inicio";
   }
@@ -950,7 +965,7 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
           return noEncontrado("Maquinaria no encontrada");
         }
         const errores: Record<string, string> = {};
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(texto(cuerpo.fecha))) errores.fecha = "Formato esperado: YYYY-MM-DD";
+        if (!fechaValida(texto(cuerpo.fecha))) errores.fecha = "Formato esperado: YYYY-MM-DD";
         for (const campo of ["horas_uso", "combustible_consumido", "produccion_realizada"]) {
           const v = cuerpo[campo];
           if (v !== undefined && v !== null && v !== "" && (Number.isNaN(Number(v)) || Number(v) < 0)) {
@@ -989,7 +1004,7 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
           return noEncontrado("Maquinaria no encontrada");
         }
         const erroresFalla: Record<string, string> = {};
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(texto(cuerpo.fecha))) erroresFalla.fecha = "Formato esperado: YYYY-MM-DD";
+        if (!fechaValida(texto(cuerpo.fecha))) erroresFalla.fecha = "Formato esperado: YYYY-MM-DD";
         if (!texto(cuerpo.descripcion)) erroresFalla.descripcion = "Obligatorio";
         if (Object.keys(erroresFalla).length) return json(422, { errors: erroresFalla });
         const nueva: Fila = {
@@ -1181,7 +1196,7 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
       }
 
       const fin = texto(cuerpo.fecha_fin) || hoy();
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(fin)) {
+      if (!fechaValida(fin)) {
         return json(422, { errors: { fecha_fin: "Formato esperado: YYYY-MM-DD" } });
       }
       if (fin < texto(periodo.fecha_inicio)) {
@@ -1268,6 +1283,10 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
       for (const campo of ["nombre", "tipo", "ubicacion", "encargado", "fechaInicio"]) {
         if (!texto(cuerpo[campo])) errores[campo] = "Obligatorio";
       }
+      // Sin recortar: la API valida la fecha de inicio sin trim.
+      if (!errores.fechaInicio && !fechaValida(String(cuerpo.fechaInicio))) {
+        errores.fechaInicio = "Formato esperado: YYYY-MM-DD";
+      }
       if (!num(cuerpo.presupuesto)) errores.presupuesto = "Obligatorio";
       if (Object.keys(errores).length) return json(422, { errors: errores });
       const duplicado = db.proyectos.some(
@@ -1322,6 +1341,14 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
                 error: "Solo se puede cancelar una obra en ejecucion o pausada",
               });
             }
+          }
+        }
+        if (cuerpo.fechaInicio !== undefined) {
+          if (!texto(cuerpo.fechaInicio)) {
+            return json(422, { errors: { fechaInicio: "Obligatorio" } });
+          }
+          if (!fechaValida(String(cuerpo.fechaInicio))) {
+            return json(422, { errors: { fechaInicio: "Formato esperado: YYYY-MM-DD" } });
           }
         }
         for (const campo of ["nombre", "tipo", "ubicacion", "encargado", "fechaInicio", "estado"]) {

@@ -234,6 +234,27 @@ final class MaterialObraTest extends CasoConBase
         self::assertNumero(0.0, $this->listado($idProyecto)[0]['consumido']);
     }
 
+    /** C-13: un consumo con fecha imposible daba 500; ahora 422 y el stock no se toca. */
+    public function testUnConsumoConUnaFechaImposibleDa422YNoCambiaElStock(): void
+    {
+        $idProyecto = $this->crearProyecto();
+        $idAsignacion = $this->asignarMaterial($idProyecto, $this->crearMaterial(), 10);
+
+        $respuesta = $this->capturar(fn () => $this->materiales()->crearConsumo((string) $idAsignacion, [
+            'cantidad_consumida' => 3,
+            'fecha' => '2026-02-31',
+        ]));
+
+        self::assertSame(422, $respuesta['codigo']);
+        self::assertSame('Formato esperado: YYYY-MM-DD', $respuesta['cuerpo']['errors']['fecha'] ?? null);
+        $fila = $this->listado($idProyecto)[0];
+        self::assertNumero(0.0, $fila['consumido']);
+        self::assertNumero(10.0, $fila['restante']);
+        $consumos = $this->base()->prepare('SELECT COUNT(*) FROM consumo_material WHERE id_asignacion = ?');
+        $consumos->execute([$idAsignacion]);
+        self::assertSame(0, (int) $consumos->fetchColumn());
+    }
+
     public function testRegistrarUnConsumoEnUnaAsignacionInexistenteDa404(): void
     {
         $respuesta = $this->capturar(fn () => $this->materiales()->crearConsumo('999', [

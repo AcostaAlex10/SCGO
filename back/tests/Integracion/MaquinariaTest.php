@@ -87,6 +87,34 @@ final class MaquinariaTest extends CasoConBase
         self::assertSame([], $this->capturar(fn () => $this->maquinaria()->listarRegistros((string) $idMaquina))['cuerpo']);
     }
 
+    /** C-13: 2026-02-31 daba 500 en la base. Ahora 422 con el texto de formato y nada guardado. */
+    public function testUnRegistroConUnaFechaImposibleDa422YNoSeGuarda(): void
+    {
+        $idMaquina = $this->crearMaquina();
+
+        $respuesta = $this->capturar(fn () => $this->maquinaria()->crearRegistro((string) $idMaquina, ['fecha' => '2026-02-31']));
+
+        self::assertSame(422, $respuesta['codigo']);
+        self::assertSame('Formato esperado: YYYY-MM-DD', $respuesta['cuerpo']['errors']['fecha'] ?? null);
+        self::assertSame([], $this->capturar(fn () => $this->maquinaria()->listarRegistros((string) $idMaquina))['cuerpo']);
+    }
+
+    public function testUnaFallaConUnaFechaImposibleDa422YNoSeGuarda(): void
+    {
+        $idMaquina = $this->crearMaquina();
+
+        $respuesta = $this->capturar(fn () => $this->maquinaria()->crearFalla((string) $idMaquina, [
+            'fecha' => '2026-02-31',
+            'descripcion' => 'Perdida de aceite',
+        ]));
+
+        self::assertSame(422, $respuesta['codigo']);
+        self::assertSame('Formato esperado: YYYY-MM-DD', $respuesta['cuerpo']['errors']['fecha'] ?? null);
+        $stmt = $this->base()->prepare('SELECT COUNT(*) FROM falla_maquinaria WHERE id_maquinaria = ?');
+        $stmt->execute([$idMaquina]);
+        self::assertSame(0, (int) $stmt->fetchColumn());
+    }
+
     /**
      * Horas, combustible o produccion negativos pasaban sin validar, y entran
      * al promedio con el que se decide la alerta de RF24: un registro con

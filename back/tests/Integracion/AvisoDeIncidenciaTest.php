@@ -129,6 +129,17 @@ final class AvisoDeIncidenciaTest extends CasoConBase
         self::assertSame([], $this->enviados);
     }
 
+    /** C-13: una fecha imposible se rechaza antes de guardar, y sin guardar no hay nada que avisar. */
+    public function testUnaIncidenciaConUnaFechaImposibleDa422SinGuardarNiAvisar(): void
+    {
+        $respuesta = $this->registrar('alta', ['fecha' => '2026-02-31']);
+
+        self::assertSame(422, $respuesta['codigo']);
+        self::assertSame('Formato esperado: YYYY-MM-DD', $respuesta['cuerpo']['errors']['fecha'] ?? null);
+        self::assertSame([], $this->enviados);
+        self::assertSame(0, (int) $this->base()->query('SELECT COUNT(*) FROM incidencia')->fetchColumn());
+    }
+
     // ----------------------------------------------------------------
     //  Ayudas
     // ----------------------------------------------------------------

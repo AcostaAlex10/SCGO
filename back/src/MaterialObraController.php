@@ -6,6 +6,7 @@ namespace Sgso;
 
 use PDO;
 use Sgso\Http\Paginacion;
+use Sgso\Reglas\Fecha;
 use Sgso\Reglas\StockMaterial;
 
 /**
@@ -122,7 +123,7 @@ final class MaterialObraController
 
         $errores = [];
         if (!is_numeric($cantidad) || (float) $cantidad <= 0) { $errores['cantidad_consumida'] = 'Cantidad inválida'; }
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) { $errores['fecha'] = 'Formato esperado: YYYY-MM-DD'; }
+        if (!Fecha::esValida($fecha)) { $errores['fecha'] = 'Formato esperado: YYYY-MM-DD'; }
         if (!empty($errores)) { $this->json(422, ['errors' => $errores]); return; }
 
         $obs = isset($datos['observaciones']) && trim((string) $datos['observaciones']) !== ''

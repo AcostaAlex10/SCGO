@@ -6,6 +6,7 @@ namespace Sgso;
 
 use PDO;
 use Sgso\Reglas\CicloDeVida;
+use Sgso\Reglas\Fecha;
 
 /**
  * Periodos de inactividad de la obra con su motivo (RF25). Sirven para
@@ -41,9 +42,9 @@ final class InactividadController
         $motivo = trim((string) ($datos['motivo'] ?? ''));
 
         $errores = [];
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $inicio)) { $errores['fecha_inicio'] = 'Formato esperado: YYYY-MM-DD'; }
-        if ($fin !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fin)) { $errores['fecha_fin'] = 'Formato esperado: YYYY-MM-DD'; }
-        if ($fin !== '' && $fin < $inicio) { $errores['fecha_fin'] = 'La fecha de fin no puede ser anterior al inicio'; }
+        if (!Fecha::esValida($inicio)) { $errores['fecha_inicio'] = 'Formato esperado: YYYY-MM-DD'; }
+        if ($fin !== '' && !Fecha::esValida($fin)) { $errores['fecha_fin'] = 'Formato esperado: YYYY-MM-DD'; }
+        if ($fin !== '' && !isset($errores['fecha_inicio']) && !isset($errores['fecha_fin']) && $fin < $inicio) { $errores['fecha_fin'] = 'La fecha de fin no puede ser anterior al inicio'; }
         if ($motivo === '') { $errores['motivo'] = 'Obligatorio'; }
         if (!empty($errores)) { $this->json(422, ['errors' => $errores]); return; }
 
@@ -83,7 +84,7 @@ final class InactividadController
         $fin = trim((string) ($datos['fecha_fin'] ?? ''));
         if ($fin === '') { $fin = date('Y-m-d'); }
 
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fin)) {
+        if (!Fecha::esValida($fin)) {
             $this->json(422, ['errors' => ['fecha_fin' => 'Formato esperado: YYYY-MM-DD']]); return;
         }
         if ($fin < (string) $periodo['fecha_inicio']) {
