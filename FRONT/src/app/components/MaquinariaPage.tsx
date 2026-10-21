@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import {
   listarMaquinaria, crearMaquinaria, eliminarMaquinaria,
   listarRegistrosMaq, crearRegistroMaq, eliminarRegistroMaq,
-  listarFallasMaq, crearFallaMaq, eliminarFallaMaq, rendimientoOperarios,
+  listarFallasMaq, crearFallaMaq, marcarFallaMaq, eliminarFallaMaq, rendimientoOperarios,
   listarProyectos,
   type Maquinaria, type RegistroMaquinaria, type FallaMaquinaria, type RendimientoOperario, type Proyecto,
 } from "../api/proyectos";
@@ -100,6 +100,14 @@ export default function MaquinariaPage() {
       });
       toast.success("Falla registrada");
       setFormFalla({ fecha: hoy(), componente: "", descripcion: "", reemplazo: false });
+      await recargarSel();
+    } catch (err) { toast.error(err instanceof Error ? err.message : "Error"); }
+  }
+  // D-11: resolver una falla la saca del contador sin borrarla del historial (RF27).
+  async function marcarFalla(f: FallaMaquinaria) {
+    try {
+      await marcarFallaMaq(f.id_falla, !f.resuelto);
+      toast.success(f.resuelto ? "Falla reabierta" : "Falla marcada como resuelta");
       await recargarSel();
     } catch (err) { toast.error(err instanceof Error ? err.message : "Error"); }
   }
@@ -220,6 +228,8 @@ export default function MaquinariaPage() {
                       {f.componente && <Badge variant="secondary">{f.componente}</Badge>}
                       <span className="flex-1">{f.descripcion}</span>
                       {f.reemplazo && <Badge variant="outline">Reemplazo</Badge>}
+                      {f.resuelto ? <Badge variant="secondary">Resuelta</Badge> : <Badge variant="destructive">Abierta</Badge>}
+                      {carga && <Button size="sm" variant="outline" onClick={() => marcarFalla(f)}>{f.resuelto ? "Reabrir" : "Marcar resuelta"}</Button>}
                       {carga && <Button size="sm" variant="ghost" onClick={() => eliminarFallaMaq(f.id_falla).then(recargarSel).catch(() => toast.error("Error"))}><Trash2 className="w-4 h-4" style={{ color: "#ef4444" }} /></Button>}
                     </div>
                   ))}

@@ -196,6 +196,55 @@ final class MaquinariaTest extends CasoConBase
         self::assertSame(404, $sinMaquina['codigo']);
     }
 
+    /**
+     * RF27 pide conservar el historial: antes, la unica forma de bajar el
+     * contador de fallas abiertas era borrar la falla (D-11).
+     */
+    public function testMarcarUnaFallaComoResueltaBajaElContadorYLaConserva(): void
+    {
+        $idMaquina = $this->crearMaquina();
+        $idFalla = $this->cargarFalla($idMaquina);
+        $this->cargarFalla($idMaquina);
+
+        $respuesta = $this->capturar(fn () => $this->maquinaria()->actualizarFalla((string) $idFalla, ['resuelto' => true]));
+        $maquinas = $this->capturar(fn () => $this->maquinaria()->listar())['cuerpo'];
+        $fallas = $this->capturar(fn () => $this->maquinaria()->listarFallas((string) $idMaquina))['cuerpo'];
+
+        self::assertSame(200, $respuesta['codigo']);
+        self::assertSame(1, $this->maquina($maquinas, $idMaquina)['fallas_abiertas']);
+        self::assertCount(2, $fallas, 'la falla resuelta sigue en el historial');
+        self::assertTrue(array_column($fallas, 'resuelto', 'id_falla')[$idFalla]);
+    }
+
+    public function testUnaFallaResueltaSePuedeReabrir(): void
+    {
+        $idMaquina = $this->crearMaquina();
+        $idFalla = $this->cargarFalla($idMaquina, resuelto: true);
+
+        $respuesta = $this->capturar(fn () => $this->maquinaria()->actualizarFalla((string) $idFalla, ['resuelto' => false]));
+        $maquinas = $this->capturar(fn () => $this->maquinaria()->listar())['cuerpo'];
+
+        self::assertSame(200, $respuesta['codigo']);
+        self::assertSame(1, $this->maquina($maquinas, $idMaquina)['fallas_abiertas']);
+    }
+
+    public function testActualizarUnaFallaExigeResueltoBooleanoYUnaFallaExistente(): void
+    {
+        $idMaquina = $this->crearMaquina();
+        $idFalla = $this->cargarFalla($idMaquina);
+
+        $sinCampo = $this->capturar(fn () => $this->maquinaria()->actualizarFalla((string) $idFalla, []));
+        $texto = $this->capturar(fn () => $this->maquinaria()->actualizarFalla((string) $idFalla, ['resuelto' => 'si']));
+        $inexistente = $this->capturar(fn () => $this->maquinaria()->actualizarFalla('999', ['resuelto' => true]));
+
+        self::assertSame(422, $sinCampo['codigo']);
+        self::assertArrayHasKey('resuelto', $sinCampo['cuerpo']['errors']);
+        self::assertSame(422, $texto['codigo']);
+        self::assertSame(404, $inexistente['codigo']);
+        $maquinas = $this->capturar(fn () => $this->maquinaria()->listar())['cuerpo'];
+        self::assertSame(1, $this->maquina($maquinas, $idMaquina)['fallas_abiertas'], 'nada cambio');
+    }
+
     public function testEliminarUnaMaquinaBorraSusRegistrosYFallas(): void
     {
         $idMaquina = $this->crearMaquina();
@@ -251,11 +300,13 @@ final class MaquinariaTest extends CasoConBase
         return (int) $this->base()->lastInsertId();
     }
 
-    private function cargarFalla(int $idMaquina, bool $resuelto = false): void
+    private function cargarFalla(int $idMaquina, bool $resuelto = false): int
     {
         $this->base()->prepare(
             'INSERT INTO falla_maquinaria (id_maquinaria, fecha, descripcion, resuelto) VALUES (?, ?, ?, ?)'
         )->execute([$idMaquina, '2026-03-01', 'Falla', $resuelto ? 1 : 0]);
+
+        return (int) $this->base()->lastInsertId();
     }
 
     /**

@@ -500,6 +500,9 @@ export async function crearFallaMaq(
 ): Promise<{ id_falla: number }> {
   return parse(await apiFetch(`/maquinaria/${idMaq}/fallas`, { method: "POST", body: JSON.stringify(datos) }));
 }
+export async function marcarFallaMaq(id: number, resuelto: boolean): Promise<void> {
+  await parse(await apiFetch(`/maquinaria/falla/${id}`, { method: "PUT", body: JSON.stringify({ resuelto }) }));
+}
 export async function eliminarFallaMaq(id: number): Promise<void> {
   await parse(await apiFetch(`/maquinaria/falla/${id}`, { method: "DELETE" }));
 }
