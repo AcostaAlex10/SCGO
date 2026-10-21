@@ -139,7 +139,7 @@ diferencia respecto del texto · *Pendiente* — no implementado.
 | RF24 | comparar el consumo con el rendimiento esperado y alertar ante desvíos | Importante | **Parcial** | `AlertasPage`, `MaquinariaPage`; ver desvío 2 |
 | RF25 | permitir registrar períodos de inactividad con su motivo | Importante | Cumplido | `InactividadController`, `Sgso\Reglas\CicloDeVida` |
 | RF26 | clasificar incidencias por gravedad para activar protocolos de notificación | Secundaria | Cumplido | `IncidenciaController`, `Sgso\Reglas\ProtocoloIncidencias`: alta avisa por correo a Gerentes y Personal Administrativo; media, al Personal Administrativo; baja no avisa |
-| RF27 | mantener el historial de fallas y reemplazos de cada máquina | Importante | **Parcial** | ver desvío 3 |
+| RF27 | mantener el historial de fallas y reemplazos de cada máquina | Importante | Cumplido | `MaquinariaController`: una falla se marca resuelta o se reabre sin borrarla |
 | RF28 | generar comparativas de rendimiento entre operarios | Secundaria | Cumplido | `MaquinariaController::rendimientoOperarios()` |
 
 **Resumen:** 24 cumplidos, 3 parciales y 1 pendiente.
@@ -213,10 +213,6 @@ pueden demostrar.
    compararlo con el rendimiento esperado, y ese dato no se guarda: una máquina que
    siempre consume de más nunca alerta, porque no se aparta de su propio promedio,
    y un registro anómalo alerta para siempre (plan: D-13).
-3. **RF27 — una falla no se puede marcar como resuelta.** Se cargan y se listan,
-   con su componente y si hubo reemplazo, pero no existe un `PUT` ni la pantalla
-   muestra el campo: el contador de fallas abiertas solo baja borrando la falla,
-   que es justamente el historial que RF27 pide conservar (plan: D-11).
 
 ---
 

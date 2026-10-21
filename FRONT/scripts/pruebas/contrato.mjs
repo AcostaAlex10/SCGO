@@ -374,6 +374,37 @@ chequear('el consumo rechazado no se guarda',
 r = await api('POST', `/proyectos/material/${cemento.id_asignacion}/consumos`, { fecha: '2026-03-02', cantidad_consumida: queda }, 'mock.3');
 chequear('se puede consumir justo lo que queda', r.estado === 201, `dio ${r.estado}`);
 
+// ---- 16. Una falla se marca resuelta sin borrarla (D-11) ----
+// Antes, la unica forma de bajar el contador de fallas abiertas era borrar la
+// falla, y con ella el historial que pide RF27.
+const fallasAbiertas = async (id) => (await api('GET', '/maquinaria')).datos.find((m) => m.id_maquinaria === id)?.fallas_abiertas;
+const conFalla = await api('POST', '/maquinaria', { nombre: 'Grua de contrato', tipo: 'Elevacion' });
+const idGrua = conFalla.datos?.id_maquinaria;
+const falla = await api('POST', `/maquinaria/${idGrua}/fallas`, { fecha: '2026-03-01', descripcion: 'Perdida de aceite' });
+const idFalla = falla.datos?.id_falla;
+chequear('la falla nueva cuenta como abierta', await fallasAbiertas(idGrua) === 1);
+
+r = await api('PUT', `/maquinaria/falla/${idFalla}`, {});
+chequear('marcar una falla sin decir resuelto devuelve 422', r.estado === 422, `dio ${r.estado}`);
+r = await api('PUT', '/maquinaria/falla/99999', { resuelto: true });
+chequear('marcar una falla inexistente devuelve 404', r.estado === 404, `dio ${r.estado}`);
+r = await api('PUT', `/maquinaria/falla/${idFalla}`, { resuelto: true }, 'mock.5');
+chequear('el Gerente no puede marcar una falla', r.estado === 403, `dio ${r.estado}`);
+
+await page.goto(BASE + '#/maquinaria', { waitUntil: 'networkidle' });
+await page.waitForTimeout(1000);
+await page.locator('[data-slot=card]').filter({ hasText: 'Grua de contrato' })
+  .getByRole('button', { name: 'Ver uso y fallas' }).click();
+await page.getByRole('button', { name: 'Marcar resuelta' }).click();
+await page.waitForTimeout(800);
+chequear('desde la pantalla, la falla queda resuelta y el contador baja', await fallasAbiertas(idGrua) === 0);
+chequear('y sigue en el historial',
+  (await api('GET', `/maquinaria/${idGrua}/fallas`)).datos.some((f) => f.id_falla === idFalla && f.resuelto === true));
+chequear('la pantalla la muestra resuelta', (await page.getByText('Resuelta', { exact: true }).count()) === 1);
+
+r = await api('PUT', `/maquinaria/falla/${idFalla}`, { resuelto: false });
+chequear('una falla resuelta se puede reabrir', r.estado === 200 && await fallasAbiertas(idGrua) === 1, `dio ${r.estado}`);
+
 await nav.close();
 console.log(`\n${ok.length}/${ok.length + mal.length} OK`);
 if (mal.length) process.exit(1);

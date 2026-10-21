@@ -914,6 +914,19 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
       if (veto) return veto;
       return eliminarDe(db.registros_maquinaria, "id_registro", num(s[2]));
     }
+    if (metodo === "PUT" && s[1] === "falla") {
+      const veto = exige(ROLES_DOC);
+      if (veto) return veto;
+      // Mismas reglas que MaquinariaController::actualizarFalla() (D-11).
+      if (typeof cuerpo.resuelto !== "boolean") {
+        return json(422, { errors: { resuelto: "Debe ser true o false" } });
+      }
+      const falla = db.fallas_maquinaria.find((f) => Number(f.id_falla) === num(s[2]));
+      if (!falla) return noEncontrado("Falla no encontrada");
+      falla.resuelto = cuerpo.resuelto;
+      guardar();
+      return ok({ id_falla: falla.id_falla, resuelto: falla.resuelto });
+    }
     if (metodo === "DELETE" && s[1] === "falla") {
       const veto = exige(ROLES_DOC);
       if (veto) return veto;

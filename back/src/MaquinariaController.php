@@ -213,6 +213,26 @@ final class MaquinariaController
         $this->json(201, ['id_falla' => (int) $this->db->lastInsertId()]);
     }
 
+    /**
+     * PUT /api/maquinaria/falla/{id}  -> marca la falla resuelta o la reabre.
+     * Antes la unica forma de bajar el contador de fallas abiertas era borrarla,
+     * y con ella el historial que pide RF27 (D-11).
+     */
+    public function actualizarFalla(string $id, array $datos): void
+    {
+        if (!is_bool($datos['resuelto'] ?? null)) { $this->json(422, ['errors' => ['resuelto' => 'Debe ser true o false']]); return; }
+
+        // Se busca antes porque, con MySQL, un UPDATE que no cambia nada
+        // devuelve rowCount 0 igual que una falla inexistente.
+        $stmt = $this->db->prepare('SELECT id_falla FROM falla_maquinaria WHERE id_falla = ?');
+        $stmt->execute([$id]);
+        if ($stmt->fetch() === false) { $this->json(404, ['error' => 'Falla no encontrada']); return; }
+
+        $stmt = $this->db->prepare('UPDATE falla_maquinaria SET resuelto = ? WHERE id_falla = ?');
+        $stmt->execute([$datos['resuelto'] ? 1 : 0, $id]);
+        $this->json(200, ['id_falla' => (int) $id, 'resuelto' => $datos['resuelto']]);
+    }
+
     /** DELETE /api/maquinaria/falla/{id} */
     public function eliminarFalla(string $id): void
     {
