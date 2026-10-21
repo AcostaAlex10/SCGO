@@ -217,6 +217,7 @@ $manejadores = [
     'incidencia.eliminar' => fn (array $p, ?array $u) => $incidencia->eliminar($p['id']),
     'materiales.proyecto.listar' => fn (array $p, ?array $u) => $materialObra->listarPorProyecto($p['id']),
     'materiales.proyecto.asignar' => fn (array $p, ?array $u) => $materialObra->asignar($p['id'], leerCuerpoJson()),
+    'consumos.proyecto.crear' => fn (array $p, ?array $u) => $materialObra->crearListaConsumos($p['id'], leerCuerpoJson()),
     'material.consumos.listar' => fn (array $p, ?array $u) => $materialObra->listarConsumos($p['id'], paginaDelPedido()),
     'material.consumos.crear' => fn (array $p, ?array $u) => $materialObra->crearConsumo($p['id'], leerCuerpoJson()),
     'material.asignacion.eliminar' => fn (array $p, ?array $u) => $materialObra->eliminarAsignacion($p['id']),

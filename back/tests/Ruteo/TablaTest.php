@@ -77,6 +77,7 @@ final class TablaTest extends TestCase
             ['POST', '/proyectos/{id}/asistencias', Permisos::AVANCE],
             ['POST', '/proyectos/{id}/incidencias', Permisos::AVANCE],
             ['POST', '/proyectos/{id}/materiales', Permisos::GESTION_OBRA],
+            ['POST', '/proyectos/{id}/consumos', Permisos::AVANCE],
             ['POST', '/proyectos/{id}/documentos', Permisos::DOC],
             ['POST', '/proyectos/{id}/inactividades', Permisos::DOC],
             ['POST', '/proyectos/{id}/excedentes', Permisos::DOC],
@@ -194,6 +195,6 @@ final class TablaTest extends TestCase
     {
         // No es una prueba de calidad: es un recordatorio. Si alguien agrega o
         // saca un endpoint, tiene que pasar por aca y por las guardas.
-        self::assertCount(118, Tabla::rutas());
+        self::assertCount(119, Tabla::rutas());
     }
 }
