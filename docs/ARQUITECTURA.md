@@ -65,6 +65,11 @@ Las decisiones que antes tomaba cada controlador por su cuenta viven en
   el detalle, el listado y el análisis de obras.
 - **`StockMaterial`** — cuánto queda de una asignación de material y si un consumo
   entra en eso (RF10, CU22). Cuenta en centésimos.
+- **`Enlaces`** — qué URL se puede guardar y abrir como enlace de un documento: solo
+  `http` o `https`, con host y sin espacios ni caracteres de control (A-01).
+- **`Fecha`** — qué texto vale como fecha: formato `AAAA-MM-DD` exacto, año 1000-9999
+  y fecha real del calendario (C-13). La usan todos los controladores que reciben
+  fechas; el simulador del front aplica la misma regla.
 
 Una regla de estado se cambia ahí, no en un controlador.
 

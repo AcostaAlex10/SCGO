@@ -557,7 +557,6 @@ function proyectoSegunRol(p: Fila, rol: string): Fila {
 
 // ---------------------------------------------------------------- despacho
 
-/** Borra de una coleccion por id y devuelve la respuesta correspondiente. */
 /**
  * Una fecha vale si tiene el formato AAAA-MM-DD exacto, el ano es >= 1000 (rango
  * de DATE de MariaDB) y existe en el calendario. Misma regla que
@@ -629,6 +628,7 @@ function sincronizarPorInactividad(idProyecto: number): string | null {
   return nuevo;
 }
 
+/** Borra de una coleccion por id y devuelve la respuesta correspondiente. */
 function eliminarDe(coleccion: Fila[], campo: string, id: number): Response {
   const i = coleccion.findIndex((f) => Number(f[campo]) === id);
   if (i === -1) return noEncontrado();
@@ -1075,6 +1075,12 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
       if (veto) return veto;
       const plan = db.planificaciones.find((p) => Number(p.id_planificacion) === idPlan);
       if (!plan) return noEncontrado("Planificacion no encontrada");
+      if (cuerpo.fecha_carga !== undefined && cuerpo.fecha_carga !== null) {
+        if (!fechaValida(String(cuerpo.fecha_carga))) {
+          return json(422, { errors: { fecha_carga: "Formato esperado: YYYY-MM-DD" } });
+        }
+        plan.fecha_carga = String(cuerpo.fecha_carga);
+      }
       if (cuerpo.avance_esperado_total !== undefined) {
         plan.avance_esperado_total = num(cuerpo.avance_esperado_total);
       }
@@ -1149,6 +1155,13 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
         // solo hace falta aca.
         if (obraCanceladaDePlan(idPlan)) {
           return json(409, { error: "No se puede registrar avance en una obra cancelada" });
+        }
+        // AvanceController::validar(): la fecha es obligatoria y tiene que existir.
+        if (cuerpo.fecha === undefined || cuerpo.fecha === null) {
+          return json(422, { errors: { fecha: "Obligatorio" } });
+        }
+        if (!fechaValida(String(cuerpo.fecha))) {
+          return json(422, { errors: { fecha: "Formato esperado: YYYY-MM-DD" } });
         }
         const nuevo: Fila = {
           id_avance: proximoId(db.avances, "id_avance"),
@@ -1234,7 +1247,11 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
           const asignacion = db.asignaciones.find((a) => Number(a.id_asignacion) === idAsig);
           if (!asignacion) return json(404, { error: "Asignación no encontrada" });
           const cantidad = num(cuerpo.cantidad_consumida);
-          if (!(cantidad > 0)) return json(422, { errors: { cantidad_consumida: "Cantidad inválida" } });
+          // Como MaterialObraController::consumir(): se acumulan cantidad y fecha.
+          const erroresConsumo: Record<string, string> = {};
+          if (!(cantidad > 0)) erroresConsumo.cantidad_consumida = "Cantidad inválida";
+          if (!fechaValida(String(cuerpo.fecha ?? ""))) erroresConsumo.fecha = "Formato esperado: YYYY-MM-DD";
+          if (Object.keys(erroresConsumo).length) return json(422, { errors: erroresConsumo });
           // Un consumo no puede superar lo que queda asignado (CU22, DEF-05).
           // Misma cuenta en centésimos que Sgso\Reglas\StockMaterial.
           const centesimos = (n: number) => Math.round(n * 100);
@@ -1404,11 +1421,18 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
         if (veto) return veto;
         const existente = db.planificaciones.find((p) => String(p.id_proyecto) === String(idObra));
         if (existente) return json(409, { error: "La obra ya tiene planificacion" });
+        // PlanificacionController::validar(): fecha_carga obligatoria y real.
+        if (cuerpo.fecha_carga === undefined || cuerpo.fecha_carga === null) {
+          return json(422, { errors: { fecha_carga: "Obligatorio" } });
+        }
+        if (!fechaValida(String(cuerpo.fecha_carga))) {
+          return json(422, { errors: { fecha_carga: "Formato esperado: YYYY-MM-DD" } });
+        }
         const nueva: Fila = {
           id_planificacion: proximoId(db.planificaciones, "id_planificacion"),
           id_proyecto: idNum,
           avance_esperado_total: num(cuerpo.avance_esperado_total),
-          fecha_carga: hoy(),
+          fecha_carga: String(cuerpo.fecha_carga),
         };
         db.planificaciones.push(nueva);
         // Cargar la planificacion pasa una obra creada a planificacion (D-04).
@@ -1456,7 +1480,7 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
           tipo: texto(c.tipo) || "otro",
           categoria: texto(c.categoria) || "General",
           url: texto(c.url),
-          fecha_carga: hoy(),
+          fecha_carga: texto(c.fecha_carga) || hoy(),
         }),
       ],
       inactividades: [
@@ -1518,6 +1542,19 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
           if (!texto(cuerpo.motivo)) errores.motivo = "Obligatorio";
           if (Object.keys(errores).length) return json(422, { errors: errores });
         }
+        if (sub === "asistencias" || sub === "incidencias") {
+          // AsistenciaController / IncidenciaController: la fecha tiene que existir.
+          if (cuerpo.fecha === undefined || cuerpo.fecha === null || !fechaValida(String(cuerpo.fecha))) {
+            return json(422, { errors: { fecha: "Formato esperado: YYYY-MM-DD" } });
+          }
+        }
+        if (sub === "excedentes") {
+          // ItemExcedenteController: vacía vale hoy; no vacía e inválida se rechaza.
+          const fechaItem = String(cuerpo.fecha ?? "");
+          if (fechaItem !== "" && !fechaValida(fechaItem)) {
+            return json(422, { errors: { fecha: "Formato esperado: YYYY-MM-DD" } });
+          }
+        }
         if (sub === "documentos") {
           // Mismas validaciones que DocumentoController::crear(). La URL tiene que
           // ser http o https: un enlace javascript: ejecuta código al abrirlo (A-01).
@@ -1526,6 +1563,9 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
           if (!texto(cuerpo.nombre)) errores.nombre = "Obligatorio";
           if (!esEnlaceSeguro(texto(cuerpo.url))) errores.url = "Ingresá un enlace válido que empiece con http:// o https://";
           if (!["pdf", "imagen", "otro"].includes(tipo)) errores.tipo = "Tipo inválido";
+          // Vacía: hoy. No vacía e inválida: error (antes se reemplazaba en silencio).
+          const fechaCarga = String(cuerpo.fecha_carga ?? "");
+          if (fechaCarga !== "" && !fechaValida(fechaCarga)) errores.fecha_carga = "Formato esperado: YYYY-MM-DD";
           if (Object.keys(errores).length) return json(422, { errors: errores });
         }
         const nuevo = { [campoId]: proximoId(coleccion, campoId), ...construir(cuerpo) };
