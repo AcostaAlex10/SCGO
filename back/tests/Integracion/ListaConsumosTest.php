@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sgso\Tests\Integracion;
 
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Sgso\MaterialObraController;
 
 /**
@@ -103,6 +104,37 @@ final class ListaConsumosTest extends CasoConBase
             'consumos' => [['id_asignacion' => $cemento, 'cantidad_consumida' => 1]],
         ]))['codigo']);
         self::assertSame(0.0, $this->consumido($cemento));
+    }
+
+    /** @return array<string, array{string}> */
+    public static function fechasImposibles(): array
+    {
+        return [
+            'dia que no existe' => ['2026-02-31'],
+            'salto de linea al final' => ["2026-01-01\n"],
+        ];
+    }
+
+    /** Una fecha imposible no pasa por la base (C-13): 422 y la lista entera queda afuera. */
+    #[DataProvider('fechasImposibles')]
+    public function testUnaFechaImposibleDa422YNoGuardaNingunaLinea(string $fecha): void
+    {
+        $idProyecto = $this->crearProyecto();
+        $cemento = $this->asignarMaterial($idProyecto, $this->crearMaterial('Cemento', 'bolsa'), 10);
+        $arena = $this->asignarMaterial($idProyecto, $this->crearMaterial('Arena', 'm3'), 5);
+
+        $respuesta = $this->capturar(fn () => $this->materiales()->crearListaConsumos((string) $idProyecto, [
+            'fecha' => $fecha,
+            'consumos' => [
+                ['id_asignacion' => $cemento, 'cantidad_consumida' => 4],
+                ['id_asignacion' => $arena, 'cantidad_consumida' => 2.5],
+            ],
+        ]));
+
+        self::assertSame(422, $respuesta['codigo']);
+        self::assertSame('Formato esperado: YYYY-MM-DD', $respuesta['cuerpo']['errors']['fecha']);
+        self::assertSame([0.0, 0.0], [$this->consumido($cemento), $this->consumido($arena)]);
+        self::assertSame(0, (int) $this->base()->query('SELECT COUNT(*) FROM consumo_material')->fetchColumn());
     }
 
     public function testUnaObraInexistenteDa404(): void
