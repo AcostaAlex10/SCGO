@@ -6,7 +6,7 @@ se perdió.** Una sesión nueva empieza leyendo esto.
 
 - **Actualizado:** 2026-10-21, después de A-18 (#73), C-13 (#72), D-16 (#64),
   D-22 (#74) y D-23 (#N); el correo (Brevo) ya funciona
-- **Base:** `main` @ `bcd75f2`, CI en verde. **La base de Aiven volvió**:
+- **Base:** `main` @ `353a869`, CI en verde. **La base de Aiven volvió**:
   `/api/health` responde `{"status":"ok","db":"ok"}`. **Brevo ya funciona**: Alex
   probó la recuperación de contraseña el 2026-10-21 y el correo llegó (sección 3)
 - **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23).

@@ -30,7 +30,6 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/traspaso-21-10` | `main` @ `bcd75f2` (2026-10-21) | `TRASPASO.md` al día con #64, #72, #73 y #74: base de vuelta, Brevo pendiente y cuatro trampas nuevas | #75 |
 | `claude/ampliar-asignacion` | `main` @ `353a869` (2026-10-21) | D-23: ajustar la cantidad asignada de un material que la obra ya tiene, nunca por debajo de lo consumido; el alta de usuarios deja de autocompletar las credenciales del admin; `TRASPASO.md` registra que el correo (Brevo) volvió a andar | — |
 
 ### Reglas
@@ -137,6 +136,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/fecha-imposible` | C-13: una fecha imposible da 422 en vez de 500, con una sola validación de fecha para toda la API | PR #72 |
 | `claude/lista-consumos` | D-16: la lista de consumos que se guarda y se envía junta (DEF-04 del informe de testing) | PR #64 |
 | `claude/usuarios-dados-de-baja` | D-22: los usuarios dados de baja pasan a su propia sección, donde se reactivan; dar de baja pide confirmación. Sin borrado real | PR #74 |
+| `claude/traspaso-21-10` | `TRASPASO.md` al día con #64, #72, #73 y #74: base de vuelta, Brevo pendiente y cuatro trampas nuevas | PR #75 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
