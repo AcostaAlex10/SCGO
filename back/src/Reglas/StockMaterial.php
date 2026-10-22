@@ -28,6 +28,15 @@ final class StockMaterial
         return self::centesimos($cantidad) <= self::centesimos($asignada) - self::centesimos($consumido);
     }
 
+    /**
+     * Si se puede fijar la cantidad asignada en `$nueva` (D-23): no puede
+     * quedar por debajo de lo ya consumido. Igual a lo consumido es válido.
+     */
+    public static function puedeAsignar(float $nueva, float $consumido): bool
+    {
+        return self::centesimos($nueva) >= self::centesimos($consumido);
+    }
+
     private static function centesimos(float $cantidad): int
     {
         return (int) round($cantidad * 100);

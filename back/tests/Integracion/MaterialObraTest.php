@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sgso\Tests\Integracion;
 
 use PHPUnit\Framework\Attributes\CoversClass;
+use Sgso\AnalisisController;
 use Sgso\MaterialObraController;
 
 /**
@@ -323,6 +324,258 @@ final class MaterialObraTest extends CasoConBase
         $consumos = $this->base()->prepare('SELECT COUNT(*) FROM consumo_material WHERE id_asignacion = ?');
         $consumos->execute([$idAsignacion]);
         self::assertSame(0, (int) $consumos->fetchColumn());
+    }
+
+    // ----------------------------------------------------------------
+    //  D-23: ajustar la cantidad asignada (PUT /proyectos/material/{id})
+    //  El permiso (GESTION_OBRA; tecnico y gerente reciben 403) lo declara la
+    //  ruta: lo verifica TablaTest::testLasGuardasSonExactamenteLasDeclaradas.
+    // ----------------------------------------------------------------
+
+    public function testAjustarFijaElValorAbsolutoYNoTocaLosConsumos(): void
+    {
+        $idProyecto = $this->crearProyecto();
+        $idAsignacion = $this->asignarMaterial($idProyecto, $this->crearMaterial(), 100);
+        $this->registrarConsumo($idAsignacion, 30);
+
+        $respuesta = $this->ajustar($idAsignacion, 250.5);
+
+        self::assertSame(200, $respuesta['codigo']);
+        $fila = $this->listado($idProyecto)[0];
+        self::assertNumero(250.5, $fila['cantidad_asignada']);
+        self::assertNumero(30.0, $fila['consumido']);
+        self::assertNumero(220.5, $fila['restante']);
+        self::assertFalse($fila['excedido']);
+        self::assertCount(1, $this->consumosDe($idAsignacion));
+    }
+
+    public function testAjustarPuedeBajarSiNoQuedaPorDebajoDeLoConsumido(): void
+    {
+        $idProyecto = $this->crearProyecto();
+        $idAsignacion = $this->asignarMaterial($idProyecto, $this->crearMaterial(), 100);
+        $this->registrarConsumo($idAsignacion, 30);
+
+        self::assertSame(200, $this->ajustar($idAsignacion, 40)['codigo']);
+        self::assertNumero(10.0, $this->listado($idProyecto)[0]['restante']);
+    }
+
+    public function testAjustarRechazaUnaCantidadFaltanteNoNumericaNulaONegativa(): void
+    {
+        $idProyecto = $this->crearProyecto();
+        $idAsignacion = $this->asignarMaterial($idProyecto, $this->crearMaterial(), 100);
+
+        foreach ([null, 'mucho', 0, -5] as $cantidad) {
+            $respuesta = $this->ajustar($idAsignacion, $cantidad);
+
+            $etiqueta = 'cantidad: ' . var_export($cantidad, true);
+            self::assertSame(422, $respuesta['codigo'], $etiqueta);
+            self::assertSame('Cantidad inválida', $respuesta['cuerpo']['errors']['cantidad_asignada'] ?? null, $etiqueta);
+        }
+        $sinCampo = $this->capturar(fn () => $this->materiales()->ajustarAsignacion((string) $idAsignacion, []));
+        self::assertSame(422, $sinCampo['codigo']);
+        self::assertSame('Cantidad inválida', $sinCampo['cuerpo']['errors']['cantidad_asignada'] ?? null);
+        self::assertNumero(100.0, $this->listado($idProyecto)[0]['cantidad_asignada']);
+    }
+
+    public function testAjustarRechazaUnaCantidadQueNoEntraEnLaColumna(): void
+    {
+        $idProyecto = $this->crearProyecto();
+        $idAsignacion = $this->asignarMaterial($idProyecto, $this->crearMaterial(), 100);
+
+        $respuesta = $this->ajustar($idAsignacion, 10000000000);
+
+        self::assertSame(422, $respuesta['codigo']);
+        self::assertSame('Cantidad inválida', $respuesta['cuerpo']['errors']['cantidad_asignada'] ?? null);
+        self::assertNumero(100.0, $this->listado($idProyecto)[0]['cantidad_asignada']);
+    }
+
+    public function testAjustarAceptaElMaximoQueEntraEnLaColumna(): void
+    {
+        $idAsignacion = $this->asignarMaterial($this->crearProyecto(), $this->crearMaterial(), 100);
+
+        self::assertSame(200, $this->ajustar($idAsignacion, 9999999999.99)['codigo']);
+    }
+
+    public function testAjustarPorDebajoDeLoConsumidoSeRechazaYDiceCuantoSeConsumio(): void
+    {
+        $idProyecto = $this->crearProyecto();
+        $idAsignacion = $this->asignarMaterial($idProyecto, $this->crearMaterial('Cemento', 'bolsa'), 100);
+        $this->registrarConsumo($idAsignacion, 30);
+        $this->registrarConsumo($idAsignacion, 12.5);
+
+        $respuesta = $this->ajustar($idAsignacion, 42.49);
+
+        self::assertSame(422, $respuesta['codigo']);
+        self::assertSame(
+            'No podés asignar menos de lo ya consumido: se consumieron 42,5 bolsa',
+            $respuesta['cuerpo']['errors']['cantidad_asignada'] ?? null
+        );
+        self::assertNumero(100.0, $this->listado($idProyecto)[0]['cantidad_asignada']);
+    }
+
+    public function testElMensajeDeMinimoNoLlevaCerosDeMas(): void
+    {
+        $idAsignacion = $this->asignarMaterial($this->crearProyecto(), $this->crearMaterial('Arena', 'm3'), 100);
+        $this->registrarConsumo($idAsignacion, 30);
+
+        $respuesta = $this->ajustar($idAsignacion, 5);
+
+        self::assertSame(
+            'No podés asignar menos de lo ya consumido: se consumieron 30 m3',
+            $respuesta['cuerpo']['errors']['cantidad_asignada'] ?? null
+        );
+    }
+
+    public function testAjustarIgualALoConsumidoDejaRestanteEnCeroSinExceso(): void
+    {
+        $idProyecto = $this->crearProyecto();
+        $idAsignacion = $this->asignarMaterial($idProyecto, $this->crearMaterial(), 100);
+        $this->registrarConsumo($idAsignacion, 30);
+
+        self::assertSame(200, $this->ajustar($idAsignacion, 30)['codigo']);
+
+        $fila = $this->listado($idProyecto)[0];
+        self::assertNumero(0.0, $fila['restante']);
+        self::assertFalse($fila['excedido']);
+    }
+
+    /** En coma flotante 3,3 + 3,3 + 3,4 supera 10: el ajuste a 10 igual se acepta. */
+    public function testAjustarComparaEnCentesimos(): void
+    {
+        $idProyecto = $this->crearProyecto();
+        $idAsignacion = $this->asignarMaterial($idProyecto, $this->crearMaterial(), 20);
+        foreach ([3.3, 3.3, 3.4] as $cantidad) {
+            $this->registrarConsumo($idAsignacion, $cantidad);
+        }
+
+        self::assertSame(200, $this->ajustar($idAsignacion, 10)['codigo']);
+        self::assertFalse($this->listado($idProyecto)[0]['excedido']);
+    }
+
+    public function testAjustarUnaAsignacionInexistenteDa404(): void
+    {
+        $respuesta = $this->ajustar(999, 10);
+
+        self::assertSame(404, $respuesta['codigo']);
+        self::assertSame('Asignación no encontrada', $respuesta['cuerpo']['error'] ?? null);
+    }
+
+    public function testUnaAsignacionExcedidaSeSubeYDejaDeFigurarComoExcedida(): void
+    {
+        $idProyecto = $this->crearProyecto('en_ejecucion', 'Con exceso');
+        $idAsignacion = $this->asignarMaterial($idProyecto, $this->crearMaterial(), 10);
+        $this->registrarConsumo($idAsignacion, 12);
+        self::assertTrue($this->listado($idProyecto)[0]['excedido']);
+        self::assertSame(1, $this->materialesExcedidos($idProyecto));
+
+        self::assertSame(422, $this->ajustar($idAsignacion, 11)['codigo'], 'todavía por debajo de lo consumido');
+        self::assertSame(200, $this->ajustar($idAsignacion, 12)['codigo']);
+
+        $fila = $this->listado($idProyecto)[0];
+        self::assertFalse($fila['excedido']);
+        self::assertNumero(0.0, $fila['restante']);
+        self::assertSame(0, $this->materialesExcedidos($idProyecto));
+    }
+
+    /** 0.004 se redondea a 0 y "0x10" / "0b11" no son numeros: ni el ajuste ni el alta los toman. */
+    public function testAjustarYAsignarRechazanLosFormatosQueNoSonUnaCantidad(): void
+    {
+        $idProyecto = $this->crearProyecto();
+        $idAsignacion = $this->asignarMaterial($idProyecto, $this->crearMaterial(), 100);
+
+        foreach ([0.004, '0x10', '0b11'] as $cantidad) {
+            $etiqueta = 'cantidad: ' . var_export($cantidad, true);
+            $ajuste = $this->ajustar($idAsignacion, $cantidad);
+            $alta = $this->capturar(fn () => $this->materiales()->asignar((string) $idProyecto, [
+                'id_material' => $this->crearMaterial('Otro ' . md5((string) $cantidad)),
+                'cantidad_asignada' => $cantidad,
+            ]));
+
+            self::assertSame(422, $ajuste['codigo'], $etiqueta);
+            self::assertSame('Cantidad inválida', $ajuste['cuerpo']['errors']['cantidad_asignada'] ?? null, $etiqueta);
+            self::assertSame(422, $alta['codigo'], $etiqueta);
+            self::assertSame('Cantidad inválida', $alta['cuerpo']['errors']['cantidad_asignada'] ?? null, $etiqueta);
+        }
+        $listado = $this->listado($idProyecto);
+        self::assertCount(1, $listado);
+        self::assertNumero(100.0, $listado[0]['cantidad_asignada']);
+    }
+
+    public function testUnaCantidadConEspaciosSeAceptaComoElNumero(): void
+    {
+        $idProyecto = $this->crearProyecto();
+        $idAsignacion = $this->asignarMaterial($idProyecto, $this->crearMaterial(), 100);
+
+        $ajuste = $this->ajustar($idAsignacion, ' 5 ');
+        $alta = $this->capturar(fn () => $this->materiales()->asignar((string) $idProyecto, [
+            'id_material' => $this->crearMaterial('Arena', 'm3'),
+            'cantidad_asignada' => ' 5 ',
+        ]));
+
+        self::assertSame(200, $ajuste['codigo']);
+        self::assertSame(201, $alta['codigo']);
+        foreach ($this->listado($idProyecto) as $fila) {
+            self::assertNumero(5.0, $fila['cantidad_asignada'], $fila['nombre']);
+        }
+    }
+
+    /** Se compara y se guarda en centesimos: 1,005 con 1,01 consumido deja 1,01. */
+    public function testAjustarRedondeaAlCentesimoComoLaRegla(): void
+    {
+        $idProyecto = $this->crearProyecto();
+        $idAsignacion = $this->asignarMaterial($idProyecto, $this->crearMaterial(), 100);
+        $this->registrarConsumo($idAsignacion, 1.01);
+
+        $respuesta = $this->ajustar($idAsignacion, 1.005);
+
+        self::assertSame(200, $respuesta['codigo']);
+        $fila = $this->listado($idProyecto)[0];
+        self::assertNumero(1.01, $fila['cantidad_asignada']);
+        self::assertNumero(0.0, $fila['restante']);
+        self::assertFalse($fila['excedido']);
+    }
+
+    /** El alta tambien rechaza lo que no entra en DECIMAL(12,2). */
+    public function testAsignarRechazaUnaCantidadMayorAlMaximoDeLaColumna(): void
+    {
+        $idProyecto = $this->crearProyecto();
+
+        $respuesta = $this->capturar(fn () => $this->materiales()->asignar((string) $idProyecto, [
+            'id_material' => $this->crearMaterial(),
+            'cantidad_asignada' => 10000000000,
+        ]));
+
+        self::assertSame(422, $respuesta['codigo']);
+        self::assertSame('Cantidad inválida', $respuesta['cuerpo']['errors']['cantidad_asignada'] ?? null);
+        self::assertSame([], $this->listado($idProyecto));
+    }
+
+    /** @return array{codigo: int, cuerpo: mixed} */
+    private function ajustar(int $idAsignacion, mixed $cantidad): array
+    {
+        return $this->capturar(fn () => $this->materiales()->ajustarAsignacion((string) $idAsignacion, [
+            'cantidad_asignada' => $cantidad,
+        ]));
+    }
+
+    /** @return list<mixed> */
+    private function consumosDe(int $idAsignacion): array
+    {
+        $stmt = $this->base()->prepare('SELECT id_consumo FROM consumo_material WHERE id_asignacion = ?');
+        $stmt->execute([$idAsignacion]);
+
+        return $stmt->fetchAll();
+    }
+
+    private function materialesExcedidos(int $idProyecto): int
+    {
+        $cuerpo = $this->capturar(fn () => (new AnalisisController($this->base()))->resumen('Gerente'))['cuerpo'];
+        foreach ($cuerpo['proyectos'] as $obra) {
+            if ($obra['id_proyecto'] === $idProyecto) {
+                return (int) $obra['materiales_excedidos'];
+            }
+        }
+        self::fail("La obra {$idProyecto} no esta en el resumen");
     }
 
     /** @return array{codigo: int, cuerpo: mixed} */

@@ -69,7 +69,7 @@ final class MaterialObraController
 
         $errores = [];
         if (!is_numeric($idMaterial)) { $errores['id_material'] = 'Seleccioná un material'; }
-        if (!is_numeric($cantidad) || (float) $cantidad <= 0) { $errores['cantidad_asignada'] = 'Cantidad inválida'; }
+        if (!self::cantidadAsignadaValida($cantidad)) { $errores['cantidad_asignada'] = 'Cantidad inválida'; }
         if (!empty($errores)) { $this->json(422, ['errors' => $errores]); return; }
 
         $stmt = $this->db->prepare('SELECT id_material FROM material WHERE id_material = ?');
@@ -88,6 +88,81 @@ final class MaterialObraController
         $stmt->execute([$idProyecto, $idMaterial, (float) $cantidad]);
 
         $this->json(201, ['id_asignacion' => (int) $this->db->lastInsertId()]);
+    }
+
+    /**
+     * PUT /api/proyectos/material/{idAsignacion}  {"cantidad_asignada": n}
+     *
+     * Fija la cantidad asignada (valor absoluto, no un incremento) sin tocar
+     * los consumos (D-23). No puede quedar por debajo de lo ya consumido.
+     *
+     * @param array<string, mixed> $datos
+     */
+    public function ajustarAsignacion(string $idAsignacion, array $datos): void
+    {
+        $cantidad = $datos['cantidad_asignada'] ?? null;
+        $existe = $this->db->prepare('SELECT id_asignacion FROM asignacion_material WHERE id_asignacion = ?');
+        $existe->execute([$idAsignacion]);
+        if ($existe->fetch() === false) { $this->json(404, ['error' => 'Asignación no encontrada']); return; }
+
+        if (!self::cantidadAsignadaValida($cantidad)) {
+            $this->json(422, ['errors' => ['cantidad_asignada' => 'Cantidad inválida']]);
+            return;
+        }
+
+        // La fila queda bloqueada hasta el UPDATE: un consumo simultaneo no
+        // puede colarse entre la lectura de lo consumido y el cambio.
+        $this->db->beginTransaction();
+        try {
+            $stmt = $this->db->prepare(
+                'SELECT m.unidad,
+                        (SELECT COALESCE(SUM(cm.cantidad_consumida), 0)
+                           FROM consumo_material cm WHERE cm.id_asignacion = am.id_asignacion) AS consumido
+                 FROM asignacion_material am
+                 JOIN material m ON m.id_material = am.id_material
+                 WHERE am.id_asignacion = ?
+                 FOR UPDATE'
+            );
+            $stmt->execute([$idAsignacion]);
+            $saldo = $stmt->fetch();
+            if ($saldo === false) {
+                $this->db->rollBack();
+                $this->json(404, ['error' => 'Asignación no encontrada']);
+                return;
+            }
+
+            $consumido = (float) $saldo['consumido'];
+            if (!StockMaterial::puedeAsignar((float) $cantidad, $consumido)) {
+                $this->db->rollBack();
+                $this->json(422, ['errors' => ['cantidad_asignada' => sprintf(
+                    'No podés asignar menos de lo ya consumido: se consumieron %s %s',
+                    self::cantidadLegible($consumido),
+                    $saldo['unidad']
+                )]]);
+                return;
+            }
+
+            $stmt = $this->db->prepare('UPDATE asignacion_material SET cantidad_asignada = ? WHERE id_asignacion = ?');
+            $stmt->execute([(float) $cantidad, $idAsignacion]);
+            $this->db->commit();
+        } catch (\Throwable $error) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            throw $error;
+        }
+
+        $this->json(200, ['mensaje' => 'Asignación actualizada']);
+    }
+
+    /** Numérica, de al menos un centésimo (la columna guarda dos decimales) y que entre en DECIMAL(12,2). */
+    private static function cantidadAsignadaValida(mixed $cantidad): bool
+    {
+        if (!is_numeric($cantidad)) {
+            return false;
+        }
+        $centesimos = (int) round((float) $cantidad * 100);
+        return $centesimos >= 1 && $centesimos <= 999999999999;
     }
 
     /** DELETE /api/proyectos/material/{idAsignacion} */
