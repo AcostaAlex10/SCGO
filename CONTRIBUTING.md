@@ -31,6 +31,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
 | `claude/traspaso-21-10` | `main` @ `bcd75f2` (2026-10-21) | `TRASPASO.md` al día con #64, #72, #73 y #74: base de vuelta, Brevo pendiente y cuatro trampas nuevas | #75 |
+| `claude/ampliar-asignacion` | `main` @ `353a869` (2026-10-21) | D-23: ajustar la cantidad asignada de un material que la obra ya tiene, nunca por debajo de lo consumido; el alta de usuarios deja de autocompletar las credenciales del admin; `TRASPASO.md` registra que el correo (Brevo) volvió a andar | — |
 
 ### Reglas
 
