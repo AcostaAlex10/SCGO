@@ -4,8 +4,8 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-10-21, después de A-18 (#73), C-13 (#72), D-16 (#64) y
-  D-22 (#74)
+- **Actualizado:** 2026-10-22, al revisar con Alex lo que había quedado afuera
+  del sistema (rama `claude/requerimientos-excluidos`)
 - **Base:** `main` @ `bcd75f2`, CI en verde. **La base de Aiven volvió**:
   `/api/health` responde `{"status":"ok","db":"ok"}`. **Sigue caído el correo**
   (Brevo, sección 3)
@@ -194,10 +194,18 @@ tres cosas:
   administración y el supervisor de campo quedaron sin fecha. Y la comparación de
   proveedores, que en el TP1 era una de las dos funciones principales, se perdió
   sin que nadie lo decidiera.
-- **RF29 a RF33 quedan *propuestos*:** gastos reales por obra, pedidos de
-  material, cotizaciones de proveedores, horas aprobadas y pendientes. Ninguno
-  está aceptado. Esperan **DEC-08**, y en el plan son D-17 a D-21; todos piden
-  migraciones.
+- **RF29 a RF34 quedan *propuestos*:** gastos reales por obra, pedidos de
+  material, cotizaciones de proveedores, horas aprobadas, pendientes e importar
+  ofertas desde un archivo (RF34, agregado el 2026-10-22). Ninguno está aceptado.
+  Esperan **DEC-08**, y en el plan son D-17 a D-21 y D-23.
+- **Revisado con Alex el 2026-10-22, por ahora:** pagos, facturación y retención
+  de ARCA quedan fuera (exclusión contable), igual que la captura automática de
+  precios y el registro sin conexión. Las reglas de alerta de costos (RF12, RF13)
+  quedan "a validar" con la dirección técnica y administración, y los RNF son
+  metas por comprobar.
+- **Las entrevistas pendientes tienen guía:** `docs/relevamiento/ENTREVISTAS.md`
+  (administración, supervisor de campo y confirmaciones con la dirección técnica,
+  incluida D-10). Sin nombres ni datos de Triwe: el repositorio es público.
 
 **Decisiones pendientes, todas del equipo:**
 
@@ -210,7 +218,7 @@ tres cosas:
 - **D-12:** la asistencia duplicada depende de si hay turnos.
 - **DEC-04** sigue postergada hasta que se cierre la posible venta. De ella
   dependen B-01 y B-02.
-- **DEC-08:** si Triwe quiere RF29 a RF33. Antes conviene hacer la entrevista a
+- **DEC-08:** si Triwe quiere RF29 a RF34. Antes conviene hacer la entrevista a
   administración que quedó pendiente, porque RF29 a RF32 son sus circuitos.
 
 **Configuración del equipo:**
