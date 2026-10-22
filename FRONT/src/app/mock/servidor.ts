@@ -270,22 +270,34 @@ function consumidoDe(idAsignacion: number): number {
  * Misma cuenta en centésimos que Sgso\Reglas\StockMaterial (CU22).
  */
 function faltaStock(asignacion: Fila, cantidad: number): string | null {
-  const centesimos = (n: number) => Math.round(n * 100);
-  const asignada = centesimos(num(asignacion.cantidad_asignada));
-  const consumido = centesimos(consumidoDe(Number(asignacion.id_asignacion)));
-  if (centesimos(cantidad) <= asignada - consumido) return null;
+  const asignada = centesimosDe(num(asignacion.cantidad_asignada));
+  const consumido = centesimosDe(consumidoDe(Number(asignacion.id_asignacion)));
+  if (centesimosDe(cantidad) <= asignada - consumido) return null;
   const material = db.materiales.find((m) => Number(m.id_material) === Number(asignacion.id_material));
   const queda = Math.max(0, asignada - consumido) / 100;
   return `Stock insuficiente: quedan ${String(queda).replace(".", ",")} ${String(material?.unidad ?? "")}`;
 }
 
-const centesimosDe = (n: number) => Math.round(n * 100);
+/**
+ * Centésimos redondeados como el `round()` de PHP, que corrige el error binario
+ * antes de redondear: 1.005 * 100 es 100.49999999999999 en JS y PHP da 101.
+ */
+function centesimosDe(n: number): number {
+  return Math.round(Number((n * 100).toFixed(8)));
+}
 
-/** Como MaterialObraController::cantidadAsignadaValida(): numérica, > 0 y que entre en DECIMAL(12,2). */
+/**
+ * Como MaterialObraController::cantidadAsignadaValida(): lo que acepta
+ * `is_numeric` (número finito, o texto decimal con espacios y notación e; no
+ * 0x/0b/0o), de al menos un centésimo y que entre en DECIMAL(12,2).
+ */
 function cantidadAsignadaValida(v: unknown): boolean {
-  if (typeof v !== "number" && !(typeof v === "string" && v.trim() !== "")) return false;
-  const n = Number(v);
-  return Number.isFinite(n) && n > 0 && n <= 9999999999.99;
+  const numerico =
+    (typeof v === "number" && Number.isFinite(v)) ||
+    (typeof v === "string" && /^\s*[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?\s*$/.test(v));
+  if (!numerico) return false;
+  const c = centesimosDe(Number(v));
+  return c >= 1 && c <= 999999999999;
 }
 
 /** 6 -> "6", 2.5 -> "2,5": como MaterialObraController::cantidadLegible(). */
@@ -1275,7 +1287,7 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
         if (!cantidadAsignadaValida(cuerpo.cantidad_asignada)) {
           return json(422, { errors: { cantidad_asignada: "Cantidad inválida" } });
         }
-        const nueva = Number(cuerpo.cantidad_asignada);
+        const nueva = centesimosDe(Number(cuerpo.cantidad_asignada)) / 100; // como la columna DECIMAL(12,2)
         const consumido = consumidoDe(idAsig);
         // Misma regla en centésimos que Sgso\Reglas\StockMaterial::puedeAsignar() (D-23).
         if (centesimosDe(nueva) < centesimosDe(consumido)) {
@@ -1694,7 +1706,7 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
           id_asignacion: proximoId(db.asignaciones, "id_asignacion"),
           id_proyecto: idNum,
           id_material: idMaterial,
-          cantidad_asignada: num(cuerpo.cantidad_asignada),
+          cantidad_asignada: centesimosDe(Number(cuerpo.cantidad_asignada)) / 100,
         };
         db.asignaciones.push(nueva);
         guardar();

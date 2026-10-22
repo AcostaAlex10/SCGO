@@ -95,13 +95,18 @@ export default function MaterialesPage() {
   async function confirmarQuitar() {
     if (!quitando || !obra) return;
     const m = quitando;
+    // La fila desaparece si sale bien: el foco va a un destino estable (el título
+    // de la tarjeta), como en UsuariosPage. Si falla, vuelve al botón de la fila.
+    volverAlBoton.current = "titulo-materiales";
     setQuitarAbierto(false);
     try {
       await eliminarAsignacionMaterial(m.id_asignacion);
       setMateriales(await listarMaterialesObra(obra));
+      document.getElementById("titulo-materiales")?.focus();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error");
       volverAlBoton.current = `quitar-${m.id_asignacion}`;
+      document.getElementById(`quitar-${m.id_asignacion}`)?.focus();
     }
   }
   const hayPendientes = Object.values(consumoInput).some((v) => v.trim() !== "");
@@ -155,7 +160,7 @@ export default function MaterialesPage() {
         <Card><CardContent className="py-12 text-center text-muted-foreground">Seleccioná una obra para gestionar sus materiales.</CardContent></Card>
       ) : (
         <Card>
-          <CardHeader><CardTitle>Materiales de la obra</CardTitle><CardDescription>Asignado vs. consumido. Se avisa si se excede.</CardDescription></CardHeader>
+          <CardHeader><CardTitle id="titulo-materiales" tabIndex={-1} className="outline-none">Materiales de la obra</CardTitle><CardDescription>Asignado vs. consumido. Se avisa si se excede.</CardDescription></CardHeader>
           <CardContent className="space-y-4">
             {gestiona && (
               <form onSubmit={asignar} className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
@@ -214,8 +219,8 @@ export default function MaterialesPage() {
             </DialogHeader>
             <div className="space-y-2">
               <Label htmlFor="ajuste-cantidad">Cantidad asignada ({ajustando?.unidad})</Label>
-              <Input id="ajuste-cantidad" type="number" min="0.01" step="0.01" required value={ajusteValor} onChange={(e) => setAjusteValor(e.target.value)} />
-              <p className="text-sm text-muted-foreground">Mínimo: lo ya consumido ({legible(ajustando?.consumido ?? 0)} {ajustando?.unidad})</p>
+              <Input id="ajuste-cantidad" type="number" min="0.01" step="0.01" required aria-describedby="ajuste-minimo" value={ajusteValor} onChange={(e) => setAjusteValor(e.target.value)} />
+              <p id="ajuste-minimo" className="text-sm text-muted-foreground">Mínimo: lo ya consumido ({legible(ajustando?.consumido ?? 0)} {ajustando?.unidad})</p>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={cancelarAjuste}>Cancelar</Button>

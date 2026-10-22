@@ -155,10 +155,14 @@ final class MaterialObraController
         $this->json(200, ['mensaje' => 'Asignación actualizada']);
     }
 
-    /** Numérica, mayor a cero y que entre en DECIMAL(12,2). */
+    /** Numérica, de al menos un centésimo (la columna guarda dos decimales) y que entre en DECIMAL(12,2). */
     private static function cantidadAsignadaValida(mixed $cantidad): bool
     {
-        return is_numeric($cantidad) && (float) $cantidad > 0 && (float) $cantidad <= 9999999999.99;
+        if (!is_numeric($cantidad)) {
+            return false;
+        }
+        $centesimos = (int) round((float) $cantidad * 100);
+        return $centesimos >= 1 && $centesimos <= 999999999999;
     }
 
     /** DELETE /api/proyectos/material/{idAsignacion} */

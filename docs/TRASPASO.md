@@ -4,8 +4,8 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-10-21, después de A-18 (#73), C-13 (#72), D-16 (#64) y
-  D-22 (#74)
+- **Actualizado:** 2026-10-21, después de A-18 (#73), C-13 (#72), D-16 (#64),
+  D-22 (#74) y D-23 (#N); el correo (Brevo) ya funciona
 - **Base:** `main` @ `bcd75f2`, CI en verde. **La base de Aiven volvió**:
   `/api/health` responde `{"status":"ok","db":"ok"}`. **Brevo ya funciona**: Alex
   probó la recuperación de contraseña el 2026-10-21 y el correo llegó (sección 3)
