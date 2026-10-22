@@ -6,7 +6,7 @@ se perdió.** Una sesión nueva empieza leyendo esto.
 
 - **Actualizado:** 2026-10-22, al revisar con Alex lo que había quedado afuera
   del sistema (#77)
-- **Base:** `main` @ `bcd75f2`, CI en verde. **La base de Aiven volvió**:
+- **Base:** `main` @ `353a869`, CI en verde. **La base de Aiven volvió**:
   `/api/health` responde `{"status":"ok","db":"ok"}`. **Sigue caído el correo**
   (Brevo, sección 3)
 - **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23).
