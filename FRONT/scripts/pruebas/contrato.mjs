@@ -502,6 +502,22 @@ for (const c of [3.3, 3.3, 3.4]) await consumirD23(idCal, c);
 r = await api('PUT', `/proyectos/material/${idCal}`, { cantidad_asignada: 10 });
 chequear('3,3 + 3,3 + 3,4 consumidos admiten ajustar a 10', r.estado === 200 && (await filaDe(idCal)).excedido === false, `dio ${r.estado} ${JSON.stringify(r.datos)}`);
 
+// Formatos raros: PHP los lee igual que el simulador tiene que leerlos.
+const idFormatos = await nuevoMaterial('Cemento D23 formatos', 'bolsa', 100);
+for (const valor of [0.004, '0x10', '0b11']) {
+  r = await api('PUT', `/proyectos/material/${idFormatos}`, { cantidad_asignada: valor });
+  chequear(`ajustar a ${JSON.stringify(valor)} da 422 «Cantidad inválida»`,
+    r.estado === 422 && errorDe(r) === 'Cantidad inválida', `dio ${r.estado} ${JSON.stringify(r.datos)}`);
+}
+r = await api('PUT', `/proyectos/material/${idFormatos}`, { cantidad_asignada: ' 5 ' });
+chequear('ajustar a " 5 " se acepta como 5', r.estado === 200 && (await filaDe(idFormatos))?.cantidad_asignada === 5, `dio ${r.estado} ${JSON.stringify(r.datos)}`);
+// Redondeo a centésimos como PHP: 1,005 con 1,01 consumido es 1,01, no 1,00.
+const idRedondeo = await nuevoMaterial('Cal D23 redondeo', 'bolsa', 100);
+await consumirD23(idRedondeo, 1.01);
+r = await api('PUT', `/proyectos/material/${idRedondeo}`, { cantidad_asignada: 1.005 });
+chequear('ajustar a 1,005 con 1,01 consumido se acepta y queda en 1,01',
+  r.estado === 200 && (await filaDe(idRedondeo))?.cantidad_asignada === 1.01, `dio ${r.estado} ${JSON.stringify(await filaDe(idRedondeo))}`);
+
 // Una asignación excedida se sube y deja de figurar como excedida.
 const excedidosDe = async () => (await api('GET', '/analisis')).datos.proyectos.find((p) => p.id_proyecto === 2).materiales_excedidos;
 const idArena = await nuevoMaterial('Arena D23 API', 'm3', 10);
@@ -542,6 +558,19 @@ await api('POST', '/proyectos/2/materiales', { id_material: idCatalogo, cantidad
 r = await api('POST', '/proyectos/2/materiales', { id_material: idCatalogo, cantidad_asignada: 5 });
 chequear('asignar el mismo material dos veces da 409 con el texto de PHP',
   r.estado === 409 && r.datos?.error === 'Ese material ya está asignado a la obra', `dio ${r.estado} ${JSON.stringify(r.datos)}`);
+
+// Formatos que PHP no toma como número (0.004 se redondea a 0; hex y binario no
+// son numéricos) y el espacio que sí tolera.
+for (const valor of [0.004, '0x10', '0b11']) {
+  r = await api('POST', '/proyectos/2/materiales', { id_material: await materialNuevo(), cantidad_asignada: valor });
+  chequear(`asignar con cantidad ${JSON.stringify(valor)} da 422 «Cantidad inválida»`,
+    r.estado === 422 && errorDe(r) === 'Cantidad inválida', `dio ${r.estado} ${JSON.stringify(r.datos)}`);
+}
+const idConEspacios = await materialNuevo();
+r = await api('POST', '/proyectos/2/materiales', { id_material: idConEspacios, cantidad_asignada: ' 5 ' });
+chequear('asignar con cantidad " 5 " se acepta como 5',
+  r.estado === 201 && (await api('GET', '/proyectos/2/materiales')).datos.find((m) => m.id_material === idConEspacios)?.cantidad_asignada === 5,
+  `dio ${r.estado} ${JSON.stringify(r.datos)}`);
 
 // ---- 19. Parte E: la pantalla de Materiales (D-23) ----
 const idUi = await nuevoMaterial('Yeso D23 UI', 'kg', 100);
@@ -585,13 +614,10 @@ await dlg.getByRole('spinbutton').fill('20');
 await dlg.getByRole('button', { name: 'Guardar', exact: true }).click();
 await page.waitForTimeout(800);
 chequear('guardar por debajo de lo consumido no cambia la cantidad', (await filaDe(idUi)).cantidad_asignada === 100, await toasts(page));
-if (await page.getByRole('dialog').count()) {
-  await page.getByRole('dialog').getByRole('spinbutton').fill('150');
-} else {
-  await ajustar.click();
-  await page.waitForTimeout(400);
-  await page.getByRole('dialog').getByRole('spinbutton').fill('150');
-}
+chequear('y el diálogo sigue abierto', (await page.getByRole('dialog').count()) === 1);
+chequear('con el aviso «No podés asignar menos de lo ya consumido»',
+  (await page.getByText(/No podés asignar menos de lo ya consumido/).count()) > 0, await toasts(page));
+await page.getByRole('dialog').getByRole('spinbutton').fill('150');
 await page.getByRole('dialog').getByRole('button', { name: 'Guardar', exact: true }).click();
 await page.waitForTimeout(1000);
 chequear('guardar muestra «Asignación actualizada»', /Asignación actualizada/.test(await toasts(page)), await toasts(page));
@@ -642,6 +668,20 @@ for (const cuenta of [
   chequear(`${cuenta.rol}: la obra muestra materiales`, (await p.getByText('Ladrillo comun').count()) > 0);
   chequear(`${cuenta.rol}: no ve «Ajustar asignación»`, (await p.getByRole('button', { name: /Ajustar asignación/ }).count()) === 0);
   chequear(`${cuenta.rol}: no ve «Quitar … de la obra»`, (await p.getByRole('button', { name: /Quitar .* de la obra/ }).count()) === 0);
+  if (cuenta.rol === 'PersonalTecnico') {
+    // El técnico sigue registrando consumos: ajustar no le quita nada.
+    try {
+      p.setDefaultTimeout(4000);
+      chequear('PersonalTecnico: el material parte en «9000 / 15000 unidad»', (await p.getByText(/^9000 \/ 15000 unidad/).count()) === 1);
+      await p.locator('input[placeholder^="Consumo"]').first().fill('1');
+      await p.getByRole('button', { name: 'Registrar consumo' }).first().click();
+      await p.waitForTimeout(1000);
+      chequear('PersonalTecnico: registra un consumo y el consumido sube a 9001',
+        (await p.getByText(/^9001 \/ 15000 unidad/).count()) === 1, await toasts(p));
+    } catch (e) {
+      chequear('PersonalTecnico: registra un consumo desde Materiales', false, String(e.message).split('\n')[0]);
+    }
+  }
   await ctx.close();
 }
 

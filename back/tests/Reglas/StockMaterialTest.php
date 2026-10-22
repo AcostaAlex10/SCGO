@@ -47,6 +47,7 @@ final class StockMaterialTest extends TestCase
             'justo lo consumido' => [4, 4, true],
             'un centésimo menos' => [3.99, 4, false],
             'nada consumido' => [0.01, 0, true],
+            'medio centésimo que redondea hacia arriba' => [1.005, 1.01, true],
             'sobre una asignación excedida, debajo del consumo' => [11, 12, false],
             'sobre una asignación excedida, igualando' => [12, 12, true],
         ];
