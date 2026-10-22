@@ -442,6 +442,209 @@ chequear('"Guardar y enviar" confirma el envio a planificacion', /enviada a plan
 chequear('y suma los dos consumos', (await consumidoDe(m1.id_asignacion)) + (await consumidoDe(m2.id_asignacion)) === antes1 + antes2 + 2);
 chequear('y vacia lo cargado', (await campos.nth(0).inputValue()) === '' && (await campos.nth(1).inputValue()) === '');
 
+// ---- 18. Ajustar la cantidad asignada de un material (D-23) ----
+// Parte D: la API del simulador, que repite a MaterialObraController. Se crean
+// materiales propios en la obra 2 para no depender del estado que dejaron las
+// secciones anteriores.
+const nuevoMaterial = async (nombre, unidad, cantidad) => {
+  const mat = await api('POST', '/materiales', { nombre, unidad });
+  const asig = await api('POST', '/proyectos/2/materiales', { id_material: mat.datos?.id_material, cantidad_asignada: cantidad });
+  return asig.datos?.id_asignacion;
+};
+const filaDe = async (idAsig) => (await api('GET', '/proyectos/2/materiales')).datos.find((m) => m.id_asignacion === idAsig);
+const consumirD23 = (idAsig, cantidad) => api('POST', `/proyectos/material/${idAsig}/consumos`, { cantidad_consumida: cantidad, fecha: '2026-03-02' }, 'mock.3');
+const errorDe = (res) => res.datos?.errors?.cantidad_asignada;
+
+const idYeso = await nuevoMaterial('Yeso D23 API', 'kg', 100);
+await consumirD23(idYeso, 30);
+await consumirD23(idYeso, 12.5);
+
+r = await api('PUT', `/proyectos/material/${idYeso}`, { cantidad_asignada: 250.5 });
+let fila = await filaDe(idYeso);
+chequear('ajustar fija el valor absoluto y responde 200',
+  r.estado === 200 && fila?.cantidad_asignada === 250.5 && fila?.consumido === 42.5 && fila?.restante === 208, `dio ${r.estado} ${JSON.stringify(fila)}`);
+chequear('y los consumos no se tocan',
+  (await api('GET', `/proyectos/material/${idYeso}/consumos`)).datos.length === 2);
+
+r = await api('PUT', `/proyectos/material/${idYeso}`, { cantidad_asignada: 200 }, 'mock.4');
+chequear('el PersonalAdministrativo puede ajustar', r.estado === 200, `dio ${r.estado}`);
+await api('PUT', `/proyectos/material/${idYeso}`, { cantidad_asignada: 100 }); // base conocida
+r = await api('PUT', `/proyectos/material/${idYeso}`, { cantidad_asignada: 120 }, 'mock.3');
+chequear('el PersonalTecnico recibe 403', r.estado === 403, `dio ${r.estado}`);
+r = await api('PUT', `/proyectos/material/${idYeso}`, { cantidad_asignada: 120 }, 'mock.5');
+chequear('el Gerente recibe 403', r.estado === 403, `dio ${r.estado}`);
+chequear('y el 403 no cambia la cantidad', (await filaDe(idYeso)).cantidad_asignada === 100);
+
+for (const [valor, etiqueta] of [[undefined, 'faltante'], ['mucho', 'no numérica'], [0, 'cero'], [-5, 'negativa'], [10000000000, 'mayor al máximo de la columna']]) {
+  r = await api('PUT', `/proyectos/material/${idYeso}`, valor === undefined ? {} : { cantidad_asignada: valor });
+  chequear(`una cantidad ${etiqueta} da 422 «Cantidad inválida»`, r.estado === 422 && errorDe(r) === 'Cantidad inválida', `dio ${r.estado} ${JSON.stringify(r.datos)}`);
+}
+r = await api('PUT', `/proyectos/material/${idYeso}`, { cantidad_asignada: 9999999999.99 });
+chequear('el máximo que entra en la columna se acepta', r.estado === 200, `dio ${r.estado} ${JSON.stringify(r.datos)}`);
+await api('PUT', `/proyectos/material/${idYeso}`, { cantidad_asignada: 100 });
+
+r = await api('PUT', `/proyectos/material/${idYeso}`, { cantidad_asignada: 42.49 });
+chequear('menos de lo consumido da 422 y dice cuánto se consumió',
+  r.estado === 422 && errorDe(r) === 'No podés asignar menos de lo ya consumido: se consumieron 42,5 kg', `dio ${r.estado} ${JSON.stringify(r.datos)}`);
+chequear('y la cantidad no cambia', (await filaDe(idYeso)).cantidad_asignada === 100);
+r = await api('PUT', `/proyectos/material/${idYeso}`, { cantidad_asignada: 42.5 });
+fila = await filaDe(idYeso);
+chequear('igual a lo consumido se acepta: restante 0 y sin exceso',
+  r.estado === 200 && fila.restante === 0 && fila.excedido === false, `dio ${r.estado} ${JSON.stringify(fila)}`);
+
+r = await api('PUT', '/proyectos/material/99999', { cantidad_asignada: 10 });
+chequear('una asignación inexistente da 404 «Asignación no encontrada»',
+  r.estado === 404 && r.datos?.error === 'Asignación no encontrada', `dio ${r.estado} ${JSON.stringify(r.datos)}`);
+
+// En centésimos: 3,3 + 3,3 + 3,4 supera 10 en coma flotante.
+const idCal = await nuevoMaterial('Cal D23 API', 'bolsa', 20);
+for (const c of [3.3, 3.3, 3.4]) await consumirD23(idCal, c);
+r = await api('PUT', `/proyectos/material/${idCal}`, { cantidad_asignada: 10 });
+chequear('3,3 + 3,3 + 3,4 consumidos admiten ajustar a 10', r.estado === 200 && (await filaDe(idCal)).excedido === false, `dio ${r.estado} ${JSON.stringify(r.datos)}`);
+
+// Una asignación excedida se sube y deja de figurar como excedida.
+const excedidosDe = async () => (await api('GET', '/analisis')).datos.proyectos.find((p) => p.id_proyecto === 2).materiales_excedidos;
+const idArena = await nuevoMaterial('Arena D23 API', 'm3', 10);
+// El consumo de 12 no entra por la API (CU22): se simula el exceso viejo en la copia local.
+await page.evaluate((id) => {
+  const k = Object.keys(localStorage).find((x) => x.startsWith('sgso_mock_db_'));
+  const db = JSON.parse(localStorage.getItem(k));
+  db.asignaciones.find((a) => a.id_asignacion === id).cantidad_asignada = 10;
+  db.consumos.push({ id_consumo: 9000 + id, id_asignacion: id, fecha: '2026-03-02', cantidad_consumida: 12, observaciones: null });
+  localStorage.setItem(k, JSON.stringify(db));
+}, idArena);
+await page.reload({ waitUntil: 'networkidle' });
+await page.waitForTimeout(1500);
+await entrar();
+chequear('el exceso viejo figura como excedido', (await filaDe(idArena))?.excedido === true);
+const excedidosAntes = await excedidosDe();
+r = await api('PUT', `/proyectos/material/${idArena}`, { cantidad_asignada: 11 });
+chequear('subirla pero no hasta lo consumido da 422', r.estado === 422, `dio ${r.estado}`);
+r = await api('PUT', `/proyectos/material/${idArena}`, { cantidad_asignada: 12 });
+chequear('subirla hasta lo consumido la deja sin exceso y sin restante',
+  r.estado === 200 && (await filaDe(idArena)).excedido === false && (await filaDe(idArena)).restante === 0, `dio ${r.estado}`);
+chequear('y el análisis ya no la cuenta como material excedido', (await excedidosDe()) === excedidosAntes - 1, `antes ${excedidosAntes}, ahora ${await excedidosDe()}`);
+
+// El alta valida igual que PHP.
+let contadorCatalogo = 0;
+const materialNuevo = async () => (await api('POST', '/materiales', { nombre: `Pintura D23 API ${++contadorCatalogo}`, unidad: 'l' })).datos.id_material;
+const idCatalogo = await materialNuevo();
+r = await api('POST', '/proyectos/2/materiales', { cantidad_asignada: 5 });
+chequear('asignar sin elegir material da 422 «Seleccioná un material»', r.estado === 422 && r.datos?.errors?.id_material === 'Seleccioná un material', `dio ${r.estado} ${JSON.stringify(r.datos)}`);
+for (const valor of [0, -1, 'mucho', undefined, 10000000000]) {
+  r = await api('POST', '/proyectos/2/materiales', { id_material: await materialNuevo(), cantidad_asignada: valor });
+  chequear(`asignar con cantidad ${valor === undefined ? 'faltante' : valor} da 422 «Cantidad inválida»`,
+    r.estado === 422 && errorDe(r) === 'Cantidad inválida', `dio ${r.estado} ${JSON.stringify(r.datos)}`);
+}
+chequear('y no se asigna ninguno de esos materiales',
+  !(await api('GET', '/proyectos/2/materiales')).datos.some((m) => m.nombre.startsWith('Pintura D23 API')));
+await api('POST', '/proyectos/2/materiales', { id_material: idCatalogo, cantidad_asignada: 5 });
+r = await api('POST', '/proyectos/2/materiales', { id_material: idCatalogo, cantidad_asignada: 5 });
+chequear('asignar el mismo material dos veces da 409 con el texto de PHP',
+  r.estado === 409 && r.datos?.error === 'Ese material ya está asignado a la obra', `dio ${r.estado} ${JSON.stringify(r.datos)}`);
+
+// ---- 19. Parte E: la pantalla de Materiales (D-23) ----
+const idUi = await nuevoMaterial('Yeso D23 UI', 'kg', 100);
+await consumirD23(idUi, 30);
+const idQuitar = await nuevoMaterial('Cal D23 UI', 'bolsa', 20);
+await consumirD23(idQuitar, 5);
+
+const abrirObra2 = async (p) => {
+  await p.goto(BASE + '#/materiales', { waitUntil: 'networkidle' });
+  await p.waitForTimeout(1200);
+  await p.getByRole('combobox').first().click();
+  await p.getByRole('option', { name: 'Edificio Residencial Los Pinos' }).click();
+  await p.waitForTimeout(1200);
+};
+const toasts = async (p) => (await p.locator('[data-sonner-toast]').allInnerTexts()).join(' | ');
+
+await abrirObra2(page);
+const ajustar = page.getByRole('button', { name: 'Ajustar asignación de Yeso D23 UI' });
+chequear('quien gestiona ve «Ajustar asignación de {material}»', (await ajustar.count()) === 1);
+chequear('y «Quitar {material} de la obra»', (await page.getByRole('button', { name: 'Quitar Yeso D23 UI de la obra' }).count()) === 1);
+// Si falta un control, el clic vence por tiempo: se informa y se sigue con lo demás.
+page.setDefaultTimeout(4000);
+let dlg;
+try {
+await ajustar.click();
+await page.waitForTimeout(400);
+dlg = page.getByRole('dialog');
+chequear('el diálogo muestra el input con la cantidad actual',
+  (await dlg.getByRole('spinbutton').inputValue()) === '100', await dlg.getByRole('spinbutton').inputValue().catch(() => 'sin input'));
+chequear('el diálogo avisa «Mínimo: lo ya consumido (30 kg)»', (await dlg.getByText('Mínimo: lo ya consumido (30 kg)').count()) === 1);
+chequear('y tiene Cancelar y Guardar',
+  (await dlg.getByRole('button', { name: 'Cancelar', exact: true }).count()) === 1 && (await dlg.getByRole('button', { name: 'Guardar', exact: true }).count()) === 1);
+await dlg.getByRole('button', { name: 'Cancelar', exact: true }).click();
+await page.waitForTimeout(400);
+chequear('Cancelar cierra sin cambiar nada', (await page.getByRole('dialog').count()) === 0 && (await filaDe(idUi)).cantidad_asignada === 100);
+
+await ajustar.click();
+await page.waitForTimeout(400);
+dlg = page.getByRole('dialog');
+await dlg.getByRole('spinbutton').fill('20');
+await dlg.getByRole('button', { name: 'Guardar', exact: true }).click();
+await page.waitForTimeout(800);
+chequear('guardar por debajo de lo consumido no cambia la cantidad', (await filaDe(idUi)).cantidad_asignada === 100, await toasts(page));
+if (await page.getByRole('dialog').count()) {
+  await page.getByRole('dialog').getByRole('spinbutton').fill('150');
+} else {
+  await ajustar.click();
+  await page.waitForTimeout(400);
+  await page.getByRole('dialog').getByRole('spinbutton').fill('150');
+}
+await page.getByRole('dialog').getByRole('button', { name: 'Guardar', exact: true }).click();
+await page.waitForTimeout(1000);
+chequear('guardar muestra «Asignación actualizada»', /Asignación actualizada/.test(await toasts(page)), await toasts(page));
+chequear('y la fila pasa a «30 / 150 kg · restante 120 kg»', (await page.getByText('30 / 150 kg · restante 120 kg').count()) === 1);
+chequear('con el valor guardado en el simulador', (await filaDe(idUi)).cantidad_asignada === 150);
+} catch (e) {
+  chequear('el flujo de ajustar desde la pantalla se completa', false, String(e.message).split('\n')[0]);
+  if (await page.getByRole('dialog').count()) await page.keyboard.press('Escape');
+}
+
+try {
+await page.getByRole('button', { name: 'Quitar Cal D23 UI de la obra' }).click();
+await page.waitForTimeout(400);
+dlg = page.getByRole('dialog');
+chequear('quitar pide confirmación y avisa que se borran los consumos',
+  (await dlg.count()) === 1 && /consumos/i.test(await dlg.innerText()), await dlg.innerText().catch(() => 'sin diálogo'));
+chequear('con Cancelar y Quitar',
+  (await dlg.getByRole('button', { name: 'Cancelar', exact: true }).count()) === 1 && (await dlg.getByRole('button', { name: 'Quitar', exact: true }).count()) === 1);
+await dlg.getByRole('button', { name: 'Cancelar', exact: true }).click();
+await page.waitForTimeout(400);
+chequear('Cancelar no borra la asignación', (await filaDe(idQuitar)) !== undefined);
+await page.getByRole('button', { name: 'Quitar Cal D23 UI de la obra' }).click();
+await page.waitForTimeout(400);
+await page.getByRole('dialog').getByRole('button', { name: 'Quitar', exact: true }).click();
+await page.waitForTimeout(1000);
+chequear('Quitar borra la asignación y sus consumos',
+  (await filaDe(idQuitar)) === undefined && (await page.getByText('Cal D23 UI').count()) === 0);
+} catch (e) {
+  chequear('el flujo de quitar con confirmación se completa', false, String(e.message).split('\n')[0]);
+}
+page.setDefaultTimeout(30000);
+
+// Los roles que no gestionan obras no ven ninguno de los dos botones. Cada uno
+// entra en su propia sesión (los datos base traen materiales en la obra 2).
+for (const cuenta of [
+  { rol: 'PersonalTecnico', email: 'tecnico@sgso.test', pass: 'tecnico123' },
+  { rol: 'Gerente', email: 'gerente@sgso.test', pass: 'gerente123' },
+]) {
+  const ctx = await nav.newContext({ viewport: { width: 1400, height: 1000 } });
+  const p = await ctx.newPage();
+  await p.goto(BASE, { waitUntil: 'networkidle' });
+  await p.waitForTimeout(700);
+  await p.fill('input[type=email]', cuenta.email);
+  await p.fill('input[type=password]', cuenta.pass);
+  await p.click('button[type=submit]');
+  await p.waitForTimeout(2500);
+  await abrirObra2(p);
+  chequear(`${cuenta.rol}: la obra muestra materiales`, (await p.getByText('Ladrillo comun').count()) > 0);
+  chequear(`${cuenta.rol}: no ve «Ajustar asignación»`, (await p.getByRole('button', { name: /Ajustar asignación/ }).count()) === 0);
+  chequear(`${cuenta.rol}: no ve «Quitar … de la obra»`, (await p.getByRole('button', { name: /Quitar .* de la obra/ }).count()) === 0);
+  await ctx.close();
+}
+
 await nav.close();
 console.log(`\n${ok.length}/${ok.length + mal.length} OK`);
 if (mal.length) process.exit(1);

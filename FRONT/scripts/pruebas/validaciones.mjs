@@ -150,6 +150,17 @@ await page.waitForTimeout(400);
 chequear('Cancelar en Materiales vacia lo cargado', (await campoConsumo.inputValue()) === '');
 chequear('y no registra ningun consumo', (await contar('consumos', null)) === consumosAntes);
 
+// ---- 5. «Nuevo usuario» no se autocompleta con los datos de quien lo crea (D-23) ----
+// El navegador rellenaba nombre y email con los del administrador y la
+// contraseña con la suya: se crearian cuentas con datos ajenos sin querer.
+await irA('/usuarios');
+chequear('el nombre de «Nuevo usuario» lleva autocomplete="off"',
+  (await page.locator('#nombre').getAttribute('autocomplete')) === 'off', String(await page.locator('#nombre').getAttribute('autocomplete')));
+chequear('el email lleva autocomplete="off"',
+  (await page.locator('#email').getAttribute('autocomplete')) === 'off', String(await page.locator('#email').getAttribute('autocomplete')));
+chequear('la contraseña lleva autocomplete="new-password"',
+  (await page.locator('#contrasena').getAttribute('autocomplete')) === 'new-password', String(await page.locator('#contrasena').getAttribute('autocomplete')));
+
 await nav.close();
 console.log(`\n${ok.length}/${ok.length + mal.length} OK`);
 if (mal.length) process.exit(1);
