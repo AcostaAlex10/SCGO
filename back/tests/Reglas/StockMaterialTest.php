@@ -38,4 +38,30 @@ final class StockMaterialTest extends TestCase
         // 0,29 * 100 da 28,999...: sin redondear, quedarían 0,72.
         self::assertSame(0.71, StockMaterial::restante(1, 0.29));
     }
+
+    /** @return array<string, array{float, float, bool}> */
+    public static function ajustes(): array
+    {
+        return [
+            'más que lo consumido' => [10, 4, true],
+            'justo lo consumido' => [4, 4, true],
+            'un centésimo menos' => [3.99, 4, false],
+            'nada consumido' => [0.01, 0, true],
+            'medio centésimo que redondea hacia arriba' => [1.005, 1.01, true],
+            'sobre una asignación excedida, debajo del consumo' => [11, 12, false],
+            'sobre una asignación excedida, igualando' => [12, 12, true],
+        ];
+    }
+
+    #[DataProvider('ajustes')]
+    public function testSoloSePuedeAsignarDeLoYaConsumidoEnAdelante(float $nueva, float $consumido, bool $puede): void
+    {
+        self::assertSame($puede, StockMaterial::puedeAsignar($nueva, $consumido));
+    }
+
+    public function testElAjusteSeCompareEnCentesimosYNoEnComaFlotante(): void
+    {
+        // 3,3 + 3,3 + 3,4 da 10,000000000000002 en coma flotante.
+        self::assertTrue(StockMaterial::puedeAsignar(10, 3.3 + 3.3 + 3.4));
+    }
 }

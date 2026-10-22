@@ -94,6 +94,7 @@ final class Tabla
             new Ruta('DELETE', '/proyectos/material', null, false, 'error.falta.asignacion'),
             new Ruta('GET', '/proyectos/material/{id}/consumos', null, false, 'material.consumos.listar'),
             new Ruta('POST', '/proyectos/material/{id}/consumos', Permisos::AVANCE, false, 'material.consumos.crear'),
+            new Ruta('PUT', '/proyectos/material/{id}', Permisos::GESTION_OBRA, false, 'material.asignacion.actualizar'),
             new Ruta('DELETE', '/proyectos/material/{id}', Permisos::GESTION_OBRA, false, 'material.asignacion.eliminar'),
             new Ruta('DELETE', '/proyectos/consumo/{id}', Permisos::AVANCE, false, 'material.consumo.eliminar'),
             new Ruta('GET', '/proyectos/consumo', null, false, 'error.falta.consumo'),

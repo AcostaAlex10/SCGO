@@ -6,9 +6,9 @@ se perdió.** Una sesión nueva empieza leyendo esto.
 
 - **Actualizado:** 2026-10-22, al revisar con Alex lo que había quedado afuera
   del sistema (#77)
-- **Base:** `main` @ `353a869`, CI en verde. **La base de Aiven volvió**:
-  `/api/health` responde `{"status":"ok","db":"ok"}`. **Sigue caído el correo**
-  (Brevo, sección 3)
+- **Base:** `main` @ `58be729`, CI en verde. **La base de Aiven volvió**:
+  `/api/health` responde `{"status":"ok","db":"ok"}`. **Brevo ya funciona**: Alex
+  probó la recuperación de contraseña el 2026-10-21 y el correo llegó (sección 3)
 - **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23).
   Desde el #65 tiene los seis arreglos del informe
 
@@ -87,21 +87,23 @@ y A-15, ninguno bloqueante.
 
 ## 3. Qué hay en vuelo ahora mismo
 
-### La base volvió; el correo sigue caído
+### La base volvió y el correo anda
 
 La base de Aiven volvió y el host no cambió: `/api/health` responde
 `{"status":"ok","db":"ok"}`. El PHP parcheado del #73 ya corre en producción
 (deploy automático de `e2bb7b2`, Live, sin limpiar caché). El freno corre en cada build: si alguno falla ahí, se redespliega con "Clear build cache & deploy".
 
-**Brevo sigue caído, y solo alguien del equipo lo arregla.** Los logs de Render
-dicen `Brevo contestó "HTTP/1.1 401 Unauthorized": unauthorized API Key is not
+**Brevo ya funciona** (Alex probó la recuperación de contraseña el 2026-10-21 y el
+correo llegó). Los pasos que siguen quedan como referencia por si vuelve a pasar:
+estuvo caído y solo alguien del equipo podía arreglarlo. Los logs de Render
+decían `Brevo contestó "HTTP/1.1 401 Unauthorized": unauthorized API Key is not
 enabled`. Hay que reactivar o generar la clave en Brevo (SMTP & API → API Keys)
 y ponerla en `BREVO_API_KEY` en Render → Environment. Después puede aparecer
 "unrecognised IP address" (Security → Authorised IPs) o un remitente sin
 verificar. Afecta la recuperación de contraseña y los avisos de incidencias
 (D-02).
 
-**Mientras Brevo no ande, para entrar a producción sin correo:** `php sql/seed.php`
+**Si Brevo vuelve a caerse, para entrar a producción sin correo:** `php sql/seed.php`
 desde `back/`, con `SEED_ADMIN_PASSWORD` en el entorno (y `SEED_ADMIN_EMAIL`, que es opcional:
 por defecto `admin@sgso.com`), crea un admin. Con un email que ya existe
 (`ON DUPLICATE KEY UPDATE contrasena, activo`) le cambia la clave y lo reactiva,
@@ -164,10 +166,10 @@ abierto, Edge la rechaza y cierra el cartel, y el `dismiss()` siguiente da
 `NoAlertPresentException`. Conviene avisarle al grupo.
 
 **Para verificar en producción.** La base ya anda, así que de la 3 en adelante se
-pueden probar ya; la 1 y la 2 esperan a Brevo:
+pueden probar ya. La 1 ya se probó (2026-10-21, Brevo anda); la 2 sigue sin probarse:
 
 1. **"Olvidé mi contraseña"**, una vez, con una cuenta propia: el correo tiene
-   que llegar. Si no llega, el log de Render dice por qué (A-17).
+   que llegar (probado el 2026-10-21: llegó). Si no llega, el log de Render dice por qué (A-17).
 2. **Una incidencia de gravedad alta** en una obra de prueba: el correo tiene
    que llegarles a los Gerentes y al Personal Administrativo (D-02, #46).
 3. **Un consumo mayor a lo que queda asignado** tiene que dar "Stock
@@ -197,7 +199,7 @@ tres cosas:
 - **RF29 a RF34 quedan *propuestos*:** gastos reales por obra, pedidos de
   material, cotizaciones de proveedores, horas aprobadas, pendientes e importar
   ofertas desde un archivo (RF34, agregado el 2026-10-22). Ninguno está aceptado.
-  Esperan **DEC-08**, y en el plan son D-17 a D-21 y D-23.
+  Esperan **DEC-08**, y en el plan son D-17 a D-21 y D-24.
 - **Revisado con Alex el 2026-10-22, por ahora:** pagos, facturación y retención
   de ARCA quedan fuera (exclusión contable), igual que la captura automática de
   precios y el registro sin conexión. Las reglas de alerta de costos (RF12, RF13)
@@ -422,6 +424,11 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
     enciende desde la consola de Aiven. Si al volver cambió el host, se actualiza
     `DB_HOST` en Render → Environment. Después, `/api/health` tiene que dar
     `{"status":"ok","db":"ok"}`.
+41. **Dos PR en paralelo pueden tomar el mismo número de ítem.** Pasó el
+    2026-10-22: el #76 y el #77 usaron los dos D-23, y el segundo tuvo que pasar
+    a D-24 al integrar `main`. Lo mismo vale para los RF, los DEC y estas trampas
+    (la 40 la reserva el #69). Antes de mergear, `git grep` del número contra
+    `origin/main`; el que llega segundo se renumera.
 
 ### Si la sesión corre en la nube y no en tu máquina
 

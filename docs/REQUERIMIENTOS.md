@@ -158,7 +158,7 @@ surgió del relevamiento pero todavía no lo aceptó Triwe.
 | RF07 | permitir adjuntar imágenes y reportes fotográficos del avance | Importante | **Pendiente** | ver desvío 1 |
 | RF08 | permitir registrar justificaciones cuando no se cumple el avance o hay inasistencias | Importante | Cumplido | `AsistenciaController`, `IncidenciaController` |
 | RF09 | permitir registrar incidencias externas: lluvias, fallas, retrasos de proveedores | Importante | Cumplido | `IncidenciaController` |
-| RF10 | permitir asignar materiales a una obra y registrar su consumo | Crítica | Cumplido | `MaterialObraController`; un consumo no puede superar lo que queda asignado (`Sgso\Reglas\StockMaterial`), y los consumos del día se envían juntos como lista |
+| RF10 | permitir asignar materiales a una obra y registrar su consumo | Crítica | Cumplido | `MaterialObraController`; un consumo no puede superar lo que queda asignado (`Sgso\Reglas\StockMaterial`), y los consumos del día se envían juntos como lista; la cantidad asignada se ajusta sin bajar de lo consumido |
 | RF11 | generar alertas cuando el avance real sea inferior al planificado | Importante | Cumplido | `AnalisisController` |
 | RF12 | generar alertas cuando se excedan las cantidades presupuestadas o asignadas | Importante | Cumplido; reglas a validar (§3) | `AnalisisController`, `MaterialObraController` |
 | RF13 | calcular la diferencia entre el presupuesto estimado y los gastos ejecutados | Importante | **Parcial**; reglas a validar (§3) | `AnalisisController`; ver desvío 3 |
@@ -195,7 +195,7 @@ RF34, que usa las de RF31.
 | RF31 | permitir cargar cotizaciones de proveedores (material, unidad, precio, fecha y vigencia) y compararlas para un pedido | Importante | Propuesto | TP1: la primera necesidad que nombró la dirección técnica. La carga manual es la alternativa que propone el estudio de viabilidad a la captura automática, que sigue fuera de alcance | D-19 |
 | RF32 | registrar las horas de entrada y salida del personal y de los maquinistas, con la aprobación del encargado | Importante | Propuesto | TP1: horas cargadas de más que se pagaron igual | D-20 |
 | RF33 | permitir anotar pendientes con fecha de vencimiento y avisar cuando vencen | Secundaria | Propuesto | TP1: el error más común que mencionó la dirección técnica es olvidarse de lo que quedó a medias | D-21 |
-| RF34 | permitir importar las ofertas de un proveedor desde un archivo (CSV o planilla), con el mismo formato que la carga a mano de RF31, y mostrar qué filas no se pudieron leer | Secundaria | Propuesto | Estudio de viabilidad: si la captura automática resulta inviable, queda la carga estructurada o la importación de ofertas. Agregado con Alex el 2026-10-22 | D-23 |
+| RF34 | permitir importar las ofertas de un proveedor desde un archivo (CSV o planilla), con el mismo formato que la carga a mano de RF31, y mostrar qué filas no se pudieron leer | Secundaria | Propuesto | Estudio de viabilidad: si la captura automática resulta inviable, queda la carga estructurada o la importación de ofertas. Agregado con Alex el 2026-10-22 | D-24 |
 
 Lo que la dirección técnica llamó **esencial**, guardar en la nube y desde el
 celular los archivos que llegan por WhatsApp, ya está cubierto por RF07 y RF16:

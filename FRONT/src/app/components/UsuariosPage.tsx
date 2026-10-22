@@ -163,6 +163,7 @@ export default function UsuariosPage() {
               <Label htmlFor="nombre">Nombre *</Label>
               <Input
                 id="nombre"
+                autoComplete="off"
                 value={form.nombre}
                 onChange={(e) => setForm({ ...form, nombre: e.target.value })}
                 placeholder="Ej: Ana Pérez"
@@ -174,6 +175,7 @@ export default function UsuariosPage() {
               <Input
                 id="email"
                 type="email"
+                autoComplete="off"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="ana@sgso.com"
@@ -185,6 +187,7 @@ export default function UsuariosPage() {
               <Input
                 id="contrasena"
                 type="password"
+                autoComplete="new-password"
                 value={form.contrasena}
                 onChange={(e) => setForm({ ...form, contrasena: e.target.value })}
                 placeholder="Mínimo 10 caracteres"

@@ -1,15 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Badge } from "./ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Package, Plus, Trash2, AlertTriangle } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Package, Plus, Trash2, AlertTriangle, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import {
   listarProyectos, listarCatalogoMateriales, listarMaterialesObra,
-  asignarMaterial, eliminarAsignacionMaterial, crearConsumo, enviarListaConsumos,
+  asignarMaterial, actualizarAsignacionMaterial, eliminarAsignacionMaterial, crearConsumo, enviarListaConsumos,
   type Proyecto, type Material, type AsignacionMaterial,
 } from "../api/proyectos";
 import { puedeGestionarObras, puedeRegistrarAvance } from "../auth/permisos";
@@ -23,6 +24,16 @@ export default function MaterialesPage() {
   const [materiales, setMateriales] = useState<AsignacionMaterial[]>([]);
   const [formMat, setFormMat] = useState({ id_material: "", cantidad_asignada: "" });
   const [consumoInput, setConsumoInput] = useState<Record<number, string>>({});
+  // Diálogos de ajustar y de quitar. La asignación se conserva al cerrar (solo
+  // baja `*Abierto`) para que el título no cambie durante la animación de cierre.
+  const [ajustando, setAjustando] = useState<AsignacionMaterial | null>(null);
+  const [ajusteAbierto, setAjusteAbierto] = useState(false);
+  const [ajusteValor, setAjusteValor] = useState("");
+  const [guardandoAjuste, setGuardandoAjuste] = useState(false);
+  const [quitando, setQuitando] = useState<AsignacionMaterial | null>(null);
+  const [quitarAbierto, setQuitarAbierto] = useState(false);
+  // Foco: al cancelar o cerrar con Escape vuelve al botón que abrió el diálogo.
+  const volverAlBoton = useRef<string | null>(null);
   const gestiona = puedeGestionarObras();
   const registra = puedeRegistrarAvance();
 
@@ -42,6 +53,61 @@ export default function MaterialesPage() {
       toast.success("Material asignado"); setFormMat({ id_material: "", cantidad_asignada: "" });
       setMateriales(await listarMaterialesObra(obra));
     } catch (err) { toast.error(err instanceof Error ? err.message : "Error"); }
+  }
+  const legible = (n: number) => String(n).replace(".", ",");
+  const devolverFoco = () => {
+    const id = volverAlBoton.current;
+    volverAlBoton.current = null;
+    if (id) document.getElementById(id)?.focus();
+  };
+
+  function abrirAjuste(m: AsignacionMaterial) {
+    setAjustando(m);
+    setAjusteValor(String(m.cantidad_asignada));
+    setAjusteAbierto(true);
+  }
+  function cancelarAjuste() {
+    if (ajustando) volverAlBoton.current = `ajustar-${ajustando.id_asignacion}`;
+    setAjusteAbierto(false);
+  }
+  async function guardarAjuste(e: React.FormEvent) {
+    e.preventDefault();
+    if (!ajustando || !obra) return;
+    setGuardandoAjuste(true);
+    try {
+      await actualizarAsignacionMaterial(ajustando.id_asignacion, parseFloat(ajusteValor));
+      toast.success("Asignación actualizada");
+      volverAlBoton.current = `ajustar-${ajustando.id_asignacion}`;
+      setAjusteAbierto(false);
+      setMateriales(await listarMaterialesObra(obra));
+    } catch (err) { toast.error(err instanceof Error ? err.message : "Error"); }
+    finally { setGuardandoAjuste(false); }
+  }
+
+  function pedirQuitar(m: AsignacionMaterial) {
+    setQuitando(m);
+    setQuitarAbierto(true);
+  }
+  function cancelarQuitar() {
+    if (quitando) volverAlBoton.current = `quitar-${quitando.id_asignacion}`;
+    setQuitarAbierto(false);
+  }
+  async function confirmarQuitar() {
+    if (!quitando || !obra) return;
+    const m = quitando;
+    // La fila desaparece si sale bien: el foco va a un destino estable (el título
+    // de la tarjeta), como en UsuariosPage. Si falla, vuelve al botón de la fila.
+    volverAlBoton.current = "titulo-materiales";
+    setQuitarAbierto(false);
+    try {
+      await eliminarAsignacionMaterial(m.id_asignacion);
+      setMateriales(await listarMaterialesObra(obra));
+      document.getElementById("titulo-materiales")?.focus();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error");
+      volverAlBoton.current = `quitar-${m.id_asignacion}`;
+      document.getElementById(`quitar-${m.id_asignacion}`)?.focus();
+    }
   }
   const hayPendientes = Object.values(consumoInput).some((v) => v.trim() !== "");
 
@@ -94,7 +160,7 @@ export default function MaterialesPage() {
         <Card><CardContent className="py-12 text-center text-muted-foreground">Seleccioná una obra para gestionar sus materiales.</CardContent></Card>
       ) : (
         <Card>
-          <CardHeader><CardTitle>Materiales de la obra</CardTitle><CardDescription>Asignado vs. consumido. Se avisa si se excede.</CardDescription></CardHeader>
+          <CardHeader><CardTitle id="titulo-materiales" tabIndex={-1} className="outline-none">Materiales de la obra</CardTitle><CardDescription>Asignado vs. consumido. Se avisa si se excede.</CardDescription></CardHeader>
           <CardContent className="space-y-4">
             {gestiona && (
               <form onSubmit={asignar} className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
@@ -121,7 +187,12 @@ export default function MaterialesPage() {
                     <span className="font-medium">{m.nombre}</span>
                     <span className="text-muted-foreground">{m.consumido} / {m.cantidad_asignada} {m.unidad} · restante {m.restante} {m.unidad}</span>
                     {m.excedido && <Badge variant="destructive" className="gap-1"><AlertTriangle className="w-3 h-3" /> Excedido</Badge>}
-                    {gestiona && <Button size="sm" variant="ghost" className="ml-auto" onClick={() => eliminarAsignacionMaterial(m.id_asignacion).then(() => listarMaterialesObra(obra).then(setMateriales)).catch(() => toast.error("Error"))}><Trash2 className="w-4 h-4" style={{ color: "#ef4444" }} /></Button>}
+                    {gestiona && (
+                      <div className="ml-auto flex gap-1">
+                        <Button id={`ajustar-${m.id_asignacion}`} size="sm" variant="ghost" aria-label={`Ajustar asignación de ${m.nombre}`} onClick={() => abrirAjuste(m)}><Pencil className="w-4 h-4" /></Button>
+                        <Button id={`quitar-${m.id_asignacion}`} size="sm" variant="ghost" aria-label={`Quitar ${m.nombre} de la obra`} onClick={() => pedirQuitar(m)}><Trash2 className="w-4 h-4" style={{ color: "#ef4444" }} /></Button>
+                      </div>
+                    )}
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2"><div className="h-2 rounded-full" style={{ width: `${Math.min(100, m.cantidad_asignada > 0 ? (m.consumido / m.cantidad_asignada) * 100 : 0)}%`, background: m.excedido ? "#ef4444" : "#3b82f6" }} /></div>
                   {registra && (
@@ -137,6 +208,43 @@ export default function MaterialesPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Ajustar la cantidad asignada (D-23) */}
+      <Dialog open={ajusteAbierto} onOpenChange={(abierto) => !abierto && cancelarAjuste()}>
+        <DialogContent onCloseAutoFocus={(e) => { e.preventDefault(); devolverFoco(); }}>
+          <form onSubmit={guardarAjuste} className="space-y-4">
+            <DialogHeader>
+              <DialogTitle>Ajustar asignación de {ajustando?.nombre}</DialogTitle>
+              <DialogDescription>Fija la cantidad asignada a la obra; los consumos registrados no cambian.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2">
+              <Label htmlFor="ajuste-cantidad">Cantidad asignada ({ajustando?.unidad})</Label>
+              <Input id="ajuste-cantidad" type="number" min="0.01" step="0.01" required aria-describedby="ajuste-minimo" value={ajusteValor} onChange={(e) => setAjusteValor(e.target.value)} />
+              <p id="ajuste-minimo" className="text-sm text-muted-foreground">Mínimo: lo ya consumido ({legible(ajustando?.consumido ?? 0)} {ajustando?.unidad})</p>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={cancelarAjuste}>Cancelar</Button>
+              <Button type="submit" disabled={guardandoAjuste}>Guardar</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Quitar el material de la obra: también borra sus consumos */}
+      <Dialog open={quitarAbierto} onOpenChange={(abierto) => !abierto && cancelarQuitar()}>
+        <DialogContent onCloseAutoFocus={(e) => { e.preventDefault(); devolverFoco(); }}>
+          <DialogHeader>
+            <DialogTitle>¿Quitar {quitando?.nombre} de la obra?</DialogTitle>
+            <DialogDescription>
+              También se borran los consumos registrados de este material. No se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={cancelarQuitar}>Cancelar</Button>
+            <Button variant="destructive" onClick={confirmarQuitar}>Quitar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
