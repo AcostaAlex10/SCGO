@@ -5,7 +5,7 @@ cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio
 se perdió.** Una sesión nueva empieza leyendo esto.
 
 - **Actualizado:** 2026-10-22, al revisar con Alex lo que había quedado afuera
-  del sistema (rama `claude/requerimientos-excluidos`)
+  del sistema (#77)
 - **Base:** `main` @ `bcd75f2`, CI en verde. **La base de Aiven volvió**:
   `/api/health` responde `{"status":"ok","db":"ok"}`. **Sigue caído el correo**
   (Brevo, sección 3)

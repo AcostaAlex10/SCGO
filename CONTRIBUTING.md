@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/requerimientos-excluidos` | `main` @ `353a869` (2026-10-22) | Lo que quedó afuera del sistema, revisado con Alex: importar ofertas (RF34 propuesto), pagos, facturación y ARCA fuera, reglas de alerta a validar, RNF como metas y guía para las entrevistas pendientes | — |
+| `claude/requerimientos-excluidos` | `main` @ `353a869` (2026-10-22) | Lo que quedó afuera del sistema, revisado con Alex: importar ofertas (RF34 propuesto), pagos, facturación y ARCA fuera, reglas de alerta a validar, RNF como metas y guía para las entrevistas pendientes | #77 |
 
 ### Reglas
 
