@@ -39,7 +39,8 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 2. **Una rama por tarea**, corta, y con su fila en la tabla de arriba.
 3. **Pull request contra `main`.** No apilar un PR sobre la rama de otro PR: si se
    borra la rama base, GitHub cierra el PR apilado en vez de reapuntarlo.
-4. **Al mergear:** borrar la rama y pasarla al historial de abajo.
+4. **Al mergear:** borrar la rama. Su fila pasa al historial de abajo en el PR
+   siguiente que toque este archivo (ver la trampa 19 de `docs/TRASPASO.md`).
 
 ---
 
@@ -153,6 +154,13 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/testing-arreglos-g9` | **Contra `testing`.** Los seis arreglos del informe del Grupo 9 en la demo, y `GUIA-TESTERS.md` al día | PR #65, en `testing` |
 | `claude/traspaso-local` | `TRASPASO.md` al día para seguir en una sesión local: los PR #50 a #65, la base y el correo caídos, y cómo armar el entorno | PR #66 |
 | `claude/traspaso-entorno-local` | Docs al día después de armar el entorno local: base de `TRASPASO.md`, D-16 con su PR, dos trampas nuevas y el resultado de Selenium del Grupo 9 en Edge | PR #67 |
+| `claude/falla-resuelta` | D-11: marcar una falla de maquinaria como resuelta sin borrarla; RF27 cumplido | PR #68 |
+| `claude/requerimientos-relevamiento` | Requerimientos contrastados con los documentos del relevamiento: RF13 pasa a parcial, RF29 a RF33 propuestos, DEC-08 y D-17 a D-21 en el plan | PR #70 |
+| `claude/traspaso-requerimientos` | `TRASPASO.md` al día con el #68 y el #70: D-11 hecho, los requerimientos propuestos, DEC-08 y dos trampas nuevas | PR #71 |
+| `claude/php-8.3.36` | A-18: la imagen de la API no se construye con un PHP anterior a 8.3.36 (dos RCE críticas), y `session.upload_progress` apagado | PR #73 |
+| `claude/fecha-imposible` | C-13: una fecha imposible da 422 en vez de 500, con una sola validación de fecha para toda la API | PR #72 |
+| `claude/lista-consumos` | D-16: la lista de consumos que se guarda y se envía junta (DEF-04 del informe de testing) | PR #64 |
+| `claude/usuarios-dados-de-baja` | D-22: los usuarios dados de baja pasan a su propia sección, donde se reactivan; dar de baja pide confirmación. Sin borrado real | PR #74 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir

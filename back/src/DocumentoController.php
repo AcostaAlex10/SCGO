@@ -7,6 +7,7 @@ namespace Sgso;
 use PDO;
 use Sgso\Http\Paginacion;
 use Sgso\Reglas\Enlaces;
+use Sgso\Reglas\Fecha;
 
 /**
  * Documentacion de la obra (RF16). Se guarda el dato del documento y un
@@ -52,7 +53,9 @@ final class DocumentoController
         // abrirlo, ejecuta código en la sesión de quien hace clic (A-01).
         if (!Enlaces::esSeguro($url)) { $errores['url'] = 'Ingresá un enlace válido que empiece con http:// o https://'; }
         if (!in_array($tipo, self::TIPOS, true)) { $errores['tipo'] = 'Tipo inválido'; }
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) { $fecha = date('Y-m-d'); }
+        // Ausente o vacía: hoy. Presente e inválida: error (antes se reemplazaba en silencio).
+        if ($fecha === '') { $fecha = date('Y-m-d'); }
+        elseif (!Fecha::esValida($fecha)) { $errores['fecha_carga'] = 'Formato esperado: YYYY-MM-DD'; }
         if (!empty($errores)) { $this->json(422, ['errors' => $errores]); return; }
 
         $stmt = $this->db->prepare('INSERT INTO documento (id_proyecto, nombre, tipo, categoria, url, fecha_carga) VALUES (?, ?, ?, ?, ?, ?)');

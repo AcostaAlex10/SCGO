@@ -374,6 +374,74 @@ chequear('el consumo rechazado no se guarda',
 r = await api('POST', `/proyectos/material/${cemento.id_asignacion}/consumos`, { fecha: '2026-03-02', cantidad_consumida: queda }, 'mock.3');
 chequear('se puede consumir justo lo que queda', r.estado === 201, `dio ${r.estado}`);
 
+// ---- 16. Una falla se marca resuelta sin borrarla (D-11) ----
+// Antes, la unica forma de bajar el contador de fallas abiertas era borrar la
+// falla, y con ella el historial que pide RF27.
+const fallasAbiertas = async (id) => (await api('GET', '/maquinaria')).datos.find((m) => m.id_maquinaria === id)?.fallas_abiertas;
+const conFalla = await api('POST', '/maquinaria', { nombre: 'Grua de contrato', tipo: 'Elevacion' });
+const idGrua = conFalla.datos?.id_maquinaria;
+const falla = await api('POST', `/maquinaria/${idGrua}/fallas`, { fecha: '2026-03-01', descripcion: 'Perdida de aceite' });
+const idFalla = falla.datos?.id_falla;
+chequear('la falla nueva cuenta como abierta', await fallasAbiertas(idGrua) === 1);
+
+r = await api('PUT', `/maquinaria/falla/${idFalla}`, {});
+chequear('marcar una falla sin decir resuelto devuelve 422', r.estado === 422, `dio ${r.estado}`);
+r = await api('PUT', '/maquinaria/falla/99999', { resuelto: true });
+chequear('marcar una falla inexistente devuelve 404', r.estado === 404, `dio ${r.estado}`);
+r = await api('PUT', `/maquinaria/falla/${idFalla}`, { resuelto: true }, 'mock.5');
+chequear('el Gerente no puede marcar una falla', r.estado === 403, `dio ${r.estado}`);
+
+await page.goto(BASE + '#/maquinaria', { waitUntil: 'networkidle' });
+await page.waitForTimeout(1000);
+await page.locator('[data-slot=card]').filter({ hasText: 'Grua de contrato' })
+  .getByRole('button', { name: 'Ver uso y fallas' }).click();
+await page.getByRole('button', { name: 'Marcar resuelta' }).click();
+await page.waitForTimeout(800);
+chequear('desde la pantalla, la falla queda resuelta y el contador baja', await fallasAbiertas(idGrua) === 0);
+chequear('y sigue en el historial',
+  (await api('GET', `/maquinaria/${idGrua}/fallas`)).datos.some((f) => f.id_falla === idFalla && f.resuelto === true));
+chequear('la pantalla la muestra resuelta', (await page.getByText('Resuelta', { exact: true }).count()) === 1);
+
+r = await api('PUT', `/maquinaria/falla/${idFalla}`, { resuelto: false });
+chequear('una falla resuelta se puede reabrir', r.estado === 200 && await fallasAbiertas(idGrua) === 1, `dio ${r.estado}`);
+
+// ---- 17. La lista de consumos se guarda y se envia junta (D-16) ----
+// DEF-04 del informe de testing. Entra entera o no entra. Usa la obra 2,
+// que tiene dos materiales con stock (la 1 se agoto en la seccion 15).
+const deObra2 = (await api('GET', '/proyectos/2/materiales')).datos;
+const [m1, m2] = deObra2.filter((m) => m.restante >= 1);
+const consumidoDe = async (id) => (await api('GET', '/proyectos/2/materiales')).datos.find((m) => m.id_asignacion === id).consumido;
+r = await api('POST', '/proyectos/2/consumos', { fecha: '2026-03-02', consumos: [
+  { id_asignacion: m1.id_asignacion, cantidad_consumida: 1 },
+  { id_asignacion: m2.id_asignacion, cantidad_consumida: m2.restante + 1 },
+] }, 'mock.3');
+chequear('una lista con un material sin stock se rechaza nombrando el material',
+  r.estado === 422 && Object.values(r.datos?.errors ?? {}).join(' ').includes(`${m2.nombre}: Stock insuficiente`), `dio ${r.estado} ${JSON.stringify(r.datos)}`);
+chequear('y no se guarda ningun consumo de la lista',
+  (await consumidoDe(m1.id_asignacion)) === m1.consumido && (await consumidoDe(m2.id_asignacion)) === m2.consumido);
+r = await api('POST', '/proyectos/2/consumos', { fecha: '2026-03-02', consumos: [
+  { id_asignacion: m1.id_asignacion, cantidad_consumida: 1 },
+  { id_asignacion: m2.id_asignacion, cantidad_consumida: 1 },
+] }, 'mock.3');
+chequear('una lista valida se guarda entera', r.estado === 201 && r.datos?.registrados === 2, `dio ${r.estado} ${JSON.stringify(r.datos)}`);
+
+// La pantalla: cargar dos materiales y "Guardar y enviar".
+await page.goto(BASE + '#/materiales', { waitUntil: 'networkidle' });
+await page.waitForTimeout(1200);
+await page.getByRole('combobox').first().click();
+await page.getByRole('option', { name: 'Edificio Residencial Los Pinos' }).click();
+await page.waitForTimeout(1200);
+const antes1 = await consumidoDe(m1.id_asignacion), antes2 = await consumidoDe(m2.id_asignacion);
+const campos = page.locator('input[placeholder^="Consumo"]');
+await campos.nth(0).fill('1');
+await campos.nth(1).fill('1');
+await page.click('button:has-text("Guardar y enviar")');
+await page.waitForTimeout(1200);
+const avisos = (await page.locator('[data-sonner-toast]').allInnerTexts()).join(' | ');
+chequear('"Guardar y enviar" confirma el envio a planificacion', /enviada a planificación/.test(avisos), avisos);
+chequear('y suma los dos consumos', (await consumidoDe(m1.id_asignacion)) + (await consumidoDe(m2.id_asignacion)) === antes1 + antes2 + 2);
+chequear('y vacia lo cargado', (await campos.nth(0).inputValue()) === '' && (await campos.nth(1).inputValue()) === '');
+
 await nav.close();
 console.log(`\n${ok.length}/${ok.length + mal.length} OK`);
 if (mal.length) process.exit(1);

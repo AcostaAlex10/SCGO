@@ -6,6 +6,7 @@ namespace Sgso;
 
 use PDO;
 use Sgso\Reglas\CicloDeVida;
+use Sgso\Reglas\Fecha;
 
 /**
  * Controlador de Planificacion. Cada proyecto tiene UNA planificacion
@@ -150,7 +151,7 @@ final class PlanificacionController
         $tieneFecha = isset($datos['fecha_carga']);
         if (!$parcial && !$tieneFecha) {
             $errores['fecha_carga'] = 'Obligatorio';
-        } elseif ($tieneFecha && !preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $datos['fecha_carga'])) {
+        } elseif ($tieneFecha && !Fecha::esValida((string) $datos['fecha_carga'])) {
             $errores['fecha_carga'] = 'Formato esperado: YYYY-MM-DD';
         }
         return $errores;

@@ -80,6 +80,28 @@ final class EtapaPlanificacionTest extends CasoConBase
     }
 
     /**
+     * C-13: un inicio que no existe da solo el error de formato. Compararlo como
+     * texto con el fin diria ademas "termina antes de empezar", que es ruido.
+     */
+    public function testUnaFechaDeInicioImposibleDaSoloElErrorDeFormato(): void
+    {
+        $idPlan = $this->planDeUnaObra();
+
+        $respuesta = $this->capturar(fn () => $this->etapas()->crear((string) $idPlan, [
+            'nombre' => 'Excavacion',
+            'peso_porcentual' => 20,
+            // El fin es valido y, como texto, menor que el inicio: si la
+            // comparacion corriera igual, pisaria el error de formato.
+            'fecha_inicio' => '2026-02-31',
+            'fecha_fin' => '2026-02-28',
+        ]));
+
+        self::assertSame(422, $respuesta['codigo']);
+        self::assertSame(['fecha_inicio' => 'Formato esperado: YYYY-MM-DD'], $respuesta['cuerpo']['errors']);
+        self::assertSame(0, $this->cantidadDeEtapas($idPlan));
+    }
+
+    /**
      * La comparacion de fechas solo corria si llegaban las dos. Un PUT con solo
      * `fecha_fin`, anterior al inicio guardado, pasaba la validacion y dejaba
      * una etapa que termina antes de empezar.

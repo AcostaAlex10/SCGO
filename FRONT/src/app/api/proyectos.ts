@@ -345,6 +345,13 @@ export async function crearConsumo(
 ): Promise<{ id_consumo: number }> {
   return parse(await apiFetch(`/proyectos/material/${idAsignacion}/consumos`, { method: "POST", body: JSON.stringify(datos) }));
 }
+/** La lista de consumos del día, que entra entera o no entra (CU22, D-16). */
+export async function enviarListaConsumos(
+  idProyecto: string,
+  datos: { fecha: string; consumos: { id_asignacion: number; cantidad_consumida: number }[] }
+): Promise<{ registrados: number }> {
+  return parse(await apiFetch(`/proyectos/${idProyecto}/consumos`, { method: "POST", body: JSON.stringify(datos) }));
+}
 export async function eliminarConsumo(idConsumo: number): Promise<void> {
   await parse(await apiFetch(`/proyectos/consumo/${idConsumo}`, { method: "DELETE" }));
 }
@@ -499,6 +506,9 @@ export async function crearFallaMaq(
   datos: { fecha: string; componente?: string; descripcion: string; reemplazo?: boolean; resuelto?: boolean }
 ): Promise<{ id_falla: number }> {
   return parse(await apiFetch(`/maquinaria/${idMaq}/fallas`, { method: "POST", body: JSON.stringify(datos) }));
+}
+export async function marcarFallaMaq(id: number, resuelto: boolean): Promise<void> {
+  await parse(await apiFetch(`/maquinaria/falla/${id}`, { method: "PUT", body: JSON.stringify({ resuelto }) }));
 }
 export async function eliminarFallaMaq(id: number): Promise<void> {
   await parse(await apiFetch(`/maquinaria/falla/${id}`, { method: "DELETE" }));

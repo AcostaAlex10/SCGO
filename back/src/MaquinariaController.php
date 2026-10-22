@@ -7,6 +7,7 @@ namespace Sgso;
 use PDO;
 use Sgso\Http\Paginacion;
 use Sgso\Reglas\ConsumoMaquinaria;
+use Sgso\Reglas\Fecha;
 
 /**
  * Gestion de maquinaria. Cubre:
@@ -126,7 +127,7 @@ final class MaquinariaController
         if (!$this->existeMaquina($idMaq)) { $this->json(404, ['error' => 'Maquinaria no encontrada']); return; }
         $fecha = (string) ($datos['fecha'] ?? '');
         $errores = [];
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) { $errores['fecha'] = 'Formato esperado: YYYY-MM-DD'; }
+        if (!Fecha::esValida($fecha)) { $errores['fecha'] = 'Formato esperado: YYYY-MM-DD'; }
 
         // Del uso cargado sale el promedio con el que se decide la alerta de
         // consumo (RF24): un valor negativo corre el umbral de todos los demas.
@@ -195,7 +196,7 @@ final class MaquinariaController
         $fecha = (string) ($datos['fecha'] ?? '');
         $descripcion = trim((string) ($datos['descripcion'] ?? ''));
         $errores = [];
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) { $errores['fecha'] = 'Formato esperado: YYYY-MM-DD'; }
+        if (!Fecha::esValida($fecha)) { $errores['fecha'] = 'Formato esperado: YYYY-MM-DD'; }
         if ($descripcion === '') { $errores['descripcion'] = 'Obligatorio'; }
         if (!empty($errores)) { $this->json(422, ['errors' => $errores]); return; }
 
@@ -211,6 +212,26 @@ final class MaquinariaController
             !empty($datos['resuelto']) ? 1 : 0,
         ]);
         $this->json(201, ['id_falla' => (int) $this->db->lastInsertId()]);
+    }
+
+    /**
+     * PUT /api/maquinaria/falla/{id}  -> marca la falla resuelta o la reabre.
+     * Antes la unica forma de bajar el contador de fallas abiertas era borrarla,
+     * y con ella el historial que pide RF27 (D-11).
+     */
+    public function actualizarFalla(string $id, array $datos): void
+    {
+        if (!is_bool($datos['resuelto'] ?? null)) { $this->json(422, ['errors' => ['resuelto' => 'Debe ser true o false']]); return; }
+
+        // Se busca antes porque, con MySQL, un UPDATE que no cambia nada
+        // devuelve rowCount 0 igual que una falla inexistente.
+        $stmt = $this->db->prepare('SELECT id_falla FROM falla_maquinaria WHERE id_falla = ?');
+        $stmt->execute([$id]);
+        if ($stmt->fetch() === false) { $this->json(404, ['error' => 'Falla no encontrada']); return; }
+
+        $stmt = $this->db->prepare('UPDATE falla_maquinaria SET resuelto = ? WHERE id_falla = ?');
+        $stmt->execute([$datos['resuelto'] ? 1 : 0, $id]);
+        $this->json(200, ['id_falla' => (int) $id, 'resuelto' => $datos['resuelto']]);
     }
 
     /** DELETE /api/maquinaria/falla/{id} */
