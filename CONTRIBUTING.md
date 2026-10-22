@@ -137,7 +137,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/lista-consumos` | D-16: la lista de consumos que se guarda y se envía junta (DEF-04 del informe de testing) | PR #64 |
 | `claude/usuarios-dados-de-baja` | D-22: los usuarios dados de baja pasan a su propia sección, donde se reactivan; dar de baja pide confirmación. Sin borrado real | PR #74 |
 | `claude/traspaso-21-10` | `TRASPASO.md` al día con #64, #72, #73 y #74: base de vuelta, Brevo pendiente y cuatro trampas nuevas | PR #75 |
-| `claude/ampliar-asignacion` | D-23: ajustar la cantidad asignada de un material que la obra ya tiene, nunca por debajo de lo consumido; el alta de usuarios deja de autocompletar las credenciales | PR #76 |
+| `claude/ampliar-asignacion` | D-23: ajustar la cantidad asignada de un material que la obra ya tiene, nunca por debajo de lo consumido; el alta de usuarios deja de autocompletar las credenciales del admin; `TRASPASO.md` registra que el correo (Brevo) volvió a andar | PR #76 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
