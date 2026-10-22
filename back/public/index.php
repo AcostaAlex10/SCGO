@@ -220,6 +220,7 @@ $manejadores = [
     'consumos.proyecto.crear' => fn (array $p, ?array $u) => $materialObra->crearListaConsumos($p['id'], leerCuerpoJson()),
     'material.consumos.listar' => fn (array $p, ?array $u) => $materialObra->listarConsumos($p['id'], paginaDelPedido()),
     'material.consumos.crear' => fn (array $p, ?array $u) => $materialObra->crearConsumo($p['id'], leerCuerpoJson()),
+    'material.asignacion.actualizar' => fn (array $p, ?array $u) => $materialObra->ajustarAsignacion($p['id'], leerCuerpoJson()),
     'material.asignacion.eliminar' => fn (array $p, ?array $u) => $materialObra->eliminarAsignacion($p['id']),
     'material.consumo.eliminar' => fn (array $p, ?array $u) => $materialObra->eliminarConsumo($p['id']),
     'documentos.listar' => fn (array $p, ?array $u) => $documento->listarPorProyecto($p['id'], paginaDelPedido()),

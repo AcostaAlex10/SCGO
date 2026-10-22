@@ -64,7 +64,8 @@ Las decisiones que antes tomaba cada controlador por su cuenta viven en
 - **`Certificacion`** — el monto certificado de una obra a la fecha (RF15). La usan
   el detalle, el listado y el análisis de obras.
 - **`StockMaterial`** — cuánto queda de una asignación de material y si un consumo
-  entra en eso (RF10, CU22). Cuenta en centésimos.
+  entra en eso (RF10, CU22), y si se puede ajustar la cantidad asignada sin bajar
+  de lo ya consumido (`puedeAsignar`, D-23). Cuenta en centésimos.
 - **`Enlaces`** — qué URL se puede guardar y abrir como enlace de un documento: solo
   `http` o `https`, con host y sin espacios ni caracteres de control (A-01).
 - **`Fecha`** — qué texto vale como fecha: formato `AAAA-MM-DD` exacto, año 1000-9999
