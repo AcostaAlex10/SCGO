@@ -333,6 +333,10 @@ export async function asignarMaterial(
 ): Promise<{ id_asignacion: number }> {
   return parse(await apiFetch(`/proyectos/${idProyecto}/materiales`, { method: "POST", body: JSON.stringify(datos) }));
 }
+/** Fija la cantidad asignada (valor absoluto); no puede bajar de lo ya consumido (D-23). */
+export async function actualizarAsignacionMaterial(idAsignacion: number, cantidad: number): Promise<void> {
+  await parse(await apiFetch(`/proyectos/material/${idAsignacion}`, { method: "PUT", body: JSON.stringify({ cantidad_asignada: cantidad }) }));
+}
 export async function eliminarAsignacionMaterial(idAsignacion: number): Promise<void> {
   await parse(await apiFetch(`/proyectos/material/${idAsignacion}`, { method: "DELETE" }));
 }

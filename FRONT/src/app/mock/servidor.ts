@@ -279,6 +279,20 @@ function faltaStock(asignacion: Fila, cantidad: number): string | null {
   return `Stock insuficiente: quedan ${String(queda).replace(".", ",")} ${String(material?.unidad ?? "")}`;
 }
 
+const centesimosDe = (n: number) => Math.round(n * 100);
+
+/** Como MaterialObraController::cantidadAsignadaValida(): numérica, > 0 y que entre en DECIMAL(12,2). */
+function cantidadAsignadaValida(v: unknown): boolean {
+  if (typeof v !== "number" && !(typeof v === "string" && v.trim() !== "")) return false;
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 && n <= 9999999999.99;
+}
+
+/** 6 -> "6", 2.5 -> "2,5": como MaterialObraController::cantidadLegible(). */
+function cantidadLegible(n: number): string {
+  return String(redondear(n)).replace(".", ",");
+}
+
 function nombreMaterial(asignacion: Fila): string {
   return String(db.materiales.find((m) => Number(m.id_material) === Number(asignacion.id_material))?.nombre ?? "Material");
 }
@@ -1253,6 +1267,27 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
         db.consumos = db.consumos.filter((c) => Number(c.id_asignacion) !== idAsig);
         return eliminarDe(db.asignaciones, "id_asignacion", idAsig);
       }
+      if (metodo === "PUT" && s.length === 3) {
+        const veto = exige(ROLES_GESTION_OBRA);
+        if (veto) return veto;
+        const asignacion = db.asignaciones.find((a) => Number(a.id_asignacion) === idAsig);
+        if (!asignacion) return json(404, { error: "Asignación no encontrada" });
+        if (!cantidadAsignadaValida(cuerpo.cantidad_asignada)) {
+          return json(422, { errors: { cantidad_asignada: "Cantidad inválida" } });
+        }
+        const nueva = Number(cuerpo.cantidad_asignada);
+        const consumido = consumidoDe(idAsig);
+        // Misma regla en centésimos que Sgso\Reglas\StockMaterial::puedeAsignar() (D-23).
+        if (centesimosDe(nueva) < centesimosDe(consumido)) {
+          const unidad = String(db.materiales.find((m) => Number(m.id_material) === Number(asignacion.id_material))?.unidad ?? "");
+          return json(422, {
+            errors: { cantidad_asignada: `No podés asignar menos de lo ya consumido: se consumieron ${cantidadLegible(consumido)} ${unidad}` },
+          });
+        }
+        asignacion.cantidad_asignada = nueva;
+        guardar();
+        return ok({ mensaje: "Asignación actualizada" });
+      }
       if (s[3] === "consumos") {
         if (metodo === "GET") {
           return listado(
@@ -1643,13 +1678,17 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
         const veto = exige(ROLES_GESTION_OBRA);
         if (veto) return veto;
         const idMaterial = num(cuerpo.id_material);
-        if (!idMaterial) return json(422, { errors: { id_material: "Obligatorio" } });
+        // Como MaterialObraController::asignar(): ambos errores juntos.
+        const erroresAsig: Record<string, string> = {};
+        if (!idMaterial) erroresAsig.id_material = "Seleccioná un material";
+        if (!cantidadAsignadaValida(cuerpo.cantidad_asignada)) erroresAsig.cantidad_asignada = "Cantidad inválida";
+        if (Object.keys(erroresAsig).length) return json(422, { errors: erroresAsig });
         if (
           db.asignaciones.some(
             (a) => Number(a.id_proyecto) === idNum && Number(a.id_material) === idMaterial
           )
         ) {
-          return json(409, { error: "El material ya esta asignado a la obra" });
+          return json(409, { error: "Ese material ya está asignado a la obra" });
         }
         const nueva: Fila = {
           id_asignacion: proximoId(db.asignaciones, "id_asignacion"),
