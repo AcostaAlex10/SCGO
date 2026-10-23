@@ -20,6 +20,7 @@ se perdió.** Una sesión nueva empieza leyendo esto.
 |---|---|
 | Este archivo | Dónde quedó todo y qué hay en vuelo **ahora** |
 | [CONTRIBUTING.md](../CONTRIBUTING.md) | Cómo se trabaja: ramas, PRs, qué cuenta como terminado |
+| [docs/PROCESO.md](PROCESO.md) | Quién hace qué: Claude orquesta, cinco agentes por rol, qué necesita a Alex antes |
 | [docs/PLAN-PRODUCTO.md](PLAN-PRODUCTO.md) | **El backlog real.** Todo lo que falta, con prioridad y tamaño |
 | [docs/REQUERIMIENTOS.md](REQUERIMIENTOS.md) | Qué tiene que hacer el sistema (RF y RNF) |
 | [docs/ARQUITECTURA.md](ARQUITECTURA.md) | Cómo está construido |
@@ -121,7 +122,13 @@ repositorio**.
 
 ### PR abiertos
 
-- **#69 (`claude/practicas-cmmi`), borrador:** marco de proceso CMMI.
+- **#69 (`claude/practicas-cmmi`), borrador: marco de proceso basado en CMMI.**
+  Sin código: criterios de aceptación copiados del caso de uso y el RF en cada
+  PR (`CONTRIBUTING.md` §2), una plantilla de PR con la lista de cierre, un
+  registro de riesgos en `OPERACION.md` §8 (todos a cargo de Alex) y
+  `docs/PROCESO.md`. **Cambia la forma de trabajar:** la sesión principal de
+  Claude orquesta y delega en cinco agentes por rol (`.claude/agents/`), cada uno
+  con su modelo y su nivel de autonomía.
 - **#23 (B-03, migraciones versionadas).** Quedó atrás de `main` y hay que
   rebasearlo (trampas 8 y 19). **No se mergea hasta que alguien del equipo corra
   las migraciones en Aiven**: el PR saca el `CREATE TABLE` que creaba
@@ -416,6 +423,11 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
     enciende desde la consola de Aiven. Si al volver cambió el host, se actualiza
     `DB_HOST` en Render → Environment. Después, `/api/health` tiene que dar
     `{"status":"ok","db":"ok"}`.
+40. **En la nube, `gh pr create` falla** con "GraphQL is not available" (403):
+    el proxy solo deja la API REST. El PR se abre con `gh api
+    repos/AcostaAlex10/SCGO/pulls -X POST -f base=main -f head=<rama>
+    -F draft=true -f title=... -F body=@archivo.md`, y se edita con `-X PATCH`
+    sobre `pulls/<n>`.
 
 ### Si la sesión corre en la nube y no en tu máquina
 
@@ -432,7 +444,7 @@ CI de GitHub da 28/28.
 
 **Las trampas 9, 10, 11, 13, 17, 21, 33, 35, 36, 37 y 38 son de la máquina local** (Windows,
 antivirus, `back/.env`): en la nube no aplican. La 12, la 14, la 19, la 31, la 34 y la 39 valen para las dos, y de la 22 a
-la 28 son propias de la nube. En la nube tampoco hay `back/.env`, así que
+la 28 y la 40 son propias de la nube. En la nube tampoco hay `back/.env`, así que
 no hay forma de pegarle a producción por accidente, y así tiene que seguir.
 
 ---
@@ -497,5 +509,7 @@ Es la única defensa contra el próximo corte de luz.
 - **Si algo te hizo perder tiempo**, va a la sección 4. Esa lista es el activo
   más valioso del archivo.
 - **Lo que cambia de estado en el backlog** se anota en `PLAN-PRODUCTO.md`, no acá.
+- **Los riesgos** se revisan en `OPERACION.md` §8: si uno pasó, se anota; si
+  apareció uno nuevo, se agrega.
 - **Commiteá y pusheá seguido.** Una rama sin pushear es trabajo que el próximo
   corte se lleva.

@@ -21,6 +21,12 @@ schema. Start here:
 - `docs/PLAN-PRODUCTO.md` — the prioritized roadmap. Work is picked from here.
 - `docs/OPERACION.md` — environments, where credentials live, known pitfalls.
 - `CONTRIBUTING.md` — branch and pull request rules.
+- `docs/PROCESO.md` — **how work is split.** The main Claude session
+  orchestrates: it plans, then delegates to the role agents in
+  `.claude/agents/` (analista, desarrollador, revisor, tester, auditor) instead
+  of doing the volume itself. Section 3 says what each agent may do alone and
+  what always needs Alex first; section 4, how every finding gets verified by a
+  second agent.
 
 ### Implemented architecture
 | Layer | Folder | Technology | Deployment |
