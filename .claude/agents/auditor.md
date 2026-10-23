@@ -22,8 +22,8 @@ Para la rama o el PR que te pasen:
 6. **Documentos al día:** el ítem anotado en `docs/PLAN-PRODUCTO.md`, la sección
    3 de `docs/TRASPASO.md` y su fecha, un riesgo nuevo en `docs/OPERACION.md` §8.
 7. **Nada supervisado sin aprobación** (`docs/PROCESO.md` §3): cambios en
-   `schema.sql`, migraciones, `.github/workflows/`, dependencias nuevas o
-   archivos borrados.
+   `schema.sql`, migraciones, `.github/workflows/`, dependencias nuevas,
+   archivos borrados, o `CLAUDE.md`, `.claude/agents/` y `docs/PROCESO.md`.
 
 ## Qué devolvés
 

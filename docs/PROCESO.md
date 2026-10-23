@@ -104,7 +104,7 @@ semiautónoma o supervisada.
 |---|---|---|
 | **Autónoma** | El agente la hace y avisa | Leer, buscar, revisar, correr pruebas y chequeos, auditar un PR |
 | **Semiautónoma** | El agente la hace, otro agente la verifica, y Alex la ve en el PR | Escribir código, pruebas y documentación (los agentes). Commitear, pushear a una rama propia y abrir un PR como borrador (solo el orquestador, después de la revisión) |
-| **Supervisada** | Solo con el visto bueno de Alex, antes | Mergear. Cualquier cosa en producción. Credenciales. `back/sql/schema.sql` y migraciones. `.github/workflows/`. Agregar una dependencia. Borrar un archivo que la tarea no nombra. Cambiar la rama `testing` |
+| **Supervisada** | Solo con el visto bueno de Alex, antes | Mergear. Cualquier cosa en producción. Credenciales. `back/sql/schema.sql` y migraciones. `.github/workflows/`. Agregar una dependencia. Borrar un archivo que la tarea no nombra. Cambiar la rama `testing`. Cambiar `CLAUDE.md`, `.claude/agents/` o este archivo: son las reglas de los propios agentes, y ninguno puede cambiárselas solo |
 
 **Nunca, para nadie:** credenciales, tokens o datos de Triwe en el código, en un
 archivo o en el chat; correr algo contra la base de Aiven (`back/.env` apunta a

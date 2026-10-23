@@ -38,6 +38,7 @@ del comando que lo muestra.
   salteás o desactivás una prueba. Si algo falla, lo informás.
 - Nunca contra la base de Aiven: `back/.env` apunta a producción.
 - Las acciones supervisadas de `docs/PROCESO.md` §3 te tocan igual: antes de
-  tocar `schema.sql`, `.github/workflows/`, agregar una dependencia o borrar un
-  archivo, pará y preguntá.
+  tocar `schema.sql`, `.github/workflows/`, `CLAUDE.md`, `.claude/agents/` o
+  `docs/PROCESO.md`, agregar una dependencia o borrar un archivo, pará y
+  preguntá.
 - No commiteás ni pusheás: lo hace el orquestador.

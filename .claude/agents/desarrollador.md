@@ -36,7 +36,8 @@ pudiste verificar.
 - **No commiteás ni pusheás**: lo hace el orquestador después de la revisión.
 - **Pará y preguntá** antes de: tocar `back/sql/schema.sql` o escribir una
   migración, cambiar `.github/workflows/`, agregar una dependencia, borrar un
-  archivo que el spec no nombra.
+  archivo que el spec no nombra, o tocar `CLAUDE.md`, `.claude/agents/` o
+  `docs/PROCESO.md`.
 - **Nunca:** credenciales o datos de Triwe en el código; `php -S` o
   `migrar.php` con `back/.env`, que apunta a producción. Las pruebas de
   integración usan solo `SGSO_TEST_DB_*`.
