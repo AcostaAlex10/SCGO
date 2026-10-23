@@ -4,9 +4,9 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-10-21, después de A-18 (#73), C-13 (#72), D-16 (#64),
-  D-22 (#74) y D-23 (#76); el correo (Brevo) ya funciona
-- **Base:** `main` @ `353a869`, CI en verde. **La base de Aiven volvió**:
+- **Actualizado:** 2026-10-22, al revisar con Alex lo que había quedado afuera
+  del sistema (#77)
+- **Base:** `main` @ `f4dfb7d`, CI en verde. **La base de Aiven volvió**:
   `/api/health` responde `{"status":"ok","db":"ok"}`. **Brevo ya funciona**: Alex
   probó la recuperación de contraseña el 2026-10-21 y el correo llegó (sección 3)
 - **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23).
@@ -80,6 +80,8 @@ día de dependencias.
 | #73 | A-18 (P0): el aviso de php.net del 2026-10-21 trae dos RCE críticas (GHSA-w8hw-w9fx-j79w y GHSA-6wmf-4rv5-p3rp), corregidas en 8.3.36; el peor caso es Apache con mod_php, que es lo que usa `back/Dockerfile`. El `Dockerfile` corta el build si PHP no tiene el parche (mínimo por rama: 8.2.35, 8.3.36, 8.4.27, 8.5.12) y apaga `session.upload_progress`. Ya desplegado en Render |
 | #64 | D-16 (DEF-04): la lista de consumos se guarda y se envía junta. Con él quedan atendidos en `main` los seis defectos del informe del Grupo 9 |
 | #74 | D-22: en Usuarios, los dados de baja van a una sección plegable propia con "Reactivar", y dar de baja pide confirmación. No se borra de verdad: `reporte.id_usuario` (`fk_reporte_usuario`, la única FK hacia `usuario`) no tiene `ON DELETE` (RESTRICT), y el `DELETE` falla con 1451 para cualquier autor de un reporte |
+| #76 | D-23: la cantidad asignada de un material se ajusta sin bajar de lo consumido, y quitarlo pide confirmación |
+| #69 | Marco de proceso basado en CMMI (`docs/PROCESO.md`): criterios del CU y RF en cada PR, plantilla de PR, registro de riesgos (`OPERACION.md` §8) y cinco agentes por rol en `.claude/agents/`. Claude orquesta y delega |
 
 **No queda ningún P0 de seguridad abierto.** De seguridad quedan A-09, A-11, A-12
 y A-15, ninguno bloqueante.
@@ -122,13 +124,9 @@ repositorio**.
 
 ### PR abiertos
 
-- **#69 (`claude/practicas-cmmi`), borrador: marco de proceso basado en CMMI.**
-  Sin código: criterios de aceptación copiados del caso de uso y el RF en cada
-  PR (`CONTRIBUTING.md` §2), una plantilla de PR con la lista de cierre, un
-  registro de riesgos en `OPERACION.md` §8 (todos a cargo de Alex) y
-  `docs/PROCESO.md`. **Cambia la forma de trabajar:** la sesión principal de
-  Claude orquesta y delega en cinco agentes por rol (`.claude/agents/`), cada uno
-  con su modelo y su nivel de autonomía.
+- **#77 (`claude/requerimientos-excluidos`): lo que quedó afuera del sistema.**
+  RF34 propuesto (D-24), pagos, facturación y ARCA fuera, reglas de alerta a
+  validar, RNF como metas y la guía de entrevistas. Ver más abajo.
 - **#23 (B-03, migraciones versionadas).** Quedó atrás de `main` y hay que
   rebasearlo (trampas 8 y 19). **No se mergea hasta que alguien del equipo corra
   las migraciones en Aiven**: el PR saca el `CREATE TABLE` que creaba
@@ -203,10 +201,18 @@ tres cosas:
   administración y el supervisor de campo quedaron sin fecha. Y la comparación de
   proveedores, que en el TP1 era una de las dos funciones principales, se perdió
   sin que nadie lo decidiera.
-- **RF29 a RF33 quedan *propuestos*:** gastos reales por obra, pedidos de
-  material, cotizaciones de proveedores, horas aprobadas y pendientes. Ninguno
-  está aceptado. Esperan **DEC-08**, y en el plan son D-17 a D-21; todos piden
-  migraciones.
+- **RF29 a RF34 quedan *propuestos*:** gastos reales por obra, pedidos de
+  material, cotizaciones de proveedores, horas aprobadas, pendientes e importar
+  ofertas desde un archivo (RF34, agregado el 2026-10-22). Ninguno está aceptado.
+  Esperan **DEC-08**, y en el plan son D-17 a D-21 y D-24.
+- **Revisado con Alex el 2026-10-22, por ahora:** pagos, facturación y retención
+  de ARCA quedan fuera (exclusión contable), igual que la captura automática de
+  precios y el registro sin conexión. Las reglas de alerta de costos (RF12, RF13)
+  quedan "a validar" con la dirección técnica y administración, y los RNF son
+  metas por comprobar.
+- **Las entrevistas pendientes tienen guía:** `docs/relevamiento/ENTREVISTAS.md`
+  (administración, supervisor de campo y confirmaciones con la dirección técnica,
+  incluida D-10). Sin nombres ni datos de Triwe: el repositorio es público.
 
 **Decisiones pendientes, todas del equipo:**
 
@@ -219,7 +225,7 @@ tres cosas:
 - **D-12:** la asistencia duplicada depende de si hay turnos.
 - **DEC-04** sigue postergada hasta que se cierre la posible venta. De ella
   dependen B-01 y B-02.
-- **DEC-08:** si Triwe quiere RF29 a RF33. Antes conviene hacer la entrevista a
+- **DEC-08:** si Triwe quiere RF29 a RF34. Antes conviene hacer la entrevista a
   administración que quedó pendiente, porque RF29 a RF32 son sus circuitos.
 
 **Configuración del equipo:**
@@ -428,6 +434,11 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
     repos/AcostaAlex10/SCGO/pulls -X POST -f base=main -f head=<rama>
     -F draft=true -f title=... -F body=@archivo.md`, y se edita con `-X PATCH`
     sobre `pulls/<n>`.
+41. **Dos PR en paralelo pueden tomar el mismo número de ítem.** Pasó el
+    2026-10-22: el #76 y el #77 usaron los dos D-23, y el segundo tuvo que pasar
+    a D-24 al integrar `main`. Lo mismo vale para los RF, los DEC y estas
+    trampas. Antes de mergear, `git grep` del número contra
+    `origin/main`; el que llega segundo se renumera.
 
 ### Si la sesión corre en la nube y no en tu máquina
 
@@ -443,7 +454,7 @@ cargar Google Fonts detrás del proxy del entorno. **No es una regresión.** En 
 CI de GitHub da 28/28.
 
 **Las trampas 9, 10, 11, 13, 17, 21, 33, 35, 36, 37 y 38 son de la máquina local** (Windows,
-antivirus, `back/.env`): en la nube no aplican. La 12, la 14, la 19, la 31, la 34 y la 39 valen para las dos, y de la 22 a
+antivirus, `back/.env`): en la nube no aplican. La 12, la 14, la 19, la 31, la 34, la 39 y la 41 valen para las dos, y de la 22 a
 la 28 y la 40 son propias de la nube. En la nube tampoco hay `back/.env`, así que
 no hay forma de pegarle a producción por accidente, y así tiene que seguir.
 

@@ -19,6 +19,10 @@ cambia, se cambia acá primero.
   documentos del relevamiento (TP1, plan de entrevistas, TP2 y el estudio de
   viabilidad). De ahí salen el desvío 3, la sección "Lo que el relevamiento no
   cubrió" y los RF propuestos RF29 a RF33.
+- **Lo que quedó afuera, revisado con Alex** el 2026-10-22: tres exclusiones
+  nuevas en §3, RF34 propuesto, las reglas de alerta de costos como "a validar"
+  y los RNF como metas por comprobar. Las entrevistas pendientes tienen guía en
+  [relevamiento/ENTREVISTAS.md](relevamiento/ENTREVISTAS.md).
 
 ---
 
@@ -58,7 +62,8 @@ RNF02 y RNF09.
 materiales, documentación, reportes con aprobación, análisis y alertas,
 maquinaria, y control de acceso por roles.
 
-**Fuera**, decidido en el relevamiento:
+**Fuera**, decidido en el relevamiento y, las tres últimas filas, al revisar con
+Alex lo que había quedado afuera (2026-10-22, *por ahora*: se pueden reabrir):
 
 | Excluido | Por qué |
 |---|---|
@@ -66,11 +71,15 @@ maquinaria, y control de acceso por roles.
 | Funcionamiento completamente offline | Sincronizar datos de forma segura es un problema en sí mismo |
 | Inteligencia artificial y análisis predictivo | Requiere historia de datos que todavía no existe |
 | Integración automática con WhatsApp | Dependencia externa y limitaciones técnicas del servicio |
+| Pagos, facturación y control de la retención de ARCA | Son parte de la exclusión contable: **SCGO no es un sistema contable.** El TP2 se los asigna a administración, y el TP1 cuenta que una compra fuera de protocolo hace perder la retención; eso queda en el circuito contable de Triwe |
+| Captura automática de precios de proveedores | No está comprobado que los proveedores publiquen información accesible, actualizable y utilizable (estudio de viabilidad). Queda la carga a mano (RF31) y por archivo (RF34) |
+| Registro sin conexión para cargar después | Es una versión acotada del offline: cargar más tarde sin duplicados es el mismo problema de sincronización. El estudio de viabilidad lo menciona como alternativa ante cortes |
 
 > **Pendiente de confirmar con Triwe.** El diagrama de contexto del relevamiento
 > muestra una consulta del estado de un lote a una base de datos de la
 > municipalidad. No tiene ningún requerimiento funcional asociado y no está
-> implementada (plan: D-10).
+> implementada (plan: D-10). Se pregunta en la entrevista con la dirección técnica
+> ([relevamiento/ENTREVISTAS.md](relevamiento/ENTREVISTAS.md)).
 
 ### Lo que el relevamiento no cubrió
 
@@ -85,7 +94,14 @@ maquinaria, y control de acceso por roles.
   dejó ningún RF de pedidos, proveedores ni cotizaciones, mientras el estudio de
   viabilidad dice que la comparación "se conserva". Se retoma en RF30 y RF31.
 - **Los RNF figuran como validados, pero no lo están.** El estudio de viabilidad
-  los llama "metas por comprobar". La sección 6 dice cuáles se cumplen hoy.
+  los llama "metas por comprobar", y así se tratan desde el 2026-10-22 (sección 6).
+- **Las reglas de alerta de costos no están validadas.** El estudio de viabilidad
+  pide que la dirección técnica y administración acuerden cómo se mide el avance,
+  qué costos entran, en qué períodos y con qué umbrales. Hasta entonces, RF12 y
+  RF13 funcionan con reglas propias del equipo y figuran como *reglas a validar*.
+- **Las entrevistas pendientes tienen guía.** Administración, supervisor de campo y
+  las confirmaciones con la dirección técnica están en
+  [relevamiento/ENTREVISTAS.md](relevamiento/ENTREVISTAS.md).
 
 ---
 
@@ -144,8 +160,8 @@ surgió del relevamiento pero todavía no lo aceptó Triwe.
 | RF09 | permitir registrar incidencias externas: lluvias, fallas, retrasos de proveedores | Importante | Cumplido | `IncidenciaController` |
 | RF10 | permitir asignar materiales a una obra y registrar su consumo | Crítica | Cumplido | `MaterialObraController`; un consumo no puede superar lo que queda asignado (`Sgso\Reglas\StockMaterial`), y los consumos del día se envían juntos como lista; la cantidad asignada se ajusta sin bajar de lo consumido |
 | RF11 | generar alertas cuando el avance real sea inferior al planificado | Importante | Cumplido | `AnalisisController` |
-| RF12 | generar alertas cuando se excedan las cantidades presupuestadas o asignadas | Importante | Cumplido | `AnalisisController`, `MaterialObraController` |
-| RF13 | calcular la diferencia entre el presupuesto estimado y los gastos ejecutados | Importante | **Parcial** | `AnalisisController`; ver desvío 3 |
+| RF12 | generar alertas cuando se excedan las cantidades presupuestadas o asignadas | Importante | Cumplido; reglas a validar (§3) | `AnalisisController`, `MaterialObraController` |
+| RF13 | calcular la diferencia entre el presupuesto estimado y los gastos ejecutados | Importante | **Parcial**; reglas a validar (§3) | `AnalisisController`; ver desvío 3 |
 | RF14 | generar reportes comparativos entre avance planificado y ejecutado | Importante | Cumplido | `AnalisisController`, `Dashboard` |
 | RF15 | traducir el porcentaje de avance en montos para generar certificaciones | Secundaria | Cumplido | `Sgso\Reglas\Certificacion`: la API devuelve el monto certificado de cada obra, al centavo; `ProyectoDetallePage` lo muestra |
 | RF16 | permitir almacenar y consultar documentación en PDF e imágenes | Importante | **Parcial** | ver desvío 1 |
@@ -169,7 +185,8 @@ surgió del relevamiento pero todavía no lo aceptó Triwe.
 Salen de necesidades que aparecen en el TP1 y en el estudio de viabilidad pero
 que el TP2 no convirtió en requerimientos. **Ninguno está aceptado:** antes hay
 que validarlos con Triwe y hacer la entrevista a administración que quedó
-pendiente (plan: DEC-08). Todos piden tablas nuevas, o sea migraciones.
+pendiente (plan: DEC-08). Todos piden tablas nuevas, o sea migraciones, salvo
+RF34, que usa las de RF31.
 
 | RF | El sistema debería… | Prioridad sugerida | Estado | Origen | Plan |
 |---|---|---|---|---|---|
@@ -178,6 +195,7 @@ pendiente (plan: DEC-08). Todos piden tablas nuevas, o sea migraciones.
 | RF31 | permitir cargar cotizaciones de proveedores (material, unidad, precio, fecha y vigencia) y compararlas para un pedido | Importante | Propuesto | TP1: la primera necesidad que nombró la dirección técnica. La carga manual es la alternativa que propone el estudio de viabilidad a la captura automática, que sigue fuera de alcance | D-19 |
 | RF32 | registrar las horas de entrada y salida del personal y de los maquinistas, con la aprobación del encargado | Importante | Propuesto | TP1: horas cargadas de más que se pagaron igual | D-20 |
 | RF33 | permitir anotar pendientes con fecha de vencimiento y avisar cuando vencen | Secundaria | Propuesto | TP1: el error más común que mencionó la dirección técnica es olvidarse de lo que quedó a medias | D-21 |
+| RF34 | permitir importar las ofertas de un proveedor desde un archivo (CSV o planilla), con el mismo formato que la carga a mano de RF31, y mostrar qué filas no se pudieron leer | Secundaria | Propuesto | Estudio de viabilidad: si la captura automática resulta inviable, queda la carga estructurada o la importación de ofertas. Agregado con Alex el 2026-10-22 | D-24 |
 
 Lo que la dirección técnica llamó **esencial**, guardar en la nube y desde el
 celular los archivos que llegan por WhatsApp, ya está cubierto por RF07 y RF16:
@@ -217,8 +235,9 @@ los requerimientos de la tabla son los que tienen reglas de negocio con nombre p
 
 ## 6. Requerimientos no funcionales
 
-En el relevamiento figuran como *validados* con la empresa, es decir, acordados.
-La columna **Estado** dice si el sistema los cumple hoy.
+El TP2 los marca como *validados*, pero el estudio de viabilidad los llama
+**metas por comprobar**, y así se tratan: una meta cuenta como cumplida solo si
+se midió o se probó. La columna **Estado** dice dónde está cada una hoy.
 
 | RNF | El sistema debe… | Prioridad | Estado hoy |
 |---|---|---|---|
@@ -231,7 +250,7 @@ La columna **Estado** dice si el sistema los cumple hoy.
 | RNF07 | hacer respaldos automáticos diarios | Importante | **Sin verificar.** Depende del plan contratado en Aiven, y nunca se probó restaurar un respaldo (plan: B-01). |
 | RNF08 | soportar al menos 10 obras activas sin degradarse | Importante | **Sin verificar.** Los listados que crecen con el tiempo ya se pueden pedir por página, y la pantalla trae de a 50 las asistencias y los reportes (C-03). Falta una prueba de carga. |
 | RNF09 | minimizar el texto a tipear en obra: listas, selección rápida y carga numérica | Importante | **Parcial.** Hay listas para materiales y etapas; falta revisar el resto de los formularios de campo. |
-| RNF10 | sincronizar lo cargado en obra con la base en menos de 10 segundos, con conexión | Importante | Cumple con conexión, salvo el arranque en frío de RNF03. No hay modo offline, que está fuera de alcance. |
+| RNF10 | sincronizar lo cargado en obra con la base en menos de 10 segundos, con conexión | Importante | **Sin medir.** Con conexión, cada registro se guarda en el momento, salvo el arranque en frío de RNF03, pero nadie midió los 10 segundos. No hay modo offline, que está fuera de alcance (§3). |
 
 **Los dos que más importan para vender:** RNF03 y RNF07. Los dos dependen de
 contratar la infraestructura (decisión DEC-04 del plan) y hoy no se cumplen o no se
