@@ -57,10 +57,35 @@ El CI corre cuatro jobs, y los cuatro son obligatorios en el ruleset de `main`
 | Imagen Docker (arranque seguro) | que la API falle cerrado sin `JWT_SECRET` y no filtre detalles internos | sí |
 
 La descripción del PR dice qué cambia, por qué, y cómo se verificó. Si algo no se
-pudo verificar, se dice.
+pudo verificar, se dice. La plantilla
+([.github/pull_request_template.md](.github/pull_request_template.md)) trae esas
+secciones y la lista de cierre.
+
+### Criterios de aceptación: lo que dice el caso de uso
+
+**Antes de escribir código**, si el ítem sale de un caso de uso, el PR copia del
+CU lo que se ve en pantalla: los mensajes con su texto exacto, los campos
+obligatorios, los botones y qué pasa al cancelar. Al cerrar, se marcan uno por
+uno. Cuatro de los seis defectos del informe del Grupo 9 (DEF-01, 02, 03 y 06)
+no eran errores de lógica: eran pantallas que no decían lo que dice el CU, y
+ninguna prueba lo podía ver porque nadie lo había escrito.
+
+Los textos de los casos de uso no están en el repositorio: se copian del
+material del trabajo práctico.
+
+### Trazabilidad: de qué requerimiento viene cada cambio
+
+- **El título o la descripción del PR nombra el ítem del plan** (D-16, C-13) y
+  **el RF** que toca (RF10). Si no toca ninguno, se dice.
+- **Una prueba que verifica un RF lo nombra en el comentario de arriba**, como
+  `/** Cuándo un registro de uso de una máquina consume de más (RF24). */` en
+  `ConsumoMaquinariaTest`. Ya lo hace la mayoría de las pruebas. Así, cuando
+  cambia un requerimiento, `git grep RF24` dice qué pruebas revisar.
 
 ### Qué cuenta como terminado
 
+- Si sale de un caso de uso, sus criterios de aceptación están en el PR y
+  marcados.
 - Tiene una prueba que lo cubre. Si es un arreglo, **la prueba fallaba antes**.
 - El CI está en verde.
 - Si cambia el comportamiento de la API, el simulador

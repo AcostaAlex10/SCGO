@@ -6,7 +6,7 @@ se perdió.** Una sesión nueva empieza leyendo esto.
 
 - **Actualizado:** 2026-10-22, al revisar con Alex lo que había quedado afuera
   del sistema (#77)
-- **Base:** `main` @ `58be729`, CI en verde. **La base de Aiven volvió**:
+- **Base:** `main` @ `f4dfb7d`, CI en verde. **La base de Aiven volvió**:
   `/api/health` responde `{"status":"ok","db":"ok"}`. **Brevo ya funciona**: Alex
   probó la recuperación de contraseña el 2026-10-21 y el correo llegó (sección 3)
 - **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23).
@@ -20,6 +20,7 @@ se perdió.** Una sesión nueva empieza leyendo esto.
 |---|---|
 | Este archivo | Dónde quedó todo y qué hay en vuelo **ahora** |
 | [CONTRIBUTING.md](../CONTRIBUTING.md) | Cómo se trabaja: ramas, PRs, qué cuenta como terminado |
+| [docs/PROCESO.md](PROCESO.md) | Quién hace qué: Claude orquesta, cinco agentes por rol, qué necesita a Alex antes |
 | [docs/PLAN-PRODUCTO.md](PLAN-PRODUCTO.md) | **El backlog real.** Todo lo que falta, con prioridad y tamaño |
 | [docs/REQUERIMIENTOS.md](REQUERIMIENTOS.md) | Qué tiene que hacer el sistema (RF y RNF) |
 | [docs/ARQUITECTURA.md](ARQUITECTURA.md) | Cómo está construido |
@@ -79,6 +80,8 @@ día de dependencias.
 | #73 | A-18 (P0): el aviso de php.net del 2026-10-21 trae dos RCE críticas (GHSA-w8hw-w9fx-j79w y GHSA-6wmf-4rv5-p3rp), corregidas en 8.3.36; el peor caso es Apache con mod_php, que es lo que usa `back/Dockerfile`. El `Dockerfile` corta el build si PHP no tiene el parche (mínimo por rama: 8.2.35, 8.3.36, 8.4.27, 8.5.12) y apaga `session.upload_progress`. Ya desplegado en Render |
 | #64 | D-16 (DEF-04): la lista de consumos se guarda y se envía junta. Con él quedan atendidos en `main` los seis defectos del informe del Grupo 9 |
 | #74 | D-22: en Usuarios, los dados de baja van a una sección plegable propia con "Reactivar", y dar de baja pide confirmación. No se borra de verdad: `reporte.id_usuario` (`fk_reporte_usuario`, la única FK hacia `usuario`) no tiene `ON DELETE` (RESTRICT), y el `DELETE` falla con 1451 para cualquier autor de un reporte |
+| #76 | D-23: la cantidad asignada de un material se ajusta sin bajar de lo consumido, y quitarlo pide confirmación |
+| #69 | Marco de proceso basado en CMMI (`docs/PROCESO.md`): criterios del CU y RF en cada PR, plantilla de PR, registro de riesgos (`OPERACION.md` §8) y cinco agentes por rol en `.claude/agents/`. Claude orquesta y delega |
 
 **No queda ningún P0 de seguridad abierto.** De seguridad quedan A-09, A-11, A-12
 y A-15, ninguno bloqueante.
@@ -121,7 +124,9 @@ repositorio**.
 
 ### PR abiertos
 
-- **#69 (`claude/practicas-cmmi`), borrador:** marco de proceso CMMI.
+- **#77 (`claude/requerimientos-excluidos`): lo que quedó afuera del sistema.**
+  RF34 propuesto (D-24), pagos, facturación y ARCA fuera, reglas de alerta a
+  validar, RNF como metas y la guía de entrevistas. Ver más abajo.
 - **#23 (B-03, migraciones versionadas).** Quedó atrás de `main` y hay que
   rebasearlo (trampas 8 y 19). **No se mergea hasta que alguien del equipo corra
   las migraciones en Aiven**: el PR saca el `CREATE TABLE` que creaba
@@ -424,10 +429,15 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
     enciende desde la consola de Aiven. Si al volver cambió el host, se actualiza
     `DB_HOST` en Render → Environment. Después, `/api/health` tiene que dar
     `{"status":"ok","db":"ok"}`.
+40. **En la nube, `gh pr create` falla** con "GraphQL is not available" (403):
+    el proxy solo deja la API REST. El PR se abre con `gh api
+    repos/AcostaAlex10/SCGO/pulls -X POST -f base=main -f head=<rama>
+    -F draft=true -f title=... -F body=@archivo.md`, y se edita con `-X PATCH`
+    sobre `pulls/<n>`.
 41. **Dos PR en paralelo pueden tomar el mismo número de ítem.** Pasó el
     2026-10-22: el #76 y el #77 usaron los dos D-23, y el segundo tuvo que pasar
-    a D-24 al integrar `main`. Lo mismo vale para los RF, los DEC y estas trampas
-    (la 40 la reserva el #69). Antes de mergear, `git grep` del número contra
+    a D-24 al integrar `main`. Lo mismo vale para los RF, los DEC y estas
+    trampas. Antes de mergear, `git grep` del número contra
     `origin/main`; el que llega segundo se renumera.
 
 ### Si la sesión corre en la nube y no en tu máquina
@@ -444,8 +454,8 @@ cargar Google Fonts detrás del proxy del entorno. **No es una regresión.** En 
 CI de GitHub da 28/28.
 
 **Las trampas 9, 10, 11, 13, 17, 21, 33, 35, 36, 37 y 38 son de la máquina local** (Windows,
-antivirus, `back/.env`): en la nube no aplican. La 12, la 14, la 19, la 31, la 34 y la 39 valen para las dos, y de la 22 a
-la 28 son propias de la nube. En la nube tampoco hay `back/.env`, así que
+antivirus, `back/.env`): en la nube no aplican. La 12, la 14, la 19, la 31, la 34, la 39 y la 41 valen para las dos, y de la 22 a
+la 28 y la 40 son propias de la nube. En la nube tampoco hay `back/.env`, así que
 no hay forma de pegarle a producción por accidente, y así tiene que seguir.
 
 ---
@@ -510,5 +520,7 @@ Es la única defensa contra el próximo corte de luz.
 - **Si algo te hizo perder tiempo**, va a la sección 4. Esa lista es el activo
   más valioso del archivo.
 - **Lo que cambia de estado en el backlog** se anota en `PLAN-PRODUCTO.md`, no acá.
+- **Los riesgos** se revisan en `OPERACION.md` §8: si uno pasó, se anota; si
+  apareció uno nuevo, se agrega.
 - **Commiteá y pusheá seguido.** Una rama sin pushear es trabajo que el próximo
   corte se lleva.
