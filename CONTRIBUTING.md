@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/phpstan-2.3` | `main` @ `5f22010` (2026-10-24) | Dejar listo el #51 de Dependabot: PHPStan 2.3.1 recuerda el resultado de `estadoDeLaObra()` entre llamadas y marca como siempre verdadera una aserción de `CicloDeVidaObraTest` | — |
+| `claude/phpstan-2.3` | `main` @ `5f22010` (2026-10-24) | Dejar listo el #51 de Dependabot: PHPStan 2.3.1 recuerda el resultado de `estadoDeLaObra()` entre llamadas y marca como siempre verdadera una aserción de `CicloDeVidaObraTest` | #78 |
 
 ### Reglas
 
