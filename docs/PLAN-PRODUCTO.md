@@ -3,11 +3,12 @@
 Todo lo que falta para que SCGO se pueda entregar y cobrar a Triwe, ordenado por
 prioridad.
 
-- **Actualizado:** 2026-09-26
-- **Base:** `main` @ `057d078`
+- **Actualizado:** 2026-10-24
+- **Base:** `main` @ `5f22010`
 - **Punto de partida:** [ADR-001](adr/ADR-001-stack.md) está completo. El backend ya
-  tiene la base que le faltaba: Composer, 466 pruebas, PHPStan nivel 5, tabla de
-  rutas y CI con cuatro jobs en verde (tres obligatorios; el de Docker es B-10).
+  tiene la base que le faltaba: Composer, 860 pruebas (las del CI de `5f22010`,
+  con las de integración), PHPStan nivel 5, tabla de rutas y CI con cuatro jobs en
+  verde, los cuatro obligatorios desde B-10.
 - **Alcance:** lo que el sistema tiene que hacer está en
   [REQUERIMIENTOS.md](REQUERIMIENTOS.md). Este plan dice qué falta para llegar ahí
   con calidad de producto.
