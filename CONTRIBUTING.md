@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/encabezado-plan` | `main` @ `5f22010` (2026-10-24) | El encabezado de `PLAN-PRODUCTO.md` al día: fecha, base y cantidad de pruebas | — |
+| `claude/encabezado-plan` | `main` @ `5f22010` (2026-10-24) | El encabezado de `PLAN-PRODUCTO.md` al día: fecha, base y cantidad de pruebas | #79 |
 
 ### Reglas
 
