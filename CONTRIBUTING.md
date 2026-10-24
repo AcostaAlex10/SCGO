@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/requerimientos-excluidos` | `main` @ `353a869` (2026-10-22) | Lo que quedó afuera del sistema, revisado con Alex: importar ofertas (RF34 propuesto), pagos, facturación y ARCA fuera, reglas de alerta a validar, RNF como metas y guía para las entrevistas pendientes | #77 |
+| `claude/encabezado-plan` | `main` @ `5f22010` (2026-10-24) | El encabezado de `PLAN-PRODUCTO.md` al día: fecha, base y cantidad de pruebas | — |
 
 ### Reglas
 
@@ -164,6 +164,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/traspaso-21-10` | `TRASPASO.md` al día con #64, #72, #73 y #74: base de vuelta, Brevo pendiente y cuatro trampas nuevas | PR #75 |
 | `claude/ampliar-asignacion` | D-23: ajustar la cantidad asignada de un material que la obra ya tiene, nunca por debajo de lo consumido; el alta de usuarios deja de autocompletar las credenciales del admin; `TRASPASO.md` registra que el correo (Brevo) volvió a andar | PR #76 |
 | `claude/practicas-cmmi` | Marco de proceso basado en CMMI: criterios de aceptación del caso de uso, trazabilidad al RF, registro de riesgos, plantilla de PR con el cierre, `docs/PROCESO.md` y cinco agentes por rol en `.claude/agents/` | PR #69 |
+| `claude/requerimientos-excluidos` | Lo que quedó afuera del sistema, revisado con Alex: importar ofertas (RF34 propuesto), pagos, facturación y ARCA fuera, reglas de alerta a validar, RNF como metas y guía para las entrevistas pendientes | PR #77 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
