@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/propuestos-informe-ids2` | `main` @ `36fb1c9` (2026-11-02) | Requerimientos propuestos que salen del informe de Ingeniería de Software II: RF31 ampliado, perfil Compras, historial de cambios, resúmenes PDF o CSV, carga inicial y dimensionamiento de RNF08 | — |
+| `claude/propuestos-informe-ids2` | `main` @ `36fb1c9` (2026-11-02) | Requerimientos propuestos que salen del informe de Ingeniería de Software II: RF31 ampliado, perfil Compras, historial de cambios, resúmenes PDF o CSV, carga inicial y dimensionamiento de RNF08 | #81 |
 
 ### Reglas
 
