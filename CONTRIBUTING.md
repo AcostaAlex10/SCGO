@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/prioridad-gastos-reales` | `main` @ `9e7fc99` (2026-11-02) | El desvío de plata entre lo presupuestado y lo gastado de verdad pasa al frente: RF29 a Crítica y D-17 primero en el orden de DEC-08 | — |
+| `claude/prioridad-gastos-reales` | `main` @ `9e7fc99` (2026-11-02) | El desvío de plata entre lo presupuestado y lo gastado de verdad pasa al frente: RF29 a Crítica y D-17 primero en el orden de DEC-08 | #82 |
 
 ### Reglas
 
