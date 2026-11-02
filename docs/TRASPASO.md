@@ -4,9 +4,8 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-11-02, al sumar como propuestos los requerimientos del
-  informe de Ingeniería de Software II
-- **Base:** `main` @ `36fb1c9`, CI en verde. **La base de Aiven volvió**:
+- **Actualizado:** 2026-11-02, al pasar al frente los gastos reales (RF29, D-17)
+- **Base:** `main` @ `9e7fc99`, CI en verde. **La base de Aiven volvió**:
   `/api/health` responde `{"status":"ok","db":"ok"}`. **Brevo ya funciona**: Alex
   probó la recuperación de contraseña el 2026-10-21 y el correo llegó (sección 3)
 - **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23).
@@ -232,7 +231,8 @@ tres cosas:
 - **D-12:** la asistencia duplicada depende de si hay turnos.
 - **DEC-04** sigue postergada hasta que se cierre la posible venta. De ella
   dependen B-01 y B-02.
-- **DEC-08:** si Triwe quiere RF29 a RF38. Antes conviene hacer la entrevista a
+- **DEC-08:** si Triwe quiere RF29 a RF38. Si los quiere, primero va D-17 (gastos
+  reales, RF29 Crítica): el desvío de plata es lo que más importa. Antes conviene hacer la entrevista a
   administración que quedó pendiente, porque RF29 a RF32 son sus circuitos.
 
 **Configuración del equipo:**
