@@ -23,6 +23,11 @@ cambia, se cambia acá primero.
   nuevas en §3, RF34 propuesto, las reglas de alerta de costos como "a validar"
   y los RNF como metas por comprobar. Las entrevistas pendientes tienen guía en
   [relevamiento/ENTREVISTAS.md](relevamiento/ENTREVISTAS.md).
+- **Informe de Ingeniería de Software II** (TP2, 2026-10-31: viabilidad y ofertas
+  técnica y de gestión): el 2026-11-02, con Alex, se sumaron RF35 a RF38, se
+  amplió RF31 y se anotó el dimensionamiento que propone para RNF08. Lo que el
+  informe deja afuera o hace distinto (registro sin conexión, otro stack, sin
+  maquinaria) no cambia este documento: el informe es una propuesta de la materia.
 
 ---
 
@@ -185,17 +190,22 @@ surgió del relevamiento pero todavía no lo aceptó Triwe.
 Salen de necesidades que aparecen en el TP1 y en el estudio de viabilidad pero
 que el TP2 no convirtió en requerimientos. **Ninguno está aceptado:** antes hay
 que validarlos con Triwe y hacer la entrevista a administración que quedó
-pendiente (plan: DEC-08). Todos piden tablas nuevas, o sea migraciones, salvo
-RF34, que usa las de RF31.
+pendiente (plan: DEC-08). Casi todos piden tablas nuevas, o sea migraciones. Las
+excepciones: RF34 usa las tablas de RF31, RF35 solo agrega un valor al rol (que
+igual es una migración) y RF37 no toca la base.
 
 | RF | El sistema debería… | Prioridad sugerida | Estado | Origen | Plan |
 |---|---|---|---|---|---|
 | RF29 | registrar los gastos reales de cada obra (materiales con precio, horas, combustible y otros), como *provisionales* hasta que llega la factura y *confirmados* después | Importante | Propuesto | TP1: el "centro de costos de obras" y la limitación del sistema contable, que no deja registrar sin factura. Lo necesita RF13 (desvío 3) | D-17 |
 | RF30 | registrar los pedidos de material desde la obra, con su estado (pedido, comprado, recibido), quién lo hizo y cuándo | Importante | Propuesto | TP1: hoy se pide por WhatsApp "para que quede registrado", y una compra fuera de protocolo puede hacer perder la retención impositiva | D-18 |
-| RF31 | permitir cargar cotizaciones de proveedores (material, unidad, precio, fecha y vigencia) y compararlas para un pedido | Importante | Propuesto | TP1: la primera necesidad que nombró la dirección técnica. La carga manual es la alternativa que propone el estudio de viabilidad a la captura automática, que sigue fuera de alcance | D-19 |
+| RF31 | permitir cargar cotizaciones de proveedores (material, unidad, cantidad, precio, moneda, fecha, vigencia y condiciones de entrega o pago) y compararlas para un pedido, marcando las que tienen datos faltantes o no se pueden comparar (otra unidad u otra moneda) | Importante | Propuesto | TP1: la primera necesidad que nombró la dirección técnica. La carga manual es la alternativa que propone el estudio de viabilidad a la captura automática, que sigue fuera de alcance. Moneda, condiciones y datos incompatibles: informe de IdS II, 2026-10-31 | D-19 |
 | RF32 | registrar las horas de entrada y salida del personal y de los maquinistas, con la aprobación del encargado | Importante | Propuesto | TP1: horas cargadas de más que se pagaron igual | D-20 |
 | RF33 | permitir anotar pendientes con fecha de vencimiento y avisar cuando vencen | Secundaria | Propuesto | TP1: el error más común que mencionó la dirección técnica es olvidarse de lo que quedó a medias | D-21 |
 | RF34 | permitir importar las ofertas de un proveedor desde un archivo (CSV o planilla), con el mismo formato que la carga a mano de RF31, y mostrar qué filas no se pudieron leer | Secundaria | Propuesto | Estudio de viabilidad: si la captura automática resulta inviable, queda la carga estructurada o la importación de ofertas. Agregado con Alex el 2026-10-22 | D-24 |
+| RF35 | contar con un perfil **Compras** que prepare los pedidos y cargue y compare las ofertas, sin acceso a la gestión de obras ni de cuentas | Importante | Propuesto | Informe de IdS II (2.1, perfiles de uso). Hoy hay cuatro roles y ninguno es de compras. Sin tablas nuevas: un valor más del rol (migración del `enum`) y su grupo en `Sgso\Reglas\Permisos` | D-25 |
+| RF36 | guardar quién modificó qué dato y cuándo, y mostrar ese historial | Importante | Propuesto | Informe de IdS II (2.1, "historial de cambios"); estudio de viabilidad ("trazabilidad de correcciones") | D-05 |
+| RF37 | exportar los resúmenes de una obra (avance, materiales, comparación de ofertas) en PDF o CSV | Secundaria | Propuesto | Informe de IdS II (2.1, "resúmenes PDF o CSV"). Sin tablas nuevas: lee lo que ya hay | D-06 |
+| RF38 | permitir una carga inicial de obras, materiales y proveedores desde planillas, para arrancar el piloto con los datos de Triwe | Importante | Propuesto | Informe de IdS II (2.1, "carga piloto"; la carga inicial se acuerda en el relevamiento) | E-02 |
 
 Lo que la dirección técnica llamó **esencial**, guardar en la nube y desde el
 celular los archivos que llegan por WhatsApp, ya está cubierto por RF07 y RF16:
@@ -251,6 +261,12 @@ se midió o se probó. La columna **Estado** dice dónde está cada una hoy.
 | RNF08 | soportar al menos 10 obras activas sin degradarse | Importante | **Sin verificar.** Los listados que crecen con el tiempo ya se pueden pedir por página, y la pantalla trae de a 50 las asistencias y los reportes (C-03). Falta una prueba de carga. |
 | RNF09 | minimizar el texto a tipear en obra: listas, selección rápida y carga numérica | Importante | **Parcial.** Hay listas para materiales y etapas; falta revisar el resto de los formularios de campo. |
 | RNF10 | sincronizar lo cargado en obra con la base en menos de 10 segundos, con conexión | Importante | **Sin medir.** Con conexión, cada registro se guarda en el momento, salvo el arranque en frío de RNF03, pero nadie midió los 10 segundos. No hay modo offline, que está fuera de alcance (§3). |
+
+**Dimensionamiento propuesto para RNF08** (informe de IdS II, 2.2; *a confirmar con
+Triwe*, plan: DEC-08): 15 cuentas, 5 conexiones simultáneas, 10 obras activas y
+hasta 100 obras nuevas por año, 200 proveedores, 5.000 movimientos por mes, y
+adjuntos de hasta 10 MB, unos 10 GB nuevos por año (los adjuntos son D-01). Si se
+confirma, RNF08 pasa a medirse contra estos números.
 
 **Los dos que más importan para vender:** RNF03 y RNF07. Los dos dependen de
 contratar la infraestructura (decisión DEC-04 del plan) y hoy no se cumplen o no se

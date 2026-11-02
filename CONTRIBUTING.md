@@ -166,6 +166,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/practicas-cmmi` | Marco de proceso basado en CMMI: criterios de aceptación del caso de uso, trazabilidad al RF, registro de riesgos, plantilla de PR con el cierre, `docs/PROCESO.md` y cinco agentes por rol en `.claude/agents/` | PR #69 |
 | `claude/requerimientos-excluidos` | Lo que quedó afuera del sistema, revisado con Alex: importar ofertas (RF34 propuesto), pagos, facturación y ARCA fuera, reglas de alerta a validar, RNF como metas y guía para las entrevistas pendientes | PR #77 |
 | `claude/encabezado-plan` | El encabezado de `PLAN-PRODUCTO.md` al día: fecha, base y cantidad de pruebas | PR #79 |
+| `claude/propuestos-informe-ids2` | Requerimientos propuestos que salen del informe de Ingeniería de Software II: RF31 ampliado, perfil Compras, historial de cambios, resúmenes PDF o CSV, carga inicial y dimensionamiento de RNF08 | PR #81 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
