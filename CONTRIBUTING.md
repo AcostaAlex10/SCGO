@@ -167,6 +167,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/requerimientos-excluidos` | Lo que quedó afuera del sistema, revisado con Alex: importar ofertas (RF34 propuesto), pagos, facturación y ARCA fuera, reglas de alerta a validar, RNF como metas y guía para las entrevistas pendientes | PR #77 |
 | `claude/encabezado-plan` | El encabezado de `PLAN-PRODUCTO.md` al día: fecha, base y cantidad de pruebas | PR #79 |
 | `claude/propuestos-informe-ids2` | Requerimientos propuestos que salen del informe de Ingeniería de Software II: RF31 ampliado, perfil Compras, historial de cambios, resúmenes PDF o CSV, carga inicial y dimensionamiento de RNF08 | PR #81 |
+| `claude/prioridad-gastos-reales` | El desvío de plata entre lo presupuestado y lo gastado de verdad pasa al frente: RF29 a Crítica y D-17 primero en el orden de DEC-08 | PR #82 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir

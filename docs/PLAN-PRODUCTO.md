@@ -190,8 +190,10 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 11. **D-07:** SCGO usable desde el celular.
 12. **C-02:** el contrato OpenAPI, que corta de raíz el problema del simulador duplicado.
 
-Si Triwe acepta los RF propuestos (**DEC-08**), van en este orden: **D-18**
-(pedidos), **D-17** (gastos reales, que vuelve a cumplido RF13), **D-19**
+Si Triwe acepta los RF propuestos (**DEC-08**), van en este orden: **D-17**
+(gastos reales, que vuelve a cumplido RF13; va primero porque el desvío entre lo
+presupuestado y lo gastado es lo que más importa, decidido el 2026-11-02), **D-18**
+(pedidos), **D-19**
 (cotizaciones, que necesita los pedidos), **D-24** (importar ofertas, sobre
 D-19), **D-25** (perfil Compras, cuando haya pedidos y ofertas), **D-20** y
 **D-21**.
@@ -252,3 +254,4 @@ del arreglo, CI en verde, el simulador al día y el número de PR anotado acá.
 | 2026-10-21 | D-23 hecho (PR #76): la cantidad asignada de un material se ajusta sin bajar de lo consumido, y quitarlo de la obra pide confirmación y avisa que se borran sus consumos. |
 | 2026-10-22 | Revisado con Alex lo que había quedado afuera del sistema. Se agrega RF34 (importar ofertas desde un archivo) y D-24, que entra en DEC-08. Quedan fuera, por ahora: pagos, facturación y retención de ARCA (exclusión contable), la captura automática de precios y el registro sin conexión. Las reglas de alerta de costos (RF12, RF13) pasan a "a validar" y los RNF a "metas por comprobar". Guía para las entrevistas pendientes en `relevamiento/ENTREVISTAS.md`. |
 | 2026-11-02 | Contrastado el informe de Ingeniería de Software II (TP2, 2026-10-31) con estos requerimientos. Se suman como propuestos, a la espera de DEC-08: RF35 (perfil Compras, D-25), RF36 (historial de cambios, D-05), RF37 (resúmenes PDF o CSV, D-06) y RF38 (carga inicial, E-02); RF31 suma moneda, condiciones y datos incompatibles; RNF08 anota el dimensionamiento del informe. El registro sin conexión sigue afuera. |
+| 2026-11-02 | RF29 (gastos reales) pasa a prioridad Crítica y D-17 va primero en el orden de DEC-08: el desvío entre lo presupuestado y lo gastado de verdad es lo que más importa. Sigue esperando DEC-08. |
