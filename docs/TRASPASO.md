@@ -204,7 +204,8 @@ tres cosas:
 - **RF29 a RF38 quedan *propuestos*:** gastos reales por obra, pedidos de
   material, cotizaciones de proveedores, horas aprobadas, pendientes e importar
   ofertas desde un archivo (RF34, agregado el 2026-10-22). Ninguno está aceptado.
-  Esperan **DEC-08**, y en el plan son D-17 a D-21 y D-24.
+  Esperan **DEC-08**, y en el plan son D-17 a D-21, D-24 y D-25, más D-05, D-06
+  y E-02.
 - **RF35 a RF38 salen del informe de Ingeniería de Software II** (TP2, 31/10),
   sumados con Alex el 2026-11-02: perfil Compras (D-25), historial de cambios
   (D-05), resúmenes PDF o CSV (D-06) y carga inicial (E-02). RF31 suma moneda y
