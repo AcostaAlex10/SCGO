@@ -25,7 +25,10 @@ cambia, se cambia acá primero.
   [relevamiento/ENTREVISTAS.md](relevamiento/ENTREVISTAS.md).
 - **Informe de Ingeniería de Software II** (TP2, 2026-10-31: viabilidad y ofertas
   técnica y de gestión): el 2026-11-02, con Alex, se sumaron RF35 a RF38, se
-  amplió RF31 y se anotó el dimensionamiento que propone para RNF08. Lo que el
+  amplió RF31 y se anotó el dimensionamiento que propone para RNF08.
+- **Pedido del responsable de obra** (2026-11-02, informado por el equipo): buscar
+  rápido quién vende lo que falta, sobre todo repuestos de maquinaria. Se sumaron
+  RF39 y RF40 sin IA; la búsqueda con IA queda a evaluar (§3). Lo que el
   informe deja afuera o hace distinto (registro sin conexión, otro stack, sin
   maquinaria) no cambia este documento: el informe es una propuesta de la materia.
 
@@ -74,7 +77,7 @@ Alex lo que había quedado afuera (2026-10-22, *por ahora*: se pueden reabrir):
 |---|---|
 | Integración con ERP o software contable (por ejemplo, Xubio) | Exige APIs externas y reglas impositivas. **SCGO no es un sistema contable.** |
 | Funcionamiento completamente offline | Sincronizar datos de forma segura es un problema en sí mismo |
-| Inteligencia artificial y análisis predictivo | Requiere historia de datos que todavía no existe |
+| Inteligencia artificial y análisis predictivo | Requiere historia de datos que todavía no existe. Una **búsqueda de repuestos con IA en internet**, que pidió el responsable de obra (2026-11-02), queda *a evaluar* después de RF39 y RF40: las sugerencias de una IA pueden estar mal o viejas, así que solo serviría como ayuda que una persona confirma |
 | Integración automática con WhatsApp | Dependencia externa y limitaciones técnicas del servicio |
 | Pagos, facturación y control de la retención de ARCA | Son parte de la exclusión contable: **SCGO no es un sistema contable.** El TP2 se los asigna a administración, y el TP1 cuenta que una compra fuera de protocolo hace perder la retención; eso queda en el circuito contable de Triwe |
 | Captura automática de precios de proveedores | No está comprobado que los proveedores publiquen información accesible, actualizable y utilizable (estudio de viabilidad). Queda la carga a mano (RF31) y por archivo (RF34) |
@@ -206,6 +209,8 @@ igual es una migración) y RF37 no toca la base.
 | RF36 | guardar quién modificó qué dato y cuándo, y mostrar ese historial | Importante | Propuesto | Informe de IdS II (2.1, "historial de cambios"); estudio de viabilidad ("trazabilidad de correcciones") | D-05 |
 | RF37 | exportar los resúmenes de una obra (avance, materiales, comparación de ofertas) en PDF o CSV | Secundaria | Propuesto | Informe de IdS II (2.1, "resúmenes PDF o CSV"). Sin tablas nuevas: lee lo que ya hay | D-06 |
 | RF38 | permitir una carga inicial de obras, materiales y proveedores desde planillas, para arrancar el piloto con los datos de Triwe | Importante | Propuesto | Informe de IdS II (2.1, "carga piloto"; la carga inicial se acuerda en el relevamiento) | E-02 |
+| RF39 | llevar un catálogo de qué ofrece cada proveedor, armado con las cotizaciones cargadas, y ante una falta buscar qué proveedor ofreció ese producto o uno parecido, con su último precio y fecha | Importante | Propuesto | Relevamiento, 2026-11-02: lo que más pidió el responsable de la obra (quien anota el avance y la maquinaria) fue encontrar rápido y a buen precio lo que falta. Sin IA: se arma con el uso | D-26 |
+| RF40 | desde una falla de maquinaria, pedir el repuesto: identificar la pieza (marca y modelo de la máquina, número de parte), crear el pedido y mandar el pedido de cotización por correo a los proveedores de ese rubro; las respuestas se cargan como ofertas | Importante | Propuesto | Relevamiento, 2026-11-02: el responsable de la obra quiere saber qué proveedor tiene una pieza cuando se rompe una máquina. Necesita marca y modelo en `maquinaria`, que hoy no están (migración) | D-27 |
 
 Lo que la dirección técnica llamó **esencial**, guardar en la nube y desde el
 celular los archivos que llegan por WhatsApp, ya está cubierto por RF07 y RF16:
