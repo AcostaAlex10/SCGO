@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/repuestos-proveedores` | `main` @ `f48386a` (2026-11-03) | Lo que pidió el responsable de obra: catálogo de qué vende cada proveedor (RF39) y pedir un repuesto desde la falla de una máquina (RF40); la búsqueda con IA queda a evaluar | #83 |
+| `claude/pwa-envio-diferido` | `main` @ `a1ada9a` (2026-11-03) | Para el trabajo en obra: instalar SCGO en el celular como aplicación (RF41) y, sin señal, guardar en el teléfono lo que el usuario mandó a guardar y enviarlo solo al volver la conexión (RF42) | — |
 
 ### Reglas
 
@@ -168,6 +168,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/encabezado-plan` | El encabezado de `PLAN-PRODUCTO.md` al día: fecha, base y cantidad de pruebas | PR #79 |
 | `claude/propuestos-informe-ids2` | Requerimientos propuestos que salen del informe de Ingeniería de Software II: RF31 ampliado, perfil Compras, historial de cambios, resúmenes PDF o CSV, carga inicial y dimensionamiento de RNF08 | PR #81 |
 | `claude/prioridad-gastos-reales` | El desvío de plata entre lo presupuestado y lo gastado de verdad pasa al frente: RF29 a Crítica y D-17 primero en el orden de DEC-08 | PR #82 |
+| `claude/repuestos-proveedores` | Lo que pidió el responsable de obra: catálogo de proveedores (RF39), pedir un repuesto desde una falla (RF40) y el orden del plan rearmado | PR #83 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir

@@ -139,6 +139,8 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 | **D-25** | P2 | *Propuesto, espera DEC-08 y D-18.* **Perfil Compras:** un rol que prepara los pedidos y carga y compara las ofertas, sin gestionar obras ni cuentas. Es un valor más del rol y un grupo en `Sgso\Reglas\Permisos`, más las pruebas de `TablaTest`; el enum del rol en `usuario` pide *migración*. | RF35 | S | Claude |
 | **D-26** | P2 | *Propuesto, espera DEC-08 y D-19.* **Catálogo de proveedores:** qué ofrece cada uno, armado con las cotizaciones, y una búsqueda ante una falta ("¿quién nos ofreció esto o algo parecido, y a cuánto?"). Lo pidió el responsable de obra. Sin IA y sin dependencias. | RF39 | M | Claude + Codex |
 | **D-27** | P2 | *Propuesto, espera DEC-08, D-18 y D-19.* **Pedir un repuesto desde la falla de una máquina:** marca, modelo y número de parte, el pedido y un pedido de cotización por correo con `Mailer` a los proveedores del rubro. *Migración* (marca y modelo en `maquinaria`). La búsqueda con IA en internet queda a evaluar después de esto. | RF40 | M | Claude + Codex |
+| **D-28** | P2 | *Propuesto, no depende de Triwe; después de D-07.* **SCGO instalable en el celular (PWA):** un manifiesto (nombre, ícono, colores) y un *service worker* que guarda la aplicación en el teléfono para que abra rápido con poca señal. Mismo código React; sin aplicación nativa. Con `vite-plugin-pwa` es chico, pero es *una dependencia nueva* y Alex tiene que aprobarla; sin ella, se escribe a mano. En iPhone se instala desde Safari, con "Agregar a inicio". | RF41 | S–M | Claude |
+| **D-29** | P2 | *Propuesto, después de D-28.* **Guardar sin señal y enviar al volver la conexión.** Si al guardar no hay conexión, el envío queda en una cola en el teléfono (IndexedDB) y se manda solo cuando vuelve la señal, o al abrir SCGO. Cada envío lleva un identificador generado en el teléfono, y el servidor lo guarda en una columna única: si llega dos veces, no se duplica (*migración*). Solo altas de campo (avance, asistencia, consumos, incidencias), no ediciones ni bajas. Lo que el servidor rechaza al llegar (por ejemplo, falta de stock) se le muestra al usuario para corregirlo. Si la sesión venció (8 horas), pide entrar de nuevo antes de mandar. iPhone no tiene sincronización en segundo plano: allá se envía con SCGO abierto. El simulador del front lo replica. | RF42 | L | Claude + Codex |
 | **D-10** | — | **Consulta de lotes a la municipalidad.** Aparece en el diagrama de contexto del relevamiento, sin requerimiento asociado. *Confirmar con Triwe si se necesita:* es la pregunta 7 de la entrevista con la dirección técnica ([relevamiento/ENTREVISTAS.md](relevamiento/ENTREVISTAS.md)). | — | — | Grupo |
 
 ---
@@ -197,7 +199,10 @@ Triwe): **A-15** (quién ve costos como lista: deja seguro todo lo que viene con
 plata), **D-13** (consumo esperado por máquina, RF24, con el dato opcional),
 **D-06** (resúmenes en CSV y PDF por impresión del navegador, RF37, sin
 dependencias), **E-02** en su base (importador de CSV con datos inventados, RF38) y
-**D-05** (historial de cambios, RF36) si Alex define el alcance.
+**D-05** (historial de cambios, RF36) si Alex define el alcance. Para el trabajo
+en obra, **D-07** (revisar cada pantalla en el celular), después **D-28** (instalar
+SCGO como aplicación, RF41) y **D-29** (guardar sin señal y enviar al volver,
+RF42).
 
 Si Triwe acepta los RF propuestos (**DEC-08**), van en este orden:
 
@@ -275,3 +280,4 @@ del arreglo, CI en verde, el simulador al día y el número de PR anotado acá.
 | 2026-11-02 | RF29 (gastos reales) pasa a prioridad Crítica y D-17 va primero en el orden de DEC-08: el desvío entre lo presupuestado y lo gastado de verdad es lo que más importa. Sigue esperando DEC-08. |
 | 2026-11-03 | El responsable de obra pidió buscar rápido quién vende lo que falta, sobre todo repuestos de maquinaria. Se suman como propuestos, a la espera de DEC-08: RF39 (catálogo de proveedores, D-26) y RF40 (repuesto desde una falla, D-27). La búsqueda con IA en internet queda a evaluar después; la exclusión de IA sigue. |
 | 2026-11-03 | Orden rearmado con el pedido del responsable de obra: una etapa previa a DEC-08 con lo que se puede hacer ya (A-15, D-13, D-06, base de E-02 y D-05), y dentro de DEC-08 D-27 antes que D-26, con D-19 guardando correo y rubro del proveedor. |
+| 2026-11-03 | Para quienes trabajan en obra, Alex decide sumar como propuestos RF41 (instalar SCGO en el celular como aplicación, D-28) y RF42 (guardar sin señal lo que el usuario mandó a guardar y enviarlo solo al volver la conexión, D-29). RF42 reabre la exclusión del registro sin conexión; el funcionamiento completamente offline sigue afuera. No dependen de Triwe: van en la etapa previa a DEC-08, después de D-07. |
