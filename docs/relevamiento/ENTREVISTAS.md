@@ -97,8 +97,9 @@ obra real o inventada, con el resultado que daría hoy SCGO.
    alarma? (reglas de alerta; los ejemplos quedan como casos de prueba)
 5. De los circuitos propuestos (gastos reales, pedidos de material, cotizaciones,
    horas, pendientes, importar ofertas, un perfil de Compras, historial de
-   cambios, resúmenes en PDF o CSV y carga inicial de datos), ¿cuáles quieren, en
-   qué orden, y cuáles no? (DEC-08: RF29 a RF38)
+   cambios, resúmenes en PDF o CSV, carga inicial de datos, catálogo de proveedores
+   y pedido de repuestos), ¿cuáles quieren, en qué orden, y cuáles no? (DEC-08:
+   RF29 a RF40)
 6. Para las ofertas, ¿les sirve cargarlas a mano o importarlas de una planilla,
    sabiendo que la captura automática de precios queda afuera? (DEC-08, RF31,
    RF34)
@@ -114,6 +115,7 @@ obra real o inventada, con el resultado que daría hoy SCGO.
 | Respuesta | Dónde va |
 |---|---|
 | Gastos, pedidos, cotizaciones y formato de las ofertas | RF29 a RF31 y RF34 en `REQUERIMIENTOS.md` §5; D-17 a D-19 y D-24 en `PLAN-PRODUCTO.md` |
+| Catálogo de proveedores y repuestos de maquinaria | RF39 y RF40; D-26 y D-27 |
 | Perfil Compras, historial de cambios, resúmenes y carga inicial | RF35 a RF38 en `REQUERIMIENTOS.md` §5; D-25, D-05, D-06 y E-02 en `PLAN-PRODUCTO.md` |
 | El límite con el sistema contable | `REQUERIMIENTOS.md` §3 |
 | Horas y pendientes | RF32 y RF33; D-20 y D-21 |
