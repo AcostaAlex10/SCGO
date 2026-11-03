@@ -21,7 +21,7 @@ Reglas del equipo para que `main` esté siempre en condiciones de desplegarse.
 
 El repositorio se llamaba `ingenieria-en-software-proyecto` hasta el 2026-09-16.
 GitHub redirige las URLs viejas, **salvo la de la demo**, que ahora es
-https://acostaalex10.github.io/SCGO/.
+https://acostaalex10.github.io/SGSO/.
 
 ### Ramas de trabajo abiertas
 
@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/nombre-sgso` | `main` @ `a1ada9a` (2026-11-03) | El producto vuelve a llamarse SGSO, Sistema de Gestión y Seguimiento Operativo de obras (DEC-01): interfaz, correo y documentación; el repositorio sigue como `SCGO` | #85 |
+| `claude/nombre-sgso` | `main` @ `a1ada9a` (2026-11-03) | El producto vuelve a llamarse SGSO, Sistema de Gestión y Seguimiento Operativo de obras (DEC-01): interfaz, correo, documentación y el nombre del repositorio | #85 |
 
 ### Reglas
 

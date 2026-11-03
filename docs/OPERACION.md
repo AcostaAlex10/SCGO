@@ -12,7 +12,7 @@ costaron tiempo.
 | Producción — sistema | https://ingenieria-en-software-proyecto.vercel.app/ | La aplicación contra la API real | `main` |
 | Producción — API | https://ingenieria-en-software-proyecto.onrender.com/api | PHP + Apache en Docker | `main` |
 | Producción — base | Aiven | MariaDB / MySQL gestionada, con SSL | — |
-| Demo para testers | https://acostaalex10.github.io/SCGO/ | Frontend sin backend, con datos simulados. Es una versión anterior a la de `main` | `testing` |
+| Demo para testers | https://acostaalex10.github.io/SGSO/ | Frontend sin backend, con datos simulados. Es una versión anterior a la de `main` | `testing` |
 
 Todo lo que llega a `main` se despliega. Por eso `main` solo cambia por pull
 request con el CI en verde (ver [CONTRIBUTING.md](../CONTRIBUTING.md)).
@@ -33,7 +33,7 @@ la demo.
 
 ```bash
 curl -s https://ingenieria-en-software-proyecto.onrender.com/api/health
-curl -s -o /dev/null -w "%{http_code}\n" https://acostaalex10.github.io/SCGO/
+curl -s -o /dev/null -w "%{http_code}\n" https://acostaalex10.github.io/SGSO/
 ```
 
 `/api/health` ejecuta `SELECT 1` contra la base: si contesta
