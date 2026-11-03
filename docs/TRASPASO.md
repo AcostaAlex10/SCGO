@@ -4,8 +4,9 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-11-02, al pasar al frente los gastos reales (RF29, D-17)
-- **Base:** `main` @ `9e7fc99`, CI en verde. **La base de Aiven volvió**:
+- **Actualizado:** 2026-11-03, al sumar el pedido del responsable de obra (RF39 y
+  RF40)
+- **Base:** `main` @ `f48386a`, CI en verde. **La base de Aiven volvió**:
   `/api/health` responde `{"status":"ok","db":"ok"}`. **Brevo ya funciona**: Alex
   probó la recuperación de contraseña el 2026-10-21 y el correo llegó (sección 3)
 - **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23).
@@ -200,11 +201,14 @@ tres cosas:
   administración y el supervisor de campo quedaron sin fecha. Y la comparación de
   proveedores, que en el TP1 era una de las dos funciones principales, se perdió
   sin que nadie lo decidiera.
-- **RF29 a RF38 quedan *propuestos*:** gastos reales por obra, pedidos de
+- **RF29 a RF40 quedan *propuestos*:** gastos reales por obra, pedidos de
   material, cotizaciones de proveedores, horas aprobadas, pendientes e importar
   ofertas desde un archivo (RF34, agregado el 2026-10-22). Ninguno está aceptado.
-  Esperan **DEC-08**, y en el plan son D-17 a D-21, D-24 y D-25, más D-05, D-06
+  Esperan **DEC-08**, y en el plan son D-17 a D-21 y D-24 a D-27, más D-05, D-06
   y E-02.
+- **RF39 y RF40 salen del pedido del responsable de obra** (2026-11-02): catálogo
+  de qué vende cada proveedor (D-26) y pedir un repuesto desde la falla de una
+  máquina (D-27). Sin IA: la búsqueda con IA en internet queda a evaluar después.
 - **RF35 a RF38 salen del informe de Ingeniería de Software II** (TP2, 31/10),
   sumados con Alex el 2026-11-02: perfil Compras (D-25), historial de cambios
   (D-05), resúmenes PDF o CSV (D-06) y carga inicial (E-02). RF31 suma moneda y
@@ -231,7 +235,7 @@ tres cosas:
 - **D-12:** la asistencia duplicada depende de si hay turnos.
 - **DEC-04** sigue postergada hasta que se cierre la posible venta. De ella
   dependen B-01 y B-02.
-- **DEC-08:** si Triwe quiere RF29 a RF38. Si los quiere, primero va D-17 (gastos
+- **DEC-08:** si Triwe quiere RF29 a RF40. Si los quiere, primero va D-17 (gastos
   reales, RF29 Crítica): el desvío de plata es lo que más importa. Antes conviene hacer la entrevista a
   administración que quedó pendiente, porque RF29 a RF32 son sus circuitos.
 
