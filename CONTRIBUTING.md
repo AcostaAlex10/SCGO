@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/pwa-envio-diferido` | `main` @ `a1ada9a` (2026-11-03) | Para el trabajo en obra: instalar SCGO en el celular como aplicación (RF41) y, sin señal, guardar en el teléfono lo que el usuario mandó a guardar y enviarlo solo al volver la conexión (RF42) | — |
+| `claude/pwa-envio-diferido` | `main` @ `a1ada9a` (2026-11-03) | Para el trabajo en obra: instalar SCGO en el celular como aplicación (RF41) y, sin señal, guardar en el teléfono lo que el usuario mandó a guardar y enviarlo solo al volver la conexión (RF42) | #84 |
 
 ### Reglas
 
