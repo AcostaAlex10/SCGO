@@ -130,7 +130,7 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 | **D-16** | P2 | **Hecho en el PR #64.** **El consumo se carga de a un material.** DEF-04 del informe de testing: el CU22 pide cargar una lista de consumos y enviarla junta ("Guardar y enviar"). Ahora `POST /proyectos/{id}/consumos` guarda la lista en una sola transacción, entera o nada, y Materiales tiene "Guardar y enviar". | RF10 | M | Claude |
 | **D-17** | P1 | *Propuesto, espera DEC-08.* **Gastos reales por obra.** Hoy el "ejecutado" de RF13 es presupuesto por avance, una estimación (desvío 3). Falta registrar lo gastado: precio de los materiales, horas, combustible y otros gastos, cada uno *provisional* hasta la factura y *confirmado* después, y que el análisis compare contra eso. Pide tablas nuevas (*migración*) y reglas de costos acordadas con administración. | RF13, RF29 | L | Claude |
 | **D-18** | P1 | *Propuesto, espera DEC-08.* **Pedidos de material desde la obra**, con estado (pedido, comprado, recibido), quién y cuándo. Reemplaza el pedido por WhatsApp como registro. *Migración.* | RF30 | M | Claude + Codex |
-| **D-19** | P2 | *Propuesto, espera DEC-08 y D-18.* **Cotizaciones de proveedores cargadas a mano** y comparadas por pedido: material, unidad, cantidad, precio, moneda, fecha, vigencia y condiciones, marcando las que no se pueden comparar (otra unidad u otra moneda) o les faltan datos. La captura automática de precios sigue fuera de alcance. *Migración.* | RF31 | M | Claude + Codex |
+| **D-19** | P2 | *Propuesto, espera DEC-08 y D-18.* **Cotizaciones de proveedores cargadas a mano** y comparadas por pedido: material, unidad, cantidad, precio, moneda, fecha, vigencia y condiciones, marcando las que no se pueden comparar (otra unidad u otra moneda) o les faltan datos. El proveedor guarda **correo y rubro** desde el principio: los necesitan D-26 y D-27. La captura automática de precios sigue fuera de alcance. *Migración.* | RF31 | M | Claude + Codex |
 | **D-20** | P2 | *Propuesto, espera DEC-08.* **Horas de entrada y salida** del personal y de los maquinistas, aprobadas por el encargado. Alimenta D-17. *Migración.* | RF32 | M | Claude + Codex |
 | **D-21** | P2 | *Propuesto, espera DEC-08.* **Pendientes con vencimiento y aviso** por correo, como D-02. *Migración.* | RF33 | S | Codex |
 | **D-22** | P2 | **Hecho en el PR #74.** **La tabla de usuarios mezclaba activos y dados de baja, y un clic daba de baja sin confirmar.** Ahora la tabla principal lista solo las cuentas activas, los dados de baja van en una sección plegable debajo ("Usuarios dados de baja (M)") con un botón para reactivar, y la baja pide confirmación en un diálogo. No se borra de verdad: la clave foránea `fk_reporte_usuario` (`reporte.id_usuario`) no tiene `ON DELETE` en `back/sql/schema.sql`, así que en MariaDB es `RESTRICT` y el `DELETE` de un autor de reportes falla (error 1451); solo con `CASCADE` se llevaría los reportes, aprobados y el de cierre. La baja lógica conserva la trazabilidad. | RF19 | S | Claude |
@@ -192,14 +192,29 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 11. **D-07:** SCGO usable desde el celular.
 12. **C-02:** el contrato OpenAPI, que corta de raíz el problema del simulador duplicado.
 
-Si Triwe acepta los RF propuestos (**DEC-08**), van en este orden: **D-17**
-(gastos reales, que vuelve a cumplido RF13; va primero porque el desvío entre lo
-presupuestado y lo gastado es lo que más importa, decidido el 2026-11-02), **D-18**
-(pedidos), **D-19**
-(cotizaciones, que necesita los pedidos), **D-24** (importar ofertas, sobre
-D-19), **D-25** (perfil Compras, cuando haya pedidos y ofertas), **D-26** (catálogo de
-proveedores, sobre D-19), **D-27** (repuestos desde una falla, sobre D-18 y D-19), **D-20** y
-**D-21**.
+**Antes de DEC-08, lo que se puede hacer ya** (rearmado el 2026-11-03, sin esperar a
+Triwe): **A-15** (quién ve costos como lista: deja seguro todo lo que viene con
+plata), **D-13** (consumo esperado por máquina, RF24, con el dato opcional),
+**D-06** (resúmenes en CSV y PDF por impresión del navegador, RF37, sin
+dependencias), **E-02** en su base (importador de CSV con datos inventados, RF38) y
+**D-05** (historial de cambios, RF36) si Alex define el alcance.
+
+Si Triwe acepta los RF propuestos (**DEC-08**), van en este orden:
+
+1. **D-17** (gastos reales, RF29): primero, porque el desvío entre lo presupuestado
+   y lo gastado es lo que más importa (decidido el 2026-11-02). Vuelve cumplido RF13.
+2. **D-18** (pedidos, RF30): la base del circuito de compras y de D-27.
+3. Decidir **D-25** (perfil Compras, RF35) antes de los permisos de D-19.
+4. **D-19** (cotizaciones, RF31), guardando desde el principio **el correo y el
+   rubro de cada proveedor**: es lo que destraba D-26 y D-27 sin rehacer nada.
+5. **D-27** (repuesto desde una falla, RF40): lo que más pidió el responsable de
+   obra.
+6. **D-26** (catálogo de proveedores, RF39): sale de las cotizaciones cargadas.
+7. **D-24** (importar ofertas, RF34).
+8. **D-20** (horas, RF32) y **D-21** (pendientes, RF33), independientes.
+
+Después, *a evaluar*: la búsqueda de repuestos con IA en internet, sobre el
+catálogo de D-26 y solo como sugerencia que una persona confirma.
 
 ### Ola 4 — Entrega
 
@@ -259,3 +274,4 @@ del arreglo, CI en verde, el simulador al día y el número de PR anotado acá.
 | 2026-11-02 | Contrastado el informe de Ingeniería de Software II (TP2, 2026-10-31) con estos requerimientos. Se suman como propuestos, a la espera de DEC-08: RF35 (perfil Compras, D-25), RF36 (historial de cambios, D-05), RF37 (resúmenes PDF o CSV, D-06) y RF38 (carga inicial, E-02); RF31 suma moneda, condiciones y datos incompatibles; RNF08 anota el dimensionamiento del informe. El registro sin conexión sigue afuera. |
 | 2026-11-02 | RF29 (gastos reales) pasa a prioridad Crítica y D-17 va primero en el orden de DEC-08: el desvío entre lo presupuestado y lo gastado de verdad es lo que más importa. Sigue esperando DEC-08. |
 | 2026-11-03 | El responsable de obra pidió buscar rápido quién vende lo que falta, sobre todo repuestos de maquinaria. Se suman como propuestos, a la espera de DEC-08: RF39 (catálogo de proveedores, D-26) y RF40 (repuesto desde una falla, D-27). La búsqueda con IA en internet queda a evaluar después; la exclusión de IA sigue. |
+| 2026-11-03 | Orden rearmado con el pedido del responsable de obra: una etapa previa a DEC-08 con lo que se puede hacer ya (A-15, D-13, D-06, base de E-02 y D-05), y dentro de DEC-08 D-27 antes que D-26, con D-19 guardando correo y rubro del proveedor. |
