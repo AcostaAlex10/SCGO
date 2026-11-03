@@ -279,7 +279,7 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
    solo para la demo o su guía, **por PR contra `testing`**, y nunca se mergea
    con `main` en ninguna dirección. Estuvo congelada en `a25da85` hasta el
    2026-09-23.
-2. **El repositorio cambió de nombre dos veces:** el 2026-09-16 y, de vuelta a
+2. **El repositorio cambió de nombre dos veces:** el 2026-09-16 y, otra vez, a
    `SGSO`, el 2026-11-03. GitHub redirige las URL viejas **menos la de la
    demo**, que ahora es https://acostaalex10.github.io/SGSO/. Las copias locales
    tienen que apuntar el remoto a la URL nueva (`git remote set-url origin
