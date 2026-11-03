@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/repuestos-proveedores` | `main` @ `f48386a` (2026-11-03) | Lo que pidió el responsable de obra: catálogo de qué vende cada proveedor (RF39) y pedir un repuesto desde la falla de una máquina (RF40); la búsqueda con IA queda a evaluar | — |
+| `claude/repuestos-proveedores` | `main` @ `f48386a` (2026-11-03) | Lo que pidió el responsable de obra: catálogo de qué vende cada proveedor (RF39) y pedir un repuesto desde la falla de una máquina (RF40); la búsqueda con IA queda a evaluar | #83 |
 
 ### Reglas
 
