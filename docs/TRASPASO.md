@@ -4,9 +4,9 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-11-03, al sumar el pedido del responsable de obra (RF39 y
-  RF40)
-- **Base:** `main` @ `f48386a`, CI en verde. **La base de Aiven volvió**:
+- **Actualizado:** 2026-11-03, al sumar la aplicación instalable y el guardado sin
+  señal (RF41 y RF42)
+- **Base:** `main` @ `a1ada9a`, CI en verde. **La base de Aiven volvió**:
   `/api/health` responde `{"status":"ok","db":"ok"}`. **Brevo ya funciona**: Alex
   probó la recuperación de contraseña el 2026-10-21 y el correo llegó (sección 3)
 - **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23).
@@ -213,11 +213,12 @@ tres cosas:
   sumados con Alex el 2026-11-02: perfil Compras (D-25), historial de cambios
   (D-05), resúmenes PDF o CSV (D-06) y carga inicial (E-02). RF31 suma moneda y
   condiciones, y RNF08 anota el dimensionamiento del informe. El informe propone
-  otro stack y un registro sin conexión: nada de eso cambia, es un ejercicio de
-  la materia.
+  otro stack: eso no cambia, es un ejercicio de la materia.
 - **Revisado con Alex el 2026-10-22, por ahora:** pagos, facturación y retención
   de ARCA quedan fuera (exclusión contable), igual que la captura automática de
-  precios y el registro sin conexión. Las reglas de alerta de costos (RF12, RF13)
+  precios. El registro sin conexión, que también había quedado afuera, se reabrió
+  el 2026-11-03 como RF42 (D-29), junto con RF41 (instalar SCGO en el celular,
+  D-28). Las reglas de alerta de costos (RF12, RF13)
   quedan "a validar" con la dirección técnica y administración, y los RNF son
   metas por comprobar.
 - **Las entrevistas pendientes tienen guía:** `docs/relevamiento/ENTREVISTAS.md`

@@ -29,8 +29,13 @@ cambia, se cambia acá primero.
 - **Pedido del responsable de obra** (2026-11-02, informado por el equipo): buscar
   rápido quién vende lo que falta, sobre todo repuestos de maquinaria. Se sumaron
   RF39 y RF40 sin IA; la búsqueda con IA queda a evaluar (§3). Lo que el
-  informe deja afuera o hace distinto (registro sin conexión, otro stack, sin
-  maquinaria) no cambia este documento: el informe es una propuesta de la materia.
+  informe deja afuera o hace distinto (otro stack, sin maquinaria) no cambia este
+  documento: el informe es una propuesta de la materia.
+- **Trabajo en obra sin señal** (2026-11-03, decidido por Alex): se suman RF41
+  (instalar SCGO en el celular como aplicación) y RF42 (guardar sin conexión lo
+  que el usuario mandó a guardar y enviarlo solo al volver la señal). RF42 reabre
+  la exclusión "registro sin conexión para cargar después" (§3); el
+  funcionamiento completamente offline sigue afuera.
 
 ---
 
@@ -70,18 +75,19 @@ RNF02 y RNF09.
 materiales, documentación, reportes con aprobación, análisis y alertas,
 maquinaria, y control de acceso por roles.
 
-**Fuera**, decidido en el relevamiento y, las tres últimas filas, al revisar con
-Alex lo que había quedado afuera (2026-10-22, *por ahora*: se pueden reabrir):
+**Fuera**, decidido en el relevamiento y, las dos últimas filas, al revisar con
+Alex lo que había quedado afuera (2026-10-22, *por ahora*: se pueden reabrir). El
+registro sin conexión para cargar después, que también había quedado afuera ese
+día, se reabrió el 2026-11-03 como RF42:
 
 | Excluido | Por qué |
 |---|---|
 | Integración con ERP o software contable (por ejemplo, Xubio) | Exige APIs externas y reglas impositivas. **SCGO no es un sistema contable.** |
-| Funcionamiento completamente offline | Sincronizar datos de forma segura es un problema en sí mismo |
+| Funcionamiento completamente offline | Sincronizar datos de forma segura es un problema en sí mismo. Sin señal no se consulta ni se edita: lo único que se acepta es guardar lo nuevo y mandarlo después (RF42) |
 | Inteligencia artificial y análisis predictivo | Requiere historia de datos que todavía no existe. Una **búsqueda de repuestos con IA en internet**, que pidió el responsable de obra (2026-11-02), queda *a evaluar* después de RF39 y RF40: las sugerencias de una IA pueden estar mal o viejas, así que solo serviría como ayuda que una persona confirma |
 | Integración automática con WhatsApp | Dependencia externa y limitaciones técnicas del servicio |
 | Pagos, facturación y control de la retención de ARCA | Son parte de la exclusión contable: **SCGO no es un sistema contable.** El TP2 se los asigna a administración, y el TP1 cuenta que una compra fuera de protocolo hace perder la retención; eso queda en el circuito contable de Triwe |
 | Captura automática de precios de proveedores | No está comprobado que los proveedores publiquen información accesible, actualizable y utilizable (estudio de viabilidad). Queda la carga a mano (RF31) y por archivo (RF34) |
-| Registro sin conexión para cargar después | Es una versión acotada del offline: cargar más tarde sin duplicados es el mismo problema de sincronización. El estudio de viabilidad lo menciona como alternativa ante cortes |
 
 > **Pendiente de confirmar con Triwe.** El diagrama de contexto del relevamiento
 > muestra una consulta del estado de un lote a una base de datos de la
@@ -211,6 +217,8 @@ igual es una migración) y RF37 no toca la base.
 | RF38 | permitir una carga inicial de obras, materiales y proveedores desde planillas, para arrancar el piloto con los datos de Triwe | Importante | Propuesto | Informe de IdS II (2.1, "carga piloto"; la carga inicial se acuerda en el relevamiento) | E-02 |
 | RF39 | llevar un catálogo de qué ofrece cada proveedor, armado con las cotizaciones cargadas, y ante una falta buscar qué proveedor ofreció ese producto o uno parecido, con su último precio y fecha | Importante | Propuesto | Relevamiento, 2026-11-02: lo que más pidió el responsable de la obra (quien anota el avance y la maquinaria) fue encontrar rápido y a buen precio lo que falta. Sin IA: se arma con el uso | D-26 |
 | RF40 | desde una falla de maquinaria, pedir el repuesto: identificar la pieza (marca y modelo de la máquina, número de parte), crear el pedido y mandar el pedido de cotización por correo a los proveedores de ese rubro; las respuestas se cargan como ofertas | Importante | Propuesto | Relevamiento, 2026-11-02: el responsable de la obra quiere saber qué proveedor tiene una pieza cuando se rompe una máquina. Necesita marca y modelo en `maquinaria`, que hoy no están (migración) | D-27 |
+| RF41 | poder instalarse en el celular como una aplicación: ícono en la pantalla de inicio, pantalla completa sin la barra del navegador y carga rápida con poca señal | Importante | Propuesto | Decisión de Alex, 2026-11-03: quienes trabajan en obra usan el celular. Es una aplicación web instalable (PWA), con el mismo código: no hace falta una aplicación nativa | D-28 |
+| RF42 | si al guardar no hay conexión, guardar en el teléfono lo que el usuario mandó a guardar y enviarlo solo cuando vuelve la señal, sin duplicados, mostrando qué quedó pendiente y avisando si el servidor rechazó algo | Importante | Propuesto | Decisión de Alex, 2026-11-03: que no se pierda lo cargado en obra por un corte. Reabre una exclusión de §3; el estudio de viabilidad lo mencionaba como alternativa ante cortes. Solo altas (avance, asistencia, consumos, incidencias), no ediciones ni bajas. Necesita una columna nueva para evitar duplicados (migración) | D-29 |
 
 Lo que la dirección técnica llamó **esencial**, guardar en la nube y desde el
 celular los archivos que llegan por WhatsApp, ya está cubierto por RF07 y RF16:
@@ -265,7 +273,7 @@ se midió o se probó. La columna **Estado** dice dónde está cada una hoy.
 | RNF07 | hacer respaldos automáticos diarios | Importante | **Sin verificar.** Depende del plan contratado en Aiven, y nunca se probó restaurar un respaldo (plan: B-01). |
 | RNF08 | soportar al menos 10 obras activas sin degradarse | Importante | **Sin verificar.** Los listados que crecen con el tiempo ya se pueden pedir por página, y la pantalla trae de a 50 las asistencias y los reportes (C-03). Falta una prueba de carga. |
 | RNF09 | minimizar el texto a tipear en obra: listas, selección rápida y carga numérica | Importante | **Parcial.** Hay listas para materiales y etapas; falta revisar el resto de los formularios de campo. |
-| RNF10 | sincronizar lo cargado en obra con la base en menos de 10 segundos, con conexión | Importante | **Sin medir.** Con conexión, cada registro se guarda en el momento, salvo el arranque en frío de RNF03, pero nadie midió los 10 segundos. No hay modo offline, que está fuera de alcance (§3). |
+| RNF10 | sincronizar lo cargado en obra con la base en menos de 10 segundos, con conexión | Importante | **Sin medir.** Con conexión, cada registro se guarda en el momento, salvo el arranque en frío de RNF03, pero nadie midió los 10 segundos. No hay modo offline, que está fuera de alcance (§3); lo guardado sin señal se enviaría al volver la conexión (RF42, propuesto). |
 
 **Dimensionamiento propuesto para RNF08** (informe de IdS II, 2.2; *a confirmar con
 Triwe*, plan: DEC-08): 15 cuentas, 5 conexiones simultáneas, 10 obras activas y

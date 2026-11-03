@@ -65,7 +65,7 @@ conexión, para que entre en menos de 10 minutos.
 2. ¿Con qué dispositivo y qué aplicaciones registrás y mandás información hoy?
    ¿Qué pasa cuando tenés que escribir mucho desde el celular? (RNF01, RNF09)
 3. ¿Hay señal o datos en la obra? Cuando no hay, ¿cómo lo resolvés y cuánto
-   tarda en llegar la información? (conectividad, RNF01, RNF10)
+   tarda en llegar la información? (conectividad, RNF01, RNF10, RF41, RF42)
 4. ¿Cuánto te lleva hoy el reporte del día? ¿Qué parte sobra o se repite? ¿Cuánto
    te parecería razonable? (RNF02)
 5. ¿Cómo se pide hoy un material desde la obra y cómo te enterás de que se compró
@@ -119,7 +119,7 @@ obra real o inventada, con el resultado que daría hoy SCGO.
 | Perfil Compras, historial de cambios, resúmenes y carga inicial | RF35 a RF38 en `REQUERIMIENTOS.md` §5; D-25, D-05, D-06 y E-02 en `PLAN-PRODUCTO.md` |
 | El límite con el sistema contable | `REQUERIMIENTOS.md` §3 |
 | Horas y pendientes | RF32 y RF33; D-20 y D-21 |
-| Uso en obra, tiempos y conectividad | RNF01, RNF02, RNF09 y RNF10 en `REQUERIMIENTOS.md` §6; D-07 en el plan |
+| Uso en obra, tiempos y conectividad | RNF01, RNF02, RNF09 y RNF10 en `REQUERIMIENTOS.md` §6, RF41 y RF42 en §5; D-07, D-28 y D-29 en el plan |
 | Reglas de alerta (medición, costos, períodos, umbrales) | RF12 y RF13 dejan de decir "reglas a validar"; los ejemplos pasan a pruebas |
 | Qué circuitos quiere Triwe y quién acepta cambios | DEC-08 en `PLAN-PRODUCTO.md`, que se cierra |
 | La consulta de lotes | D-10: se descarta o se convierte en un RF |
