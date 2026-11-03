@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/nombre-sgso` | `main` @ `a1ada9a` (2026-11-03) | El producto vuelve a llamarse SGSO, Sistema de Gestión y Seguimiento Operativo de obras (DEC-01): interfaz, correo y documentación; el repositorio sigue como `SCGO` | — |
+| `claude/nombre-sgso` | `main` @ `a1ada9a` (2026-11-03) | El producto vuelve a llamarse SGSO, Sistema de Gestión y Seguimiento Operativo de obras (DEC-01): interfaz, correo y documentación; el repositorio sigue como `SCGO` | #85 |
 
 ### Reglas
 
