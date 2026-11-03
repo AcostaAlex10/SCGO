@@ -182,7 +182,7 @@ surgió del relevamiento pero todavía no lo aceptó Triwe.
 | RF17 | permitir registrar observaciones asociadas a reportes o incidencias | Secundaria | Cumplido | `ReporteController` (`observacion_revision`) |
 | RF18 | permitir consultar información histórica de proyectos finalizados | Secundaria | Cumplido | `ProyectosPage` (filtro por estado) |
 | RF19 | contar con distintos roles y permisos de acceso | Crítica | Cumplido | `Sgso\Reglas\Permisos`, `Sgso\Ruteo\Tabla` |
-| RF20 | impedir que los usuarios de obra vean costos o precios | Crítica | Cumplido | `AnalisisController`, `ProyectoController` |
+| RF20 | impedir que los usuarios de obra vean costos o precios | Crítica | Cumplido | `Permisos::VER_COSTOS`, `AnalisisController`, `ProyectoController`, `EtapaPlanificacionController` |
 | RF21 | permitir revisar, editar y aprobar reportes antes de emitir informes definitivos | Importante | Cumplido | `ReporteController`, `Sgso\Reglas\CicloDeVida` |
 | RF22 | permitir registrar ítems o excedentes no contemplados | Secundaria | Cumplido | `ItemExcedenteController` |
 | RF23 | registrar el rendimiento de maquinaria: horas, combustible y producción | Importante | Cumplido | `MaquinariaController` |
@@ -239,7 +239,7 @@ falta pasar de enlaces a archivos (desvío 1, plan: DEC-03 y D-01).
 | RF10 y RF12 — materiales asignados, consumos y exceso | `back/tests/Integracion/MaterialObraTest.php`, `back/tests/Integracion/ListaConsumosTest.php`, `back/tests/Integracion/AnalisisTest.php` |
 | RF11 — alerta cuando el avance real queda debajo del esperado | `back/tests/Integracion/AnalisisTest.php` |
 | RF13 — presupuesto contra lo ejecutado | `back/tests/Integracion/AnalisisTest.php` |
-| RF20 — costos ocultos a quien no está en la lista blanca | `back/tests/Reglas/PermisosTest.php`, `back/tests/Integracion/AnalisisTest.php` (backend), `FRONT/scripts/pruebas/humo.mjs` (pantallas) |
+| RF20 — costos ocultos a quien no está en la lista blanca | `back/tests/Reglas/PermisosTest.php`, `back/tests/Integracion/AnalisisTest.php`, `back/tests/Integracion/EtapaPlanificacionTest.php` (backend), `FRONT/scripts/pruebas/humo.mjs` (pantallas) |
 | RF22 — ítems excedentes | `back/tests/Integracion/ItemExcedenteTest.php` |
 | RF23, RF24, RF27 y RF28 — uso de maquinaria sin valores negativos, alerta de consumo, fallas y rendimiento por operario | `back/tests/Integracion/MaquinariaTest.php`, `FRONT/scripts/pruebas/contrato.mjs` |
 | RF24 — la alerta de consumo en Alertas, con la misma regla que el listado de la máquina | `back/tests/Reglas/ConsumoMaquinariaTest.php`, `back/tests/Integracion/AnalisisTest.php`, `FRONT/scripts/pruebas/contrato.mjs` |
