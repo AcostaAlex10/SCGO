@@ -239,7 +239,7 @@ falta pasar de enlaces a archivos (desvío 1, plan: DEC-03 y D-01).
 | RF10 y RF12 — materiales asignados, consumos y exceso | `back/tests/Integracion/MaterialObraTest.php`, `back/tests/Integracion/ListaConsumosTest.php`, `back/tests/Integracion/AnalisisTest.php` |
 | RF11 — alerta cuando el avance real queda debajo del esperado | `back/tests/Integracion/AnalisisTest.php` |
 | RF13 — presupuesto contra lo ejecutado | `back/tests/Integracion/AnalisisTest.php` |
-| RF20 — costos ocultos al Personal Técnico | `back/tests/Integracion/AnalisisTest.php` (backend), `FRONT/scripts/pruebas/humo.mjs` (pantallas) |
+| RF20 — costos ocultos a quien no está en la lista blanca | `back/tests/Reglas/PermisosTest.php`, `back/tests/Integracion/AnalisisTest.php` (backend), `FRONT/scripts/pruebas/humo.mjs` (pantallas) |
 | RF22 — ítems excedentes | `back/tests/Integracion/ItemExcedenteTest.php` |
 | RF23, RF24, RF27 y RF28 — uso de maquinaria sin valores negativos, alerta de consumo, fallas y rendimiento por operario | `back/tests/Integracion/MaquinariaTest.php`, `FRONT/scripts/pruebas/contrato.mjs` |
 | RF24 — la alerta de consumo en Alertas, con la misma regla que el listado de la máquina | `back/tests/Reglas/ConsumoMaquinariaTest.php`, `back/tests/Integracion/AnalisisTest.php`, `FRONT/scripts/pruebas/contrato.mjs` |
