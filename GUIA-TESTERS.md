@@ -17,16 +17,15 @@ Hay dos entornos y conviene saber cuál usar, porque no son equivalentes.
 
 | | Demo estática | Sistema real |
 |---|---|---|
-| URL | https://acostaalex10.github.io/SCGO/ | https://ingenieria-en-software-proyecto.vercel.app/ |
+| URL | https://acostaalex10.github.io/SGSO/ | https://ingenieria-en-software-proyecto.vercel.app/ |
 | Backend | ninguno: se simula en el navegador | PHP sobre MariaDB |
 | Datos | completos, ficticios | reales del equipo, varias secciones vacías |
 | Tus cambios | quedan solo en tu navegador | los ven todos |
 | Disponibilidad | inmediata | la primera carga puede tardar ~1 minuto |
 
 La demo pública de GitHub Pages se publica desde esta rama, `testing`, cada vez
-que cambia. Es una versión anterior al cambio de nombre del producto: por eso en
-pantalla dice **SGSO**. El sistema real corre la versión actual, que ya se llama
-SCGO, así que entre los dos entornos puede haber diferencias de funcionalidad.
+que cambia. Es una versión anterior a la del sistema real, así que entre los dos
+entornos puede haber diferencias de funcionalidad.
 
 **Recomendación: empezar por la demo estática.** Tiene datos cargados en todas
 las pantallas, no requiere esperas y no hay forma de romper nada: cada persona
@@ -55,7 +54,7 @@ sgsoMockReset()
 
 ### Demo estática
 
-Abrir [la pantalla de inicio de sesión](https://acostaalex10.github.io/SCGO/#/login)
+Abrir [la pantalla de inicio de sesión](https://acostaalex10.github.io/SGSO/#/login)
 para probar el acceso. Al entrar por la URL principal sin una sesión previa también
 aparece esa pantalla. Si el navegador ya recuerda una sesión y muestra el panel,
 pulsar **Cerrar sesión** o abrir el enlace en una ventana privada.
@@ -264,7 +263,7 @@ las peticiones y el código de estado que devolvió el servidor.
 
 Si aparece el aviso **“acostaalex10.github.io crashed unexpectedly”** dentro de
 un navegador integrado, pulsar **Open in external browser** y abrir la
-[demo](https://acostaalex10.github.io/SCGO/) en Chrome o Edge. El aviso indica
+[demo](https://acostaalex10.github.io/SGSO/) en Chrome o Edge. El aviso indica
 que la pestaña del navegador se cerró inesperadamente; por sí solo no identifica
 un error de la aplicación. Si el problema se repite en el navegador externo,
 probar una ventana privada y reportar el dispositivo, sistema operativo, navegador,
