@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/limpieza-archivos` | `main` @ `f4e9a40` (2026-11-03) | Sacar lo que ya no sirve: un acceso directo de Windows y el plan de ADR-001 que nadie enlaza; ignorar `.claude/worktrees/` | Sin abrir |
+| `claude/limpieza-archivos` | `main` @ `f4e9a40` (2026-11-03) | Sacar lo que ya no sirve: un acceso directo de Windows y el plan de ADR-001 que nadie enlaza; ignorar `.claude/worktrees/` | #88 |
 
 ### Reglas
 
