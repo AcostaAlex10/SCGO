@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/nombre-sgso` | `main` @ `6cd4308` (2026-11-03) | El producto vuelve a llamarse SGSO, Sistema de Gestión y Seguimiento Operativo de obras (DEC-01): interfaz, correo, documentación y el nombre del repositorio | #85 |
+| `claude/limpieza-archivos` | `main` @ `f4e9a40` (2026-11-03) | Sacar lo que ya no sirve: un acceso directo de Windows y el plan de ADR-001 que nadie enlaza; ignorar `.claude/worktrees/` | Sin abrir |
 
 ### Reglas
 
@@ -170,6 +170,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/prioridad-gastos-reales` | El desvío de plata entre lo presupuestado y lo gastado de verdad pasa al frente: RF29 a Crítica y D-17 primero en el orden de DEC-08 | PR #82 |
 | `claude/repuestos-proveedores` | Lo que pidió el responsable de obra: catálogo de proveedores (RF39), pedir un repuesto desde una falla (RF40) y el orden del plan rearmado | PR #83 |
 | `claude/pwa-envio-diferido` | Para el trabajo en obra: instalar SGSO en el celular como aplicación (RF41) y guardar sin señal para enviar al volver la conexión (RF42) | PR #84 |
+| `claude/nombre-sgso` | El producto vuelve a llamarse SGSO, Sistema de Gestión y Seguimiento Operativo de obras (DEC-01): interfaz, correo, documentación y el nombre del repositorio | PR #85 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir

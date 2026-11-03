@@ -2,3 +2,5 @@
 **/dist/
 # Caché del grafo de conocimiento (herramienta externa, no es del proyecto).
 graphify-out/
+# Worktrees de las sesiones de Claude Code.
+.claude/worktrees/
