@@ -5,8 +5,8 @@ cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio
 se perdió.** Una sesión nueva empieza leyendo esto.
 
 - **Actualizado:** 2026-11-03, al devolverle al producto el nombre **SGSO**
-  (Sistema de Gestión y Seguimiento Operativo de obras, DEC-01). Fue SCGO entre
-  2026-09 y 2026-11; el repositorio de GitHub también se renombró a `SGSO`
+  (Sistema de Gestión y Seguimiento Operativo de obras, DEC-01); el repositorio
+  de GitHub también se renombró a `SGSO`
 - **Base:** `main` @ `6cd4308`, CI en verde. **La base de Aiven volvió**:
   `/api/health` responde `{"status":"ok","db":"ok"}`. **Brevo ya funciona**: Alex
   probó la recuperación de contraseña el 2026-10-21 y el correo llegó (sección 3)
@@ -43,7 +43,7 @@ día de dependencias.
 | PR | Qué entró |
 |---|---|
 | #4, #6, #7 | ADR-001 completo: Composer, reglas puras, tabla de rutas, pruebas, CI |
-| #8, #9 | Documentación ordenada, requerimientos recuperados, producto renombrado a SCGO |
+| #8, #9 | Documentación ordenada, requerimientos recuperados, producto renombrado |
 | #10, #11, #12 | Seguridad: XSS por enlaces, secreto JWT obligatorio, errores sin detalles internos, límite de login, contraseñas de 10, headers, límite de `/auth/olvide` |
 | #13 | Dependencias al día y auditadas, Dependabot configurado |
 | #20 | Triaje de Dependabot, este archivo, y fuera dos primitivos de shadcn sin uso |
@@ -52,7 +52,7 @@ día de dependencias.
 | #22 | Este archivo, revisado después del renombre |
 | #24 | B-04: el log dice qué pedido falló, y los errores van a Sentry sin SDK |
 | #25 | B-02 queda bloqueado por DEC-04; el CI verifica el `connect-src` de la CSP |
-| #32 | La interfaz dice SCGO; la documentación dice que la demo sale de `testing` |
+| #32 | La interfaz con el nombre del producto; la documentación dice que la demo sale de `testing` |
 | #33 | Triaje de Dependabot #26 a #30: fuera `motion` y `react-responsive-masonry`, código listo para TS 7 y recharts 3 |
 | #27, #29 | Dependabot: TypeScript 7.0.2 y recharts 3.10.1 |
 | #31 | **En `testing`:** guía y `HANDOFF.md` al día; la demo vuelve a publicarse desde ahí |
@@ -279,8 +279,8 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
    solo para la demo o su guía, **por PR contra `testing`**, y nunca se mergea
    con `main` en ninguna dirección. Estuvo congelada en `a25da85` hasta el
    2026-09-23.
-2. **El repositorio cambió de nombre dos veces:** a `SCGO` el 2026-09-16 y de
-   vuelta a `SGSO` el 2026-11-03. GitHub redirige las URL viejas **menos la de la
+2. **El repositorio cambió de nombre dos veces:** el 2026-09-16 y, de vuelta a
+   `SGSO`, el 2026-11-03. GitHub redirige las URL viejas **menos la de la
    demo**, que ahora es https://acostaalex10.github.io/SGSO/. Las copias locales
    tienen que apuntar el remoto a la URL nueva (`git remote set-url origin
    https://github.com/AcostaAlex10/SGSO`).
