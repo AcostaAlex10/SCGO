@@ -322,7 +322,7 @@ export default function Root() {
             </button>
             {/* Breadcrumb */}
             <div className="flex items-center gap-2" style={{ fontSize: "12px", color: "var(--muted-foreground)" }}>
-              <span style={{ letterSpacing: "0.03em" }}>SCGO</span>
+              <span style={{ letterSpacing: "0.03em" }}>SGSO</span>
               <span style={{ color: "var(--border)" }}>/</span>
               <span style={{ color: "var(--foreground)", fontWeight: 600 }}>{currentPage}</span>
             </div>
@@ -342,7 +342,7 @@ export default function Root() {
               }}
             >
               <span style={{ color: "#22c55e" }}>●</span>
-              <span>SCGO</span>
+              <span>SGSO</span>
             </div>
             <div style={{ fontSize: "11px", color: "var(--muted-foreground)" }}>
               {new Date().toLocaleDateString("es-AR", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}

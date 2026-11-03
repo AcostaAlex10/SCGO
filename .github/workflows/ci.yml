@@ -156,10 +156,10 @@ jobs:
       # del repositorio, que es como lo sirve GitHub Pages.
       - name: Servir la demo
         run: |
-          mkdir -p /tmp/scgo
-          ln -sfn "$PWD/dist" /tmp/scgo/SCGO
-          npx --yes http-server /tmp/scgo -p 8123 -c-1 --silent &
-          npx --yes wait-on -t 60000 http://127.0.0.1:8123/SCGO/
+          mkdir -p /tmp/sgso
+          ln -sfn "$PWD/dist" /tmp/sgso/SGSO
+          npx --yes http-server /tmp/sgso -p 8123 -c-1 --silent &
+          npx --yes wait-on -t 60000 http://127.0.0.1:8123/SGSO/
 
       - name: Correr las cinco suites
         run: |
@@ -178,17 +178,17 @@ jobs:
 
       # Construye la misma imagen que despliega Render.
       - name: Construir la imagen
-        run: docker build -t scgo-api back
+        run: docker build -t sgso-api back
 
       # El login normaliza el email con mb_strtolower (A-03): sin mbstring,
       # nadie podria entrar.
       - name: La imagen trae las extensiones que usa el codigo
-        run: docker run --rm scgo-api php -r 'foreach (["mbstring", "pdo_mysql"] as $e) { if (!extension_loaded($e)) { fwrite(STDERR, "Falta la extension $e\n"); exit(1); } } echo "ok\n";'
+        run: docker run --rm sgso-api php -r 'foreach (["mbstring", "pdo_mysql"] as $e) { if (!extension_loaded($e)) { fwrite(STDERR, "Falta la extension $e\n"); exit(1); } } echo "ok\n";'
 
       # Sin JWT_SECRET la API no atiende pedidos (A-02).
       - name: Sin secreto, falla cerrado
         run: |
-          docker run -d --name sin-secreto -p 8081:80 scgo-api
+          docker run -d --name sin-secreto -p 8081:80 sgso-api
           npx --yes wait-on -t 60000 tcp:127.0.0.1:8081
           codigo=$(curl -s -o cuerpo.json -w '%{http_code}' http://127.0.0.1:8081/api/health)
           echo "HTTP $codigo"; cat cuerpo.json; echo
@@ -204,7 +204,7 @@ jobs:
             -e JWT_SECRET="$(openssl rand -hex 32)" \
             -e DB_HOST=127.0.0.1 -e DB_PORT=1 \
             -e DB_USER=usuario_de_prueba -e DB_NAME=base_de_prueba \
-            scgo-api
+            sgso-api
           npx --yes wait-on -t 60000 tcp:127.0.0.1:8082
           codigo=$(curl -s -D cabeceras.txt -o cuerpo.json -w '%{http_code}' http://127.0.0.1:8082/api/health)
           echo "HTTP $codigo"; cat cuerpo.json; echo

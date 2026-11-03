@@ -1,4 +1,4 @@
-# SCGO — Frontend
+# SGSO — Frontend
 
 Aplicación React del sistema. La visión general y cómo levantar todo el sistema
 están en el [README principal](../README.md).

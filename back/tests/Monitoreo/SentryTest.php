@@ -53,7 +53,7 @@ final class SentryTest extends TestCase
         self::assertCount(1, $this->enviados);
         self::assertSame('https://o12345.ingest.sentry.io/api/678/envelope/', $this->enviados[0]['url']);
         self::assertContains(
-            'X-Sentry-Auth: Sentry sentry_version=7, sentry_key=clavepublica, sentry_client=scgo/1.0',
+            'X-Sentry-Auth: Sentry sentry_version=7, sentry_key=clavepublica, sentry_client=sgso/1.0',
             $this->enviados[0]['cabeceras']
         );
     }
