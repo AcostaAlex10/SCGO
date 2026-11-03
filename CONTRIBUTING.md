@@ -30,8 +30,8 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/todo-dice-sgso` | `main` @ `f4e9a40` (2026-11-03) | Sacar el nombre anterior del producto de todo lo que quedaba: documentación, historial de ramas y prueba de humo | Sin abrir |
-| `claude/testing-url-sgso` | `testing` @ `f59d82a` (2026-11-03) | **Contra `testing`.** La guía de testers y `HANDOFF.md` apuntan a la URL nueva de la demo y del repositorio | Sin abrir |
+| `claude/todo-dice-sgso` | `main` @ `f4e9a40` (2026-11-03) | Sacar el nombre anterior del producto de todo lo que quedaba: documentación, historial de ramas y prueba de humo | #86 |
+| `claude/testing-url-sgso` | `testing` @ `f59d82a` (2026-11-03) | **Contra `testing`.** La guía de testers y `HANDOFF.md` apuntan a la URL nueva de la demo y del repositorio | #87, en `testing` |
 
 ### Reglas
 
