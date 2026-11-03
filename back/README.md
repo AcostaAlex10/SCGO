@@ -1,4 +1,4 @@
-# SCGO — API REST
+# SGSO — API REST
 
 API REST en PHP sin framework (acceso a datos con PDO) sobre MariaDB / MySQL.
 Es el backend del proyecto: el que está desplegado en Render y el que consume el

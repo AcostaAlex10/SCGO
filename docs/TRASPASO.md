@@ -1,12 +1,13 @@
-# Traspaso: cómo retomar SCGO
+# Traspaso: cómo retomar SGSO
 
 Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-11-03, al sumar la aplicación instalable y el guardado sin
-  señal (RF41 y RF42)
-- **Base:** `main` @ `a1ada9a`, CI en verde. **La base de Aiven volvió**:
+- **Actualizado:** 2026-11-03, al devolverle al producto el nombre **SGSO**
+  (Sistema de Gestión y Seguimiento Operativo de obras, DEC-01). Fue SCGO entre
+  2026-09 y 2026-11; el repositorio de GitHub también se renombró a `SGSO`
+- **Base:** `main` @ `6cd4308`, CI en verde. **La base de Aiven volvió**:
   `/api/health` responde `{"status":"ok","db":"ok"}`. **Brevo ya funciona**: Alex
   probó la recuperación de contraseña el 2026-10-21 y el correo llegó (sección 3)
 - **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23).
@@ -114,10 +115,8 @@ pero **no le cambia el rol**: para tener un admin hay que usar un email nuevo o
 uno que ya sea admin. **Pega contra producción**, porque `back/.env` apunta ahí
 (trampa 9). Las cuentas de prueba se dan de baja desde Usuarios al terminar.
 
-**Pendiente chico: el renombre a SCGO del correo de recuperación.** El asunto
-todavía dice "Recuperá tu contraseña - SGSO" (`AuthController.php`, que también
-titula el cuerpo con SGSO), y el remitente de `Mailer.php` se llama `SGSO`. No
-tiene ítem en el plan.
+**El correo de recuperación ya dice SGSO**, igual que el producto desde el
+2026-11-03 (`AuthController.php` y el remitente de `Mailer.php`).
 
 Esto no se arregla con código, y **ninguna credencial pasa por el chat ni por el
 repositorio**.
@@ -217,7 +216,7 @@ tres cosas:
 - **Revisado con Alex el 2026-10-22, por ahora:** pagos, facturación y retención
   de ARCA quedan fuera (exclusión contable), igual que la captura automática de
   precios. El registro sin conexión, que también había quedado afuera, se reabrió
-  el 2026-11-03 como RF42 (D-29), junto con RF41 (instalar SCGO en el celular,
+  el 2026-11-03 como RF42 (D-29), junto con RF41 (instalar SGSO en el celular,
   D-28). Las reglas de alerta de costos (RF12, RF13)
   quedan "a validar" con la dirección técnica y administración, y los RNF son
   metas por comprobar.
@@ -267,7 +266,6 @@ tres cosas:
 - **D-05** (registro de cambios): pide una tabla nueva, o sea una migración, así
   que se pregunta antes.
 - **D-12** y **D-13**, que esperan decisiones del equipo (ver arriba).
-- **El asunto "SGSO"** del correo de recuperación (ver arriba).
 
 ---
 
@@ -275,15 +273,17 @@ tres cosas:
 
 Cada una de estas hizo perder al menos media hora. Están acá para no repetirlas.
 
-1. **`testing` es la rama de la demo de los testers.** Su código es el anterior
-   al renombre (en pantalla dice SGSO) y GitHub Pages publica solo desde ella,
+1. **`testing` es la rama de la demo de los testers.** Su código es anterior
+   al de `main` y GitHub Pages publica solo desde ella,
    con su propio `pages-testing.yml` y su propia `GUIA-TESTERS.md`. Se cambia
    solo para la demo o su guía, **por PR contra `testing`**, y nunca se mergea
    con `main` en ninguna dirección. Estuvo congelada en `a25da85` hasta el
    2026-09-23.
-2. **El repositorio se renombró a `SCGO`** el 2026-09-16. GitHub redirige las URL
-   viejas **menos la de la demo**, que ahora es
-   https://acostaalex10.github.io/SCGO/.
+2. **El repositorio cambió de nombre dos veces:** a `SCGO` el 2026-09-16 y de
+   vuelta a `SGSO` el 2026-11-03. GitHub redirige las URL viejas **menos la de la
+   demo**, que ahora es https://acostaalex10.github.io/SGSO/. Las copias locales
+   tienen que apuntar el remoto a la URL nueva (`git remote set-url origin
+   https://github.com/AcostaAlex10/SGSO`).
 3. **El simulador y PHP se desincronizan en silencio.** `mock/servidor.ts` son
    1.344 líneas que reimplementan el backend a mano. Ya pasó tres veces que la
    demo acepta datos que el sistema real rechaza. Si cambiás una validación de la
@@ -340,7 +340,7 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
     `MSYS_NO_PATHCONV=1`.
 18. **La demo publicada se puede probar entera desde acá.** Las cinco suites
     aceptan `SGSO_URL` (desde el #32; antes `contrato.mjs` leía `BASE` y se iba
-    en silencio a localhost): `SGSO_URL=https://acostaalex10.github.io/SCGO/`.
+    en silencio a localhost): `SGSO_URL=https://acostaalex10.github.io/SGSO/`.
     Ojo: las suites de `main` prueban la versión de `main`, y la demo es la de
     `testing`, así que alguna diferencia puede ser legítima.
 19. **La tabla de ramas abiertas choca en cada rebase.** Todas las ramas agregan
@@ -421,7 +421,7 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
     con los números de una sola rama, porque cada PR lo cambió en una línea
     distinta de la que choca. Después de cada rebase que toque estados de RF, se
     vuelve a contar la tabla. Al mergear, el repositorio **no permite merge
-    automático** (`gh api repos/AcostaAlex10/SCGO -q .allow_auto_merge` da
+    automático** (`gh api repos/AcostaAlex10/SGSO -q .allow_auto_merge` da
     `false`): "mergear cuando el CI esté en verde" lo hace alguien a mano.
 35. **En PowerShell 5.1, `gh pr create --body "..."` se rompe** si el texto
     tiene comillas dobles: `gh` lo recibe partido en varios argumentos ("unknown
@@ -433,7 +433,7 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
     checkout principal: Composer no descarga (trampa 11) y `npm install` borra
     Playwright (trampa 12). Un `vendor/` copiado necesita `composer dump-autoload`
     (trampa 26).
-38. **Dos agentes que comparten `C:/tmp/scgo` y el `http-server` del puerto 8123 se
+38. **Dos agentes que comparten `C:/tmp/sgso` y el `http-server` del puerto 8123 se
     pisan las corridas de Playwright.** Uno por vez, o carpetas y puertos
     distintos.
 39. **Si Render loguea `getaddrinfo for ...aivencloud.com failed: Name or service
@@ -443,7 +443,7 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
     `{"status":"ok","db":"ok"}`.
 40. **En la nube, `gh pr create` falla** con "GraphQL is not available" (403):
     el proxy solo deja la API REST. El PR se abre con `gh api
-    repos/AcostaAlex10/SCGO/pulls -X POST -f base=main -f head=<rama>
+    repos/AcostaAlex10/SGSO/pulls -X POST -f base=main -f head=<rama>
     -F draft=true -f title=... -F body=@archivo.md`, y se edita con `-X PATCH`
     sobre `pulls/<n>`.
 41. **Dos PR en paralelo pueden tomar el mismo número de ítem.** Pasó el
@@ -483,8 +483,8 @@ cd FRONT && npm ci --legacy-peer-deps && npm run typecheck && npm run build
 
 # Las cinco suites, contra la demo estática
 BASE_PATH='./' VITE_HASH_ROUTER='1' VITE_MOCK='1' npm run build
-mkdir -p /tmp/scgo && ln -sfn "$PWD/dist" /tmp/scgo/SCGO
-npx --yes http-server /tmp/scgo -p 8123 -c-1 --silent &
+mkdir -p /tmp/sgso && ln -sfn "$PWD/dist" /tmp/sgso/SGSO
+npx --yes http-server /tmp/sgso -p 8123 -c-1 --silent &
 for s in humo inactividad validaciones persistencia contrato; do
   node scripts/pruebas/$s.mjs
 done
@@ -520,7 +520,7 @@ Lo mínimo para correr los tres chequeos del CI y las suites, en este orden:
    copiar `dist/` en vez de enlazarlo (trampa 13).
 
 Para probar la demo de `testing` (la de los testers) se hace lo mismo desde un
-worktree de esa rama: `git worktree add ../scgo-testing origin/testing`.
+worktree de esa rama: `git worktree add ../sgso-testing origin/testing`.
 
 ---
 

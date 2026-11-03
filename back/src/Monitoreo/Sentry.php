@@ -31,7 +31,7 @@ use Throwable;
  */
 final class Sentry
 {
-    private const CLIENTE = 'scgo/1.0';
+    private const CLIENTE = 'sgso/1.0';
 
     /** Suficiente para ubicar el error sin mandar el archivo entero. */
     private const MARCOS_DE_TRAZA = 20;
@@ -138,7 +138,7 @@ final class Sentry
             'timestamp' => $ahora,
             'platform' => 'php',
             'level' => 'error',
-            'logger' => 'scgo',
+            'logger' => 'sgso',
             'environment' => $this->entorno,
             'tags' => ['referencia' => $referencia] + $etiquetas,
             'exception' => ['values' => [[

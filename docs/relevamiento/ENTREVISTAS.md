@@ -49,7 +49,7 @@ cotizaciones, y dónde termina lo que hace el sistema contable.
    las unidades o los nombres de un proveedor a otro? ¿Cuánto dura una oferta?
    (RF34, RF31)
 9. ¿Qué resuelve hoy el sistema contable con pagos, facturación y retenciones, y
-   qué queda afuera (planillas, papel, a mano)? *Es para entender el límite: SCGO
+   qué queda afuera (planillas, papel, a mano)? *Es para entender el límite: SGSO
    no lo va a reemplazar.* (§3, exclusión contable)
 10. ¿Cómo controlan hoy las horas de entrada y salida que se pagan? ¿Quién las
     revisa antes de pagar? (RF32)
@@ -83,7 +83,7 @@ conexión, para que entre en menos de 10 minutos.
 
 **Objetivo:** validar las reglas de alerta de costos y decidir qué se construye.
 **Duración:** 20 a 25 minutos. Conviene llevar un ejemplo con números, de una
-obra real o inventada, con el resultado que daría hoy SCGO.
+obra real o inventada, con el resultado que daría hoy SGSO.
 
 1. ¿Cómo se mide el avance de una obra: por etapas terminadas, por porcentaje
    estimado, por cantidad de trabajo? ¿Quién lo define? (reglas de alerta, RF13)

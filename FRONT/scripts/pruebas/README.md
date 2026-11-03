@@ -37,12 +37,12 @@ como lo sirve GitHub Pages:
 cd FRONT
 BASE_PATH=./ VITE_MOCK=1 VITE_HASH_ROUTER=1 npm run build
 
-mkdir -p /tmp/scgo
-ln -sfn "$PWD/dist" /tmp/scgo/SCGO
-npx http-server /tmp/scgo -p 8123 -c-1 --silent &
+mkdir -p /tmp/sgso
+ln -sfn "$PWD/dist" /tmp/sgso/SGSO
+npx http-server /tmp/sgso -p 8123 -c-1 --silent &
 ```
 
-En Windows, en vez del `ln`, copiar `dist` a `C:\tmp\scgo\SCGO`.
+En Windows, en vez del `ln`, copiar `dist` a `C:\tmp\sgso\SGSO`.
 
 Y correr:
 
