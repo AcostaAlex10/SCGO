@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/a15-costos-lista-blanca` | `main` @ `f4e9a40` (2026-11-03) | A-15: RF20 pasa a una lista blanca en `Permisos`, para que un rol nuevo no vea costos por defecto | #PENDIENTE |
+| `claude/a15-costos-lista-blanca` | `main` @ `f4e9a40` (2026-11-03) | A-15: RF20 pasa a una lista blanca en `Permisos`, para que un rol nuevo no vea costos por defecto | #89 |
 
 ### Reglas
 
