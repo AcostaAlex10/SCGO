@@ -1,4 +1,4 @@
-# Cómo se trabaja en SCGO
+# Cómo se trabaja en SGSO
 
 Reglas del equipo para que `main` esté siempre en condiciones de desplegarse.
 
@@ -12,7 +12,7 @@ Reglas del equipo para que `main` esté siempre en condiciones de desplegarse.
 | Rama | Qué es | Se despliega | Quién la toca |
 |---|---|---|---|
 | `main` | La rama de trabajo. Todo el código vive acá. | **Sí**: API en Render, frontend en Vercel | Todo el equipo, **solo por pull request** |
-| `testing` | **La rama de la demo para testers.** Su código es el anterior al cambio de nombre (por eso dice SGSO) y se publica en GitHub Pages con su propio `pages-testing.yml`. Tiene su propia guía, `GUIA-TESTERS.md`. | GitHub Pages | Solo para la demo y su guía, **por PR contra `testing`**. Nunca se mergea con `main`, en ninguna dirección |
+| `testing` | **La rama de la demo para testers.** Su código es anterior al de `main` y se publica en GitHub Pages con su propio `pages-testing.yml`. Tiene su propia guía, `GUIA-TESTERS.md`. | GitHub Pages | Solo para la demo y su guía, **por PR contra `testing`**. Nunca se mergea con `main`, en ninguna dirección |
 
 > **La demo de Pages sale solo de `testing`** (decisión del equipo, 2026-09-23).
 > Disparar el workflow de Pages a mano sobre `main` publica la versión de `main`
@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/repuestos-proveedores` | `main` @ `f48386a` (2026-11-03) | Lo que pidió el responsable de obra: catálogo de qué vende cada proveedor (RF39) y pedir un repuesto desde la falla de una máquina (RF40); la búsqueda con IA queda a evaluar | #83 |
+| `claude/nombre-sgso` | `main` @ `a1ada9a` (2026-11-03) | El producto vuelve a llamarse SGSO, Sistema de Gestión y Seguimiento Operativo de obras (DEC-01): interfaz, correo y documentación; el repositorio sigue como `SCGO` | — |
 
 ### Reglas
 
@@ -168,6 +168,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/encabezado-plan` | El encabezado de `PLAN-PRODUCTO.md` al día: fecha, base y cantidad de pruebas | PR #79 |
 | `claude/propuestos-informe-ids2` | Requerimientos propuestos que salen del informe de Ingeniería de Software II: RF31 ampliado, perfil Compras, historial de cambios, resúmenes PDF o CSV, carga inicial y dimensionamiento de RNF08 | PR #81 |
 | `claude/prioridad-gastos-reales` | El desvío de plata entre lo presupuestado y lo gastado de verdad pasa al frente: RF29 a Crítica y D-17 primero en el orden de DEC-08 | PR #82 |
+| `claude/repuestos-proveedores` | Lo que pidió el responsable de obra: catálogo de proveedores (RF39), pedir un repuesto desde una falla (RF40) y el orden del plan rearmado | PR #83 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir

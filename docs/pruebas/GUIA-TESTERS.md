@@ -1,9 +1,9 @@
-# SCGO — Guía para testers
+# SGSO — Guía para testers
 
 Todo lo necesario para empezar a probar el sistema. Está pensada para un equipo
 externo que no participó del desarrollo.
 
-**SCGO** (Sistema de Control y Gestión de Obras) es una aplicación web para que
+**SGSO** (Sistema de Gestión y Seguimiento Operativo de obras) es una aplicación web para que
 una empresa constructora controle sus obras en un solo lugar: proyectos,
 planificación, avance físico, asistencia, materiales, maquinaria, documentación,
 reportes y alertas de desvío. Se desarrolla para Triwe, empresa de construcción.
@@ -23,7 +23,7 @@ Hay dos entornos y conviene saber cuál usar, porque no son equivalentes.
 | Disponibilidad | inmediata | la primera carga puede tardar ~1 minuto |
 
 > **La demo pública no es esta versión.** Se publica desde la rama `testing`, que
-> tiene el código anterior al cambio de nombre (en pantalla dice SGSO) y su
+> tiene un código anterior al de `main` y su
 > propia guía, `GUIA-TESTERS.md` en esa rama: los testers externos usan esa. Esta
 > guía describe la versión actual, la de `main`, que es la que corre en el
 > sistema real. Para recorrer esta versión con datos simulados, se compila en

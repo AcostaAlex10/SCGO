@@ -1,12 +1,13 @@
-# Traspaso: cómo retomar SCGO
+# Traspaso: cómo retomar SGSO
 
 Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-11-03, al sumar el pedido del responsable de obra (RF39 y
-  RF40)
-- **Base:** `main` @ `f48386a`, CI en verde. **La base de Aiven volvió**:
+- **Actualizado:** 2026-11-03, al devolverle al producto el nombre **SGSO**
+  (Sistema de Gestión y Seguimiento Operativo de obras, DEC-01). Fue SCGO entre
+  2026-09 y 2026-11; el repositorio de GitHub sigue llamándose `SCGO`
+- **Base:** `main` @ `a1ada9a`, CI en verde. **La base de Aiven volvió**:
   `/api/health` responde `{"status":"ok","db":"ok"}`. **Brevo ya funciona**: Alex
   probó la recuperación de contraseña el 2026-10-21 y el correo llegó (sección 3)
 - **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23).
@@ -114,10 +115,8 @@ pero **no le cambia el rol**: para tener un admin hay que usar un email nuevo o
 uno que ya sea admin. **Pega contra producción**, porque `back/.env` apunta ahí
 (trampa 9). Las cuentas de prueba se dan de baja desde Usuarios al terminar.
 
-**Pendiente chico: el renombre a SCGO del correo de recuperación.** El asunto
-todavía dice "Recuperá tu contraseña - SGSO" (`AuthController.php`, que también
-titula el cuerpo con SGSO), y el remitente de `Mailer.php` se llama `SGSO`. No
-tiene ítem en el plan.
+**El correo de recuperación ya dice SGSO**, igual que el producto desde el
+2026-11-03 (`AuthController.php` y el remitente de `Mailer.php`).
 
 Esto no se arregla con código, y **ninguna credencial pasa por el chat ni por el
 repositorio**.
@@ -266,7 +265,6 @@ tres cosas:
 - **D-05** (registro de cambios): pide una tabla nueva, o sea una migración, así
   que se pregunta antes.
 - **D-12** y **D-13**, que esperan decisiones del equipo (ver arriba).
-- **El asunto "SGSO"** del correo de recuperación (ver arriba).
 
 ---
 
@@ -274,8 +272,8 @@ tres cosas:
 
 Cada una de estas hizo perder al menos media hora. Están acá para no repetirlas.
 
-1. **`testing` es la rama de la demo de los testers.** Su código es el anterior
-   al renombre (en pantalla dice SGSO) y GitHub Pages publica solo desde ella,
+1. **`testing` es la rama de la demo de los testers.** Su código es anterior
+   al de `main` y GitHub Pages publica solo desde ella,
    con su propio `pages-testing.yml` y su propia `GUIA-TESTERS.md`. Se cambia
    solo para la demo o su guía, **por PR contra `testing`**, y nunca se mergea
    con `main` en ninguna dirección. Estuvo congelada en `a25da85` hasta el

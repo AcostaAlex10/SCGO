@@ -1,6 +1,6 @@
-# Requerimientos de SCGO
+# Requerimientos de SGSO
 
-**SCGO — Sistema de Control y Gestión de Obras de construcción.** Cliente: **Triwe**,
+**SGSO — Sistema de Gestión y Seguimiento Operativo de obras.** Cliente: **Triwe**,
 empresa constructora.
 
 Este es el documento de referencia del alcance del sistema. Si un requerimiento
@@ -75,11 +75,11 @@ Alex lo que había quedado afuera (2026-10-22, *por ahora*: se pueden reabrir):
 
 | Excluido | Por qué |
 |---|---|
-| Integración con ERP o software contable (por ejemplo, Xubio) | Exige APIs externas y reglas impositivas. **SCGO no es un sistema contable.** |
+| Integración con ERP o software contable (por ejemplo, Xubio) | Exige APIs externas y reglas impositivas. **SGSO no es un sistema contable.** |
 | Funcionamiento completamente offline | Sincronizar datos de forma segura es un problema en sí mismo |
 | Inteligencia artificial y análisis predictivo | Requiere historia de datos que todavía no existe. Una **búsqueda de repuestos con IA en internet**, que pidió el responsable de obra (2026-11-02), queda *a evaluar* después de RF39 y RF40: las sugerencias de una IA pueden estar mal o viejas, así que solo serviría como ayuda que una persona confirma |
 | Integración automática con WhatsApp | Dependencia externa y limitaciones técnicas del servicio |
-| Pagos, facturación y control de la retención de ARCA | Son parte de la exclusión contable: **SCGO no es un sistema contable.** El TP2 se los asigna a administración, y el TP1 cuenta que una compra fuera de protocolo hace perder la retención; eso queda en el circuito contable de Triwe |
+| Pagos, facturación y control de la retención de ARCA | Son parte de la exclusión contable: **SGSO no es un sistema contable.** El TP2 se los asigna a administración, y el TP1 cuenta que una compra fuera de protocolo hace perder la retención; eso queda en el circuito contable de Triwe |
 | Captura automática de precios de proveedores | No está comprobado que los proveedores publiquen información accesible, actualizable y utilizable (estudio de viabilidad). Queda la carga a mano (RF31) y por archivo (RF34) |
 | Registro sin conexión para cargar después | Es una versión acotada del offline: cargar más tarde sin duplicados es el mismo problema de sincronización. El estudio de viabilidad lo menciona como alternativa ante cortes |
 

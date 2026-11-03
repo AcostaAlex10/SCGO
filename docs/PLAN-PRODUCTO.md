@@ -1,6 +1,6 @@
-# Plan de producto de SCGO
+# Plan de producto de SGSO
 
-Todo lo que falta para que SCGO se pueda entregar y cobrar a Triwe, ordenado por
+Todo lo que falta para que SGSO se pueda entregar y cobrar a Triwe, ordenado por
 prioridad.
 
 - **Actualizado:** 2026-10-24
@@ -34,7 +34,7 @@ decisión de ustedes, no de código.
 
 | # | Decisión | Estado | Qué destraba |
 |---|---|---|---|
-| **DEC-01** | Nombre del producto | **Resuelta:** SCGO, Sistema de Control y Gestión de Obras de construcción. El namespace `Sgso\` del código queda como nombre interno: renombrarlo no aporta nada al cliente. | E-05 |
+| **DEC-01** | Nombre del producto | **Resuelta:** SGSO, Sistema de Gestión y Seguimiento Operativo de obras, como el informe de Ingeniería de Software II. Se llamó SCGO (Sistema de Control y Gestión de Obras) entre 2026-09 y 2026-11; Alex lo devolvió a SGSO el 2026-11-03. El repositorio de GitHub sigue llamándose `SCGO`. El namespace `Sgso\` del código queda como nombre interno: renombrarlo no aporta nada al cliente. | E-05 |
 | **DEC-02** | Modelo comercial | **Parcial:** el cliente es Triwe. Falta decidir si después se vende a otras constructoras. Recomendación: entregar a Triwe primero y decidir el multicliente **antes** de que aparezca un segundo cliente, porque migrar el modelo de datos después sale más caro. | E-01 a E-03 |
 | **DEC-03** | RF07 y RF16: documentos como archivo o como enlace | Abierta. Recomendación: **archivos**, en almacenamiento compatible con S3. Triwe va a querer subir el PDF del plano, no pegar un enlace; y además resuelve de raíz el XSS de A-01. | D-01 |
 | **DEC-04** | Hosting pago | **Postergada** (2026-09-26): se decide cuando se cierre la posible venta del sistema, que todavía no es seguro. Mientras tanto se sigue en los planes gratuitos, con sus riesgos a la vista: Render se duerme y tiene tope de horas, y Aiven gratis no tiene SLA ni permite restaurar un respaldo en una base nueva (sin *forking*). Recomendación, para cuando toque: Render sin reposo y una base con respaldos automáticos. Es lo único que hace cumplir RNF03 y RNF07, **y lo único que permite tener staging** (B-02): con el plan gratuito, un segundo servicio encendido agota las 750 horas del workspace y Render suspende también producción. | B-01, B-02 |
@@ -151,7 +151,7 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 | **E-02** | P1 | **Alta de cliente e importación inicial** de obras, materiales y proveedores desde CSV o planilla (RF38, propuesto). | M | Claude + Codex |
 | **E-03** | P2 | **Suscripción y cobro** (si DEC-02 va a SaaS). | L | Claude |
 | **E-04** | P1 | **Legal.** Términos y condiciones, política de privacidad, Ley 25.326 de protección de datos personales (con la inscripción de la base ante la AAIP) y acuerdo de tratamiento de datos con Triwe. | M | Grupo, con asesoramiento |
-| **E-05** | P1 | **Identidad de SCGO.** Dominio propio, correos desde ese dominio (Brevo con SPF y DKIM, para que no caigan en spam) y una página de presentación. | M | Grupo + Claude |
+| **E-05** | P1 | **Identidad de SGSO.** Dominio propio, correos desde ese dominio (Brevo con SPF y DKIM, para que no caigan en spam) y una página de presentación. | M | Grupo + Claude |
 | **E-06** | P2 | **Soporte.** Manual de usuario por rol, canal de soporte y tiempos de respuesta comprometidos. | M | Grupo |
 | **E-07** | P1 | **Entrega a Triwe.** Demo con datos creíbles, el informe del pentest (A-11) y respuestas a su cuestionario de seguridad. | M | Grupo + Claude |
 
@@ -189,7 +189,7 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 8. ~~**C-01**~~ (pruebas de controladores, PR #39, #41 y #42) y ~~**C-03**~~ (paginación, PR #43).
 9. ~~**D-03, D-02, D-04 y D-09**~~ (PR #44, #46, #47 y #48): funcionalidad chica y ya especificada.
 10. **DEC-03**, después **D-01** (archivos) y **D-05** (registro de cambios).
-11. **D-07:** SCGO usable desde el celular.
+11. **D-07:** SGSO usable desde el celular.
 12. **C-02:** el contrato OpenAPI, que corta de raíz el problema del simulador duplicado.
 
 **Antes de DEC-08, lo que se puede hacer ya** (rearmado el 2026-11-03, sin esperar a
@@ -275,3 +275,4 @@ del arreglo, CI en verde, el simulador al día y el número de PR anotado acá.
 | 2026-11-02 | RF29 (gastos reales) pasa a prioridad Crítica y D-17 va primero en el orden de DEC-08: el desvío entre lo presupuestado y lo gastado de verdad es lo que más importa. Sigue esperando DEC-08. |
 | 2026-11-03 | El responsable de obra pidió buscar rápido quién vende lo que falta, sobre todo repuestos de maquinaria. Se suman como propuestos, a la espera de DEC-08: RF39 (catálogo de proveedores, D-26) y RF40 (repuesto desde una falla, D-27). La búsqueda con IA en internet queda a evaluar después; la exclusión de IA sigue. |
 | 2026-11-03 | Orden rearmado con el pedido del responsable de obra: una etapa previa a DEC-08 con lo que se puede hacer ya (A-15, D-13, D-06, base de E-02 y D-05), y dentro de DEC-08 D-27 antes que D-26, con D-19 guardando correo y rubro del proveedor. |
+| 2026-11-03 | DEC-01 cambia: el producto vuelve a llamarse **SGSO**, Sistema de Gestión y Seguimiento Operativo de obras, como en el informe de Ingeniería de Software II. Cambian la interfaz, el correo del aviso de incidencias y la documentación; el repositorio de GitHub y sus URL siguen como `SCGO`. |

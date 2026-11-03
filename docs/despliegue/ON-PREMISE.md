@@ -1,6 +1,6 @@
 # Despliegue On-Premise (en el servidor de la empresa)
 
-Guía para correr SCGO en un servidor propio de la empresa (un equipo en su
+Guía para correr SGSO en un servidor propio de la empresa (un equipo en su
 red local / rack), con **PHP + MariaDB + Apache**. Es el destino final del
 sistema: queda siempre disponible en la red de la empresa y se reinicia solo
 tras un corte de luz.
@@ -71,7 +71,7 @@ en un solo instalador. (En Linux sería Apache/Nginx + PHP-FPM + MariaDB.)
 3. Publicar el backend en Apache. La raíz del backend debe ser **`back/public`**.
    Editar `C:\xampp\apache\conf\extra\httpd-vhosts.conf` y agregar:
    ```apache
-   # API de SCGO en el puerto 8080
+   # API de SGSO en el puerto 8080
    Listen 8080
    <VirtualHost *:8080>
        DocumentRoot "C:/sgso/back/public"
