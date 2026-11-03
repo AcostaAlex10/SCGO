@@ -1,4 +1,4 @@
-# Operación de SCGO
+# Operación de SGSO
 
 Entornos, credenciales, cómo comprobar que todo anda, y los problemas que ya nos
 costaron tiempo.
@@ -12,7 +12,7 @@ costaron tiempo.
 | Producción — sistema | https://ingenieria-en-software-proyecto.vercel.app/ | La aplicación contra la API real | `main` |
 | Producción — API | https://ingenieria-en-software-proyecto.onrender.com/api | PHP + Apache en Docker | `main` |
 | Producción — base | Aiven | MariaDB / MySQL gestionada, con SSL | — |
-| Demo para testers | https://acostaalex10.github.io/SCGO/ | Frontend sin backend, con datos simulados. Es la versión anterior al renombre: dice SGSO | `testing` |
+| Demo para testers | https://acostaalex10.github.io/SGSO/ | Frontend sin backend, con datos simulados. Es una versión anterior a la de `main` | `testing` |
 
 Todo lo que llega a `main` se despliega. Por eso `main` solo cambia por pull
 request con el CI en verde (ver [CONTRIBUTING.md](../CONTRIBUTING.md)).
@@ -33,7 +33,7 @@ la demo.
 
 ```bash
 curl -s https://ingenieria-en-software-proyecto.onrender.com/api/health
-curl -s -o /dev/null -w "%{http_code}\n" https://acostaalex10.github.io/SCGO/
+curl -s -o /dev/null -w "%{http_code}\n" https://acostaalex10.github.io/SGSO/
 ```
 
 `/api/health` ejecuta `SELECT 1` contra la base: si contesta
@@ -380,7 +380,7 @@ php -d curl.cainfo=RUTA/win-roots.pem composer.phar install
 
 ## 8. Riesgos
 
-Lo que puede dejar a SCGO sin servicio o sin datos, cómo nos enteramos y qué se
+Lo que puede dejar a SGSO sin servicio o sin datos, cómo nos enteramos y qué se
 hace. Los dos primeros ya pasaron en octubre de 2026, y producción quedó caída
 sin que ninguna alarma avisara.
 
