@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/url-sgsos` | `main` @ `ee0572d` (2026-11-04) | La URL de producción pasa a `sgsos.vercel.app`: la API la acepta por defecto y la documentación la nombra | #91 |
+| `claude/logo-pestana` | `main` @ `ee0572d` (2026-11-04) | Logo de SGSO en la pestaña del navegador: el casco de la aplicación sobre el naranja de la marca | #92 |
 
 ### Reglas
 
@@ -177,6 +177,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/testing-url-sgso` | **Contra `testing`.** La guía de testers y `HANDOFF.md` apuntan a la URL nueva de la demo y del repositorio | PR #87, en `testing` |
 | `claude/limpieza-archivos` | Sacar lo que ya no sirve: un acceso directo de Windows y el plan de ADR-001 que nadie enlaza; ignorar `.claude/worktrees/` | PR #88 |
 | `claude/rf20-front-lista-blanca` | A-15, el resto: `puedeVerCostos` y el simulador pasan a lista blanca, el contrato controla `/etapas`, y una prueba levanta `index.php` para ver que le pasa el rol al listado de etapas | PR #90 |
+| `claude/url-sgsos` | La URL de producción pasa a `sgsos.vercel.app`: la API la acepta por defecto y la documentación la nombra | PR #91 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
