@@ -175,6 +175,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/phpstan-2.3` | Dejar listo el #51 de Dependabot: PHPStan 2.3.1 recuerda el resultado de `estadoDeLaObra()` entre llamadas y marca como siempre verdadera una aserción de `CicloDeVidaObraTest` | PR #78 |
 | `claude/todo-dice-sgso` | Sacar el nombre anterior del producto de todo lo que quedaba: documentación, historial de ramas y prueba de humo | PR #86 |
 | `claude/testing-url-sgso` | **Contra `testing`.** La guía de testers y `HANDOFF.md` apuntan a la URL nueva de la demo y del repositorio | PR #87, en `testing` |
+| `claude/limpieza-archivos` | Sacar lo que ya no sirve: un acceso directo de Windows y el plan de ADR-001 que nadie enlaza; ignorar `.claude/worktrees/` | PR #88 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
