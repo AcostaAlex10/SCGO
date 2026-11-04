@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/url-sgsos` | `main` @ `ee0572d` (2026-11-04) | La URL de producción pasa a `sgsos.vercel.app`: la API la acepta por defecto y la documentación la nombra | Sin abrir |
+| `claude/url-sgsos` | `main` @ `ee0572d` (2026-11-04) | La URL de producción pasa a `sgsos.vercel.app`: la API la acepta por defecto y la documentación la nombra | #91 |
 
 ### Reglas
 
