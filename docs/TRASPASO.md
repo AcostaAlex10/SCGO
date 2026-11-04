@@ -133,12 +133,15 @@ uno que ya sea admin. **Pega contra producción**, porque `back/.env` apunta ah�
 Esto no se arregla con código, y **ninguna credencial pasa por el chat ni por el
 repositorio**.
 
+### La conexión a la base verifica el certificado (A-19)
+
+Hecho en los PR #95 y #97. La API usa `DB_SSL_CA` y, si falta la CA, no conecta. El
+#95 dejó la API en 500 del 2026-11-04 22:14 a 23:01 UTC: Apache no podía leer el
+Secret File de Render. El #97 hace que el arranque copie la CA a una ruta legible.
+Riesgo R-10 de `OPERACION.md` §8.
+
 ### PR abiertos
 
-- **#95 (`claude/tls-base`, A-19): verificar el certificado TLS de la base.** **No se
-  mergea hasta que Alex cargue la CA de Aiven como Secret File en Render y agregue
-  `DB_SSL_CA`**: si no, toda la API da 500. Después hay que actualizar el #94 para
-  que su migración use `OpcionesTls`.
 - **#77 (`claude/requerimientos-excluidos`): lo que quedó afuera del sistema.**
   RF34 propuesto (D-24), pagos, facturación y ARCA fuera, reglas de alerta a
   validar, RNF como metas y la guía de entrevistas. Ver más abajo.
