@@ -31,7 +31,6 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
 | `claude/todo-dice-sgso` | `main` @ `f4e9a40` (2026-11-03) | Sacar el nombre anterior del producto de todo lo que quedaba: documentación, historial de ramas y prueba de humo | #86 |
-| `claude/testing-url-sgso` | `testing` @ `f59d82a` (2026-11-03) | **Contra `testing`.** La guía de testers y `HANDOFF.md` apuntan a la URL nueva de la demo y del repositorio | #87, en `testing` |
 
 ### Reglas
 
@@ -172,6 +171,9 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/repuestos-proveedores` | Lo que pidió el responsable de obra: catálogo de proveedores (RF39), pedir un repuesto desde una falla (RF40) y el orden del plan rearmado | PR #83 |
 | `claude/pwa-envio-diferido` | Para el trabajo en obra: instalar SGSO en el celular como aplicación (RF41) y guardar sin señal para enviar al volver la conexión (RF42) | PR #84 |
 | `claude/nombre-sgso` | El producto vuelve a llamarse SGSO, Sistema de Gestión y Seguimiento Operativo de obras (DEC-01): interfaz, correo, documentación y el nombre del repositorio | PR #85 |
+| `claude/a15-costos-lista-blanca` | A-15: RF20 pasa a una lista blanca en `Permisos`, para que un rol nuevo no vea costos por defecto, y el listado de etapas deja de mandarle `presupuesto_base` al Personal Técnico | PR #89 |
+| `claude/phpstan-2.3` | Dejar listo el #51 de Dependabot: PHPStan 2.3.1 recuerda el resultado de `estadoDeLaObra()` entre llamadas y marca como siempre verdadera una aserción de `CicloDeVidaObraTest` | PR #78 |
+| `claude/testing-url-sgso` | **Contra `testing`.** La guía de testers y `HANDOFF.md` apuntan a la URL nueva de la demo y del repositorio | PR #87, en `testing` |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
