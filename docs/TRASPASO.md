@@ -139,7 +139,8 @@ repositorio**.
   Columna opcional `maquinaria.consumo_esperado_por_hora`, alerta de consumo
   contra lo esperado y ventana de 30 días. **No se mergea sin migrar antes**:
   alguien del equipo corre `php back/sql/migracion-consumo-esperado.php` con las
-  credenciales de Aiven (idempotente, no toca datos). Si se despliega sin la
+  credenciales de Aiven y `DB_SSL_CA` apuntando a la copia local de la CA
+  (idempotente, no toca datos). Si se despliega sin la
   columna caen `GET /api/analisis`, `GET /api/maquinaria`,
   `GET /api/maquinaria/{id}/registros`, `POST /api/maquinaria` y
   `PUT /api/maquinaria/{id}` (riesgo R-09 de `OPERACION.md`). Después hay que

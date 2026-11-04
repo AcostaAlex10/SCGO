@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use Sgso\Env;
+use Sgso\Seguridad\OpcionesTls;
 
 /**
  * Agrega maquinaria.consumo_esperado_por_hora, el consumo de combustible que se
@@ -32,7 +33,7 @@ use Sgso\Env;
  *   php back/sql/migracion-consumo-esperado.php
  *
  * Tambien sirven las variables de entorno, y tienen prioridad sobre back/.env:
- *   DB_HOST=... DB_PORT=... DB_NAME=... DB_USER=... DB_PASSWORD=... DB_SSL=true \
+ *   DB_HOST=... DB_PORT=... DB_NAME=... DB_USER=... DB_PASSWORD=... DB_SSL=true DB_SSL_CA=... \
  *     php back/sql/migracion-consumo-esperado.php
  */
 
@@ -51,8 +52,11 @@ $pass = getenv('DB_PASSWORD') ?: '';
 
 $dsn = "mysql:host={$host};port={$port};dbname={$db};charset=utf8mb4";
 $opciones = [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION];
-if (getenv('DB_SSL') === 'true') {
-    $opciones[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+try {
+    $opciones += OpcionesTls::desde(getenv('DB_SSL') ?: null, getenv('DB_SSL_CA') ?: null);
+} catch (RuntimeException $e) {
+    fwrite(STDERR, $e->getMessage() . PHP_EOL);
+    exit(1);
 }
 
 try {
@@ -68,7 +72,7 @@ try {
         Esos son los valores por defecto: no se encontraron las credenciales.
         Opciones:
           1. Copia back/.env.example a back/.env y completalo (recomendado).
-          2. O defini DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD y DB_SSL
+          2. O defini DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_SSL y DB_SSL_CA
              en la MISMA consola desde la que corres este script.
 
         TXT);
