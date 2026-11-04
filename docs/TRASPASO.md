@@ -4,10 +4,10 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-11-04, al cerrar A-15. El 2026-11-03 el producto volvió
+- **Actualizado:** 2026-11-04, al corregir el comodín de CORS de las previews. El 2026-11-03 el producto volvió
   a llamarse **SGSO** (Sistema de Gestión y Seguimiento Operativo de obras,
   DEC-01); el repositorio de GitHub también se renombró a `SGSO`
-- **Base:** `main` @ `ee0572d`. **La base de Aiven se volvió a apagar** y se
+- **Base:** `main` @ `1b4a55e`. **La base de Aiven se volvió a apagar** y se
   encendió el 2026-11-04 (riesgo R-01): `/api/health` responde
   `{"status":"ok","db":"ok"}`. **La URL de producción ahora es
   `https://sgsos.vercel.app`**; la anterior sigue conectada. **Brevo ya funciona**: Alex
@@ -93,6 +93,16 @@ simulador).
 ---
 
 ## 3. Qué hay en vuelo ahora mismo
+
+### El comodín de CORS de las previews
+
+En revisión, rama `claude/cors-previews-vercel`: el comodín anterior aceptaba
+`https://evil-acostaalex10.vercel.app` y rechazaba las previews reales. Ahora el
+patrón es `https://sgso-*-acostaalex10s-projects.vercel.app`, con el `*` limitado a
+una etiqueta DNS. Queda el riesgo R-08 de `OPERACION.md` §8: el patrón limita la
+forma del origen, pero no prueba quién lo controla. Antes de mergear, mirar en
+Render que `CORS_ORIGIN` no use `*` ni un comodín de varias etiquetas, que dejan
+de valer.
 
 ### La base volvió y el correo anda
 
