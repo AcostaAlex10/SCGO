@@ -648,8 +648,8 @@ export default function ProyectoDetallePage() {
                       <span className="font-medium">{e.nombre}</span>
                       <Badge variant="secondary">{e.peso_porcentual}%</Badge>
                       <span className="text-muted-foreground">{fmtFecha(e.fecha_inicio)} → {fmtFecha(e.fecha_fin)}</span>
-                      {verCostos && e.presupuesto_base > 0 && (
-                        <span className="text-muted-foreground">${e.presupuesto_base.toLocaleString("es-AR")}</span>
+                      {verCostos && (e.presupuesto_base ?? 0) > 0 && (
+                        <span className="text-muted-foreground">${(e.presupuesto_base ?? 0).toLocaleString("es-AR")}</span>
                       )}
                       <div className="ml-auto flex gap-1">
                         <Button size="sm" variant="ghost" title="Editar" onClick={() => {
@@ -667,7 +667,7 @@ export default function ProyectoDetallePage() {
                 )}
                 {/* Totales de presupuesto base (solo visibles para quien puede ver costos) */}
                 {verCostos && etapas.length > 0 && (() => {
-                  const totalBase = etapas.reduce((a, e) => a + e.presupuesto_base, 0);
+                  const totalBase = etapas.reduce((a, e) => a + (e.presupuesto_base ?? 0), 0);
                   if (totalBase === 0) return null;
                   // El ejecutado estimado es el monto certificado, que calcula la API (D-09).
                   const ejecutadoEst = proyecto?.certificado ?? 0;

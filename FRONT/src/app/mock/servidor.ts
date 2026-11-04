@@ -589,6 +589,14 @@ function conEstadoProyecto(cuerpo: object, estado: string | null): object {
   return estado === null ? cuerpo : { ...cuerpo, estado_proyecto: estado };
 }
 
+/** RF20: el PersonalTecnico no ve el presupuesto de la etapa. */
+function etapaSegunRol(e: Fila, rol: string): Fila {
+  if (rol !== "PersonalTecnico") return e;
+  const copia = { ...e };
+  delete copia.presupuesto_base;
+  return copia;
+}
+
 /** RF20: el PersonalTecnico no ve el presupuesto de la obra. */
 function proyectoSegunRol(p: Fila, rol: string): Fila {
   // El monto certificado a la fecha, como Sgso\Reglas\Certificacion (RF15, D-09).
@@ -1138,6 +1146,7 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
           db.etapas
             .filter((e) => Number(e.id_planificacion) === idPlan)
             .sort((a, b) => num(a.orden) - num(b.orden))
+            .map((e) => etapaSegunRol(e, rol))
         );
       }
       if (metodo === "POST") {
