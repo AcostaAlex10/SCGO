@@ -89,6 +89,8 @@ credencial; igual no se sube al repositorio.
 2. En Render: el servicio → *Environment* → *Secret Files* → crear uno con ese
    contenido, por ejemplo `/etc/secrets/aiven-ca.pem`.
 3. En Render: variable `DB_SSL_CA=/etc/secrets/aiven-ca.pem`.
+   Al arrancar, el contenedor copia el archivo a `/usr/local/etc/sgso-db-ca.pem`,
+   porque el proceso web no puede leer `/etc/secrets`.
 4. Para correr scripts desde una PC (`migrar.php`, `seed.php`, las migraciones):
    `DB_SSL_CA` en `back/.env` apunta a la copia local de `ca.pem`, con la ruta
    completa y sin comillas (el cargador de `.env` las conserva). Esa copia queda fuera del repositorio.
