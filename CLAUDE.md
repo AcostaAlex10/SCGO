@@ -6,9 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **SGSO — Sistema de Gestión y Seguimiento Operativo de obras.** A product built
 for **Triwe**, a construction company, and meant to be sold: quality and security
-come first. It started as a university project. Between 2026-09 and 2026-11 it
-was called SCGO; it went back to SGSO on 2026-11-03 (DEC-01), and the GitHub
-repository was renamed `SGSO` the same day.
+come first. It started as a university project. The name is settled by DEC-01, and the
+GitHub repository is `SGSO`.
 
 The repository contains the full system: React SPA, PHP REST API and relational
 schema. Start here:
