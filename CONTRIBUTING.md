@@ -117,8 +117,8 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/adr-001-fase-2a-3` | `Sgso\Reglas` (ciclo de vida y permisos) y PHPStan nivel 5 | Entró por el PR #6 |
 | `claude/adr-001-fase-4` | Tabla de rutas declarativa (`Sgso\Ruteo`) | PR #6 |
 | `claude/adr-001-fase-2b-5` | Pruebas de integración, CI y plan de producto | PR #7 |
-| `claude/limpieza-docs` | Requerimientos recuperados, documentación ordenada y producto renombrado a SCGO | PR #8 |
-| `claude/renombre-scgo` | Referencias actualizadas al nuevo nombre del repositorio | PR #9 |
+| `claude/limpieza-docs` | Requerimientos recuperados, documentación ordenada y producto renombrado | PR #8 |
+| `claude/renombre-sgso` | Referencias actualizadas al nuevo nombre del repositorio | PR #9 |
 | `claude/seguridad-ola-1` | XSS por enlaces, secreto JWT obligatorio, errores sin detalles internos y `.dockerignore` | PR #10 |
 | `claude/seguridad-a03` | Límite de intentos de login por cuenta y dos filtraciones del login | PR #11 |
 | `claude/seguridad-ola-2` | Contraseñas de 10 caracteres, headers de seguridad y límite de `/auth/olvide` | PR #12 |
@@ -126,8 +126,8 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/ingenieria-software-nube-2ws8jg` | Triaje de los seis PR de Dependabot, `docs/TRASPASO.md` y el borrado de dos primitivos de shadcn sin uso. El nombre se reutilizó: es otra rama que la del PR #4 | PR #20 |
 | `claude/health-con-base` | B-05: `/api/health` ejecuta `SELECT 1` y reporta la base | PR #21 |
 | `claude/traspaso-cierre-sesion` | `docs/TRASPASO.md` al cierre de la sesión del 2026-09-19, revisado después del renombre | PR #22 |
-| `claude/testing-demo-scgo` | **Contra `testing`.** La guía de testers dice que la demo sale de `testing`, y `HANDOFF.md` deja de apuntar a la URL vieja | PR #31, en `testing` |
-| `claude/demo-desde-testing` | La demo de Pages vuelve a salir de `testing`: documentación alineada, la interfaz dice SCGO y `contrato.mjs` lee `SGSO_URL` | PR #32 |
+| `claude/testing-demo-sgso` | **Contra `testing`.** La guía de testers dice que la demo sale de `testing`, y `HANDOFF.md` deja de apuntar a la URL vieja | PR #31, en `testing` |
+| `claude/demo-desde-testing` | La demo de Pages vuelve a salir de `testing`: documentación alineada, la interfaz con el nombre del producto y `contrato.mjs` lee `SGSO_URL` | PR #32 |
 | `claude/preparar-dependabot` | Triaje de los PR de Dependabot #26 a #30: fuera `motion` y `react-responsive-masonry`, y el código listo para TypeScript 7 y recharts 3 | PR #33 |
 | `claude/monitoreo-errores` | B-04: el log dice qué pedido falló y los errores van a Sentry, sin SDK | PR #24 |
 | `claude/staging-decision` | B-02 queda bloqueado por DEC-04, y el CI verifica el `connect-src` de la CSP | PR #25 |
@@ -174,6 +174,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/a15-costos-lista-blanca` | A-15: RF20 pasa a una lista blanca en `Permisos`, para que un rol nuevo no vea costos por defecto, y el listado de etapas deja de mandarle `presupuesto_base` al Personal Técnico | PR #89 |
 | `claude/phpstan-2.3` | Dejar listo el #51 de Dependabot: PHPStan 2.3.1 recuerda el resultado de `estadoDeLaObra()` entre llamadas y marca como siempre verdadera una aserción de `CicloDeVidaObraTest` | PR #78 |
 | `claude/testing-url-sgso` | **Contra `testing`.** La guía de testers y `HANDOFF.md` apuntan a la URL nueva de la demo y del repositorio | PR #87, en `testing` |
+| `claude/todo-dice-sgso` | Sacar el nombre anterior del producto de todo lo que quedaba: documentación, historial de ramas y prueba de humo | PR #86 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
