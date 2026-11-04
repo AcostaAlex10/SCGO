@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/cors-previews-vercel` | `main` @ `1b4a55e` (2026-11-04) | CORS: el comodín de previews pasa a la forma real, `sgso-*-acostaalex10s-projects.vercel.app`, y su `*` cubre una sola etiqueta DNS. Limita la forma, no prueba quién controla el dominio (R-08) | — |
+| `claude/cors-previews-vercel` | `main` @ `1b4a55e` (2026-11-04) | CORS: el comodín de previews pasa a la forma real, `sgso-*-acostaalex10s-projects.vercel.app`, y su `*` cubre una sola etiqueta DNS. Limita la forma, no prueba quién controla el dominio (R-08) | #93 |
 
 ### Reglas
 
