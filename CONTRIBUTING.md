@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/d13-consumo-esperado` | `main` @ `1b4a55e` (2026-11-04) | D-13 (RF24): consumo esperado por hora en cada máquina, opcional, con la alerta de consumo comparada contra él y una ventana de 30 días; script `migracion-consumo-esperado.php` | por abrir |
+| `claude/d13-consumo-esperado` | `main` @ `1b4a55e` (2026-11-04) | D-13 (RF24): consumo esperado por hora en cada máquina, opcional, con la alerta de consumo comparada contra él y una ventana de 30 días; script `migracion-consumo-esperado.php` | #94 |
 
 ### Reglas
 
