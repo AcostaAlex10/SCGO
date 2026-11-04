@@ -175,7 +175,7 @@ $manejadores = [
     'maquinaria.crear' => fn (array $p, ?array $u) => $maquinaria->crear(leerCuerpoJson()),
     'maquinaria.operarios' => fn (array $p, ?array $u) => $maquinaria->rendimientoOperarios(),
     'maquinaria.actualizar' => fn (array $p, ?array $u) => $maquinaria->actualizar($p['id'], leerCuerpoJson()),
-    'maquinaria.eliminar' =>fn (array $p, ?array $u) => $maquinaria->eliminar($p['id']),
+    'maquinaria.eliminar' => fn (array $p, ?array $u) => $maquinaria->eliminar($p['id']),
     'maquinaria.registro.eliminar' => fn (array $p, ?array $u) => $maquinaria->eliminarRegistro($p['id']),
     'maquinaria.falla.actualizar' => fn (array $p, ?array $u) => $maquinaria->actualizarFalla($p['id'], leerCuerpoJson()),
     'maquinaria.falla.eliminar' => fn (array $p, ?array $u) => $maquinaria->eliminarFalla($p['id']),

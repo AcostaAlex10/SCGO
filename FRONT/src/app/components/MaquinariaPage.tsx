@@ -23,8 +23,12 @@ const hoy = () => { const d = new Date(); return new Date(d.getTime() - d.getTim
 const fmtFecha = (s: string) => new Date(s + "T00:00:00").toLocaleDateString("es-AR");
 const legible = (n: number) => String(n).replace(".", ",");
 const MENSAJE_ESPERADO = "Debe ser un número mayor a 0";
-// "" es "sin dato"; si hay texto, un número finito. El servidor decide el resto (mayor a 0, tope).
-const esperadoDelCampo = (v: string): number | null | undefined => {
+// null es "sin dato" y solo sale de un campo realmente vacío. undefined es entrada inválida:
+// en un campo numérico, "1e" o "-" dejan value "" aunque el campo no esté vacío (badInput),
+// y eso no tiene que borrar el dato. El servidor decide el resto (mayor a 0, tope).
+const esperadoDelCampo = (v: string, idCampo: string): number | null | undefined => {
+  const entrada = document.getElementById(idCampo);
+  if (entrada instanceof HTMLInputElement && entrada.validity.badInput) return undefined;
   if (v.trim() === "") return null;
   const n = Number(v.replace(",", "."));
   return Number.isFinite(n) ? n : undefined;
@@ -82,7 +86,7 @@ export default function MaquinariaPage() {
 
   async function guardarMaq(e: React.FormEvent) {
     e.preventDefault();
-    const esperado = esperadoDelCampo(formMaq.consumo_esperado);
+    const esperado = esperadoDelCampo(formMaq.consumo_esperado, "me");
     if (esperado === undefined) {
       setErrorEsperadoNuevo(MENSAJE_ESPERADO);
       document.getElementById("me")?.focus();
@@ -111,7 +115,7 @@ export default function MaquinariaPage() {
 
   function abrirEsperado(m: Maquinaria) {
     setEditando(m);
-    setValorEsperado(m.consumo_esperado_por_hora === null ? "" : String(m.consumo_esperado_por_hora));
+    setValorEsperado(m.consumo_esperado_por_hora == null ? "" : String(m.consumo_esperado_por_hora));
     setErrorEsperado("");
   }
   function cerrarEsperado() {
@@ -121,7 +125,7 @@ export default function MaquinariaPage() {
   async function guardarEsperado(e: React.FormEvent) {
     e.preventDefault();
     if (!editando) return;
-    const esperado = esperadoDelCampo(valorEsperado);
+    const esperado = esperadoDelCampo(valorEsperado, "esperado-valor");
     if (esperado === undefined) {
       setErrorEsperado(MENSAJE_ESPERADO);
       document.getElementById("esperado-valor")?.focus();
@@ -228,7 +232,7 @@ export default function MaquinariaPage() {
               <div className="flex flex-wrap gap-4 text-muted-foreground">
                 <span className="flex items-center gap-1"><Activity className="w-4 h-4" /> {m.horas} h</span>
                 <span className="flex items-center gap-1"><Fuel className="w-4 h-4" /> {m.combustible} L ({m.combustible_por_hora} L/h real,{" "}
-                  {m.consumo_esperado_por_hora !== null ? `esperado: ${legible(m.consumo_esperado_por_hora)} L/h` : "sin dato esperado"})</span>
+                  {m.consumo_esperado_por_hora != null ? `esperado: ${legible(m.consumo_esperado_por_hora)} L/h` : "sin dato esperado"})</span>
                 <span>Prod.: {m.produccion} ({m.produccion_por_hora}/h)</span>
               </div>
               <div className="flex gap-2">

@@ -280,8 +280,9 @@ pueden no coincidir.
 corresponde a D-13 (RF24) es `back/sql/migracion-consumo-esperado.php`: agrega
 `maquinaria.consumo_esperado_por_hora` y no toca ningún valor. Se puede correr más
 de una vez (si la columna existe, no hace nada). El orden importa: **primero
-migrar y después desplegar la API**, porque el código nuevo lee la columna en cada
-listado de maquinaria y sin ella falla. Se corre con las credenciales de Aiven en
+migrar y después desplegar la API**, porque el código nuevo lee la columna y, sin
+ella, caen `GET /api/analisis` (para todos los roles: el Tablero y las Alertas),
+`GET /api/maquinaria`, `GET /api/maquinaria/{id}/registros` y `POST /api/maquinaria`. Se corre con las credenciales de Aiven en
 `back/.env` (o en las variables `DB_*`):
 
 ```bash

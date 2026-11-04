@@ -232,9 +232,11 @@ tres cosas:
 - **Obras viejas en `planificacion` sin planificación.** Desde D-04 (#47) toda
   obra nueva arranca `creada`; las que ya existían no se tocaron. Pasarlas a
   `creada` es una migración de datos: la consulta está en el PR #47.
-- **D-13:** la alerta de consumo compara cada máquina consigo misma. Hace falta
-  guardar un consumo esperado por máquina (migración) y decidir una ventana de
-  fechas.
+- **D-13:** las decisiones ya se tomaron (consumo esperado opcional por máquina,
+  ventana de 30 días) y el código está en el PR #94, pero no está terminado: falta
+  correr `back/sql/migracion-consumo-esperado.php` en Aiven antes de desplegar y
+  cargar el consumo esperado de las máquinas reales. RF24 sigue parcial hasta
+  entonces.
 - **D-12:** la asistencia duplicada depende de si hay turnos.
 - **DEC-04** sigue postergada hasta que se cierre la posible venta. De ella
   dependen B-01 y B-02.
@@ -266,7 +268,7 @@ tres cosas:
 - **DEC-03 → D-01:** documentos como archivos. DEC-03 es una decisión del equipo.
 - **D-05** (registro de cambios): pide una tabla nueva, o sea una migración, así
   que se pregunta antes.
-- **D-12** y **D-13**, que esperan decisiones del equipo (ver arriba).
+- **D-12**, que espera una decisión del equipo (ver arriba), y **D-13**, cuyo código está en el PR #94 y espera la migración en Aiven y la carga de datos.
 
 ---
 

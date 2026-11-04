@@ -183,6 +183,19 @@ function desdeVentana(): string {
   return d.toISOString().slice(0, 10);
 }
 
+/**
+ * `round($n, 2)` de PHP, solo para el consumo esperado: PHP redondea el producto
+ * con 15 cifras significativas antes de cortar, asi que round(1.005, 2) da 1,01
+ * y Math.round(1.005 * 100) / 100 da 1. `redondear` no se toca: lo usan los demas.
+ */
+const redondearComoPhp = (n: number): number => Math.round(Number((n * 100).toPrecision(15))) / 100;
+
+/** Litros u horas de dos decimales en centesimos enteros (BigInt: el producto de abajo no entra en un double exacto). */
+const centesimos = (v: unknown): bigint => BigInt(Math.round(num(v) * 100));
+
+/** Ultimo dia de la ventana: hoy. */
+const hastaVentana = hoyLocal;
+
 /** Un numero como lo lee el usuario: coma decimal y sin ceros de mas (1,5; 8). */
 function formatearNumero(n: number): string {
   return n.toFixed(2).replace(/0+$/, "").replace(/\.$/, "").replace(".", ",");
@@ -195,6 +208,20 @@ function consumoEsperadoDe(m: Fila): number | null {
 }
 
 /** Como MaquinariaController::validarEsperado(): ausente, null o vacio es "sin dato". */
+/**
+ * La decision de Sgso\Reglas\ConsumoMaquinaria::marcaAlertaExacta(), sin coma
+ * flotante: con horas, dentro de la ventana (de hace 30 dias a hoy, inclusive) y
+ * `2 * litros * den > 3 * num * horas`, donde `num / den` es la referencia en
+ * litros por hora como fraccion de centesimos.
+ */
+function marcaAlerta(r: Fila, referencia: [bigint, bigint], desde: string): boolean {
+  const [numRef, denRef] = referencia;
+  const fecha = String(r.fecha);
+  if (num(r.horas_uso) <= 0 || numRef <= 0n || denRef <= 0n) return false;
+  if (fecha < desde || fecha > hastaVentana()) return false;
+  return 2n * centesimos(r.combustible_consumido) * denRef > 3n * numRef * centesimos(r.horas_uso);
+}
+
 function validarEsperado(v: unknown): { valor: number | null; error: string | null } {
   if (v === undefined || v === null || (typeof v === "string" && v.trim() === "")) {
     return { valor: null, error: null };
@@ -204,9 +231,9 @@ function validarEsperado(v: unknown): { valor: number | null; error: string | nu
     typeof v === "number" ||
     (typeof v === "string" && /^\s*[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?\s*$/.test(v));
   const n = numerico ? Number(v) : NaN;
-  if (Number.isNaN(n) || redondear(n) <= 0) return invalido;
+  if (Number.isNaN(n) || redondearComoPhp(n) <= 0) return invalido;
   if (n > ESPERADO_MAXIMO) return { valor: null, error: "Debe ser un número menor o igual a 999999,99" };
-  return { valor: redondear(n), error: null };
+  return { valor: redondearComoPhp(n), error: null };
 }
 
 /** La API usa el email recortado y en minúsculas como identidad del contador. */
@@ -530,14 +557,14 @@ function registrosDeMaquina(idMaq: number) {
   // Como Sgso\Reglas\ConsumoMaquinaria: el promedio sale de TODOS los registros
   // con horas (la ventana no lo achica), la referencia es el consumo esperado de
   // la maquina si lo tiene y el promedio si no, y la comparacion usa el consumo
-  // sin redondear. Solo alertan los registros de la ventana.
+  // sin redondear, en centesimos enteros. Solo alertan los registros de la ventana.
   const conHoras = regs.filter((r) => num(r.horas_uso) > 0);
-  const horas = conHoras.reduce((s, r) => s + num(r.horas_uso), 0);
-  const combustible = conHoras.reduce((s, r) => s + num(r.combustible_consumido), 0);
-  const promedio = horas > 0 ? combustible / horas : 0;
+  const horas = conHoras.reduce((s, r) => s + centesimos(r.horas_uso), 0n);
+  const combustible = conHoras.reduce((s, r) => s + centesimos(r.combustible_consumido), 0n);
   const maquina = db.maquinaria.find((m) => Number(m.id_maquinaria) === idMaq);
   const esperado = maquina ? consumoEsperadoDe(maquina) : null;
-  const referencia = esperado ?? promedio;
+  // La referencia es una fraccion [litros, horas] en centesimos: el esperado, o el promedio.
+  const referencia: [bigint, bigint] = esperado !== null ? [centesimos(esperado), 100n] : [combustible, horas];
   const desde = desdeVentana();
   return regs.map((r) => {
     const h = num(r.horas_uso);
@@ -554,7 +581,7 @@ function registrosDeMaquina(idMaq: number) {
       combustible_por_hora: redondear(cph),
       consumo_esperado_por_hora: esperado,
       // RF24: consumo anomalo si, dentro de la ventana, supera 1,5 veces la referencia.
-      alerta_consumo: h > 0 && String(r.fecha) >= desde && referencia > 0 && cph > referencia * FACTOR_CONSUMO,
+      alerta_consumo: marcaAlerta(r, referencia, desde),
     };
   });
 }
@@ -1073,6 +1100,8 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
       // esperado. Que el campo falte es un error; null o vacio lo borra.
       const veto = exige(ROLES_GESTION_OBRA);
       if (veto) return veto;
+      // '12abc' no es la maquina 12 (la API tampoco lo toma por 12).
+      if (!/^[0-9]+$/.test(s[1])) return noEncontrado("Maquinaria no encontrada");
       if (!("consumo_esperado_por_hora" in cuerpo)) {
         return json(422, { errors: { consumo_esperado_por_hora: "Obligatorio (null para borrar el dato)" } });
       }

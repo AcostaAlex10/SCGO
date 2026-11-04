@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sgso;
 
 use DateTimeImmutable;
-use DateTimeZone;
 use PDO;
 use Sgso\Http\Paginacion;
 use Sgso\Reglas\ConsumoMaquinaria;
@@ -95,6 +94,8 @@ final class MaquinariaController
      */
     public function actualizar(string $id, array $datos): void
     {
+        // '12abc' no es la maquina 12: MySQL compararia '12abc' = 12 como verdadero.
+        if (preg_match('/^[0-9]+\z/', $id) !== 1) { $this->json(404, ['error' => 'Maquinaria no encontrada']); return; }
         if (!array_key_exists('consumo_esperado_por_hora', $datos)) {
             $this->json(422, ['errors' => ['consumo_esperado_por_hora' => 'Obligatorio (null para borrar el dato)']]);
             return;
@@ -131,13 +132,16 @@ final class MaquinariaController
         );
         $stmt->execute([$idMaq]);
         $tot = $stmt->fetch();
-        $promedio = ConsumoMaquinaria::porHora((float) $tot['c'], (float) $tot['h']);
+        // Se cuenta en centesimos (enteros), como el feed de Alertas: litros y horas
+        // son DECIMAL de dos decimales, y asi los dos llegan a la misma decision.
+        $sumaLitros = ConsumoMaquinaria::centesimos($tot['c']);
+        $sumaHoras = ConsumoMaquinaria::centesimos($tot['h']);
 
         $stmt = $this->db->prepare('SELECT consumo_esperado_por_hora FROM maquinaria WHERE id_maquinaria = ?');
         $stmt->execute([$idMaq]);
         $esperado = self::esperadoDe($stmt->fetchColumn() ?: null);
-        $referencia = ConsumoMaquinaria::referencia($esperado, $promedio);
-        $desde = ConsumoMaquinaria::desde(new DateTimeImmutable('today', new DateTimeZone(ConsumoMaquinaria::ZONA)));
+        $referencia = ConsumoMaquinaria::fraccionDeReferencia($esperado, $sumaLitros, $sumaHoras);
+        $desde = ConsumoMaquinaria::desde(ConsumoMaquinaria::hoy(new DateTimeImmutable()));
 
         // La referencia de arriba es sobre todos los registros, no sobre la pagina.
         $sql = 'SELECT * FROM registro_maquinaria WHERE id_maquinaria = ? ORDER BY fecha DESC, id_registro DESC';
@@ -160,7 +164,7 @@ final class MaquinariaController
                 'produccion_realizada' => (float) $r['produccion_realizada'],
                 'combustible_por_hora' => round($cph, 2),
                 'consumo_esperado_por_hora' => $esperado,
-                'alerta_consumo' => ConsumoMaquinaria::marcaAlerta(
+                'alerta_consumo' => ConsumoMaquinaria::marcaAlertaExacta(
                     (string) $r['fecha'],
                     $horas,
                     (float) $r['combustible_consumido'],

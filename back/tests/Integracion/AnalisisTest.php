@@ -413,6 +413,27 @@ final class AnalisisTest extends CasoConBase
         self::assertStringContainsString("{$marcados} registros", $alertas[0]['mensaje']);
     }
 
+    /**
+     * RF24 (D-13), hallazgo del revisor: sin dato esperado, listado y feed
+     * tienen que contar lo mismo aunque sumen distinto. El listado suma en SQL
+     * (decimales exactos: 40,60) y el feed en PHP (10,1 + 10,2 + 20,3 da
+     * 40,599999...): el registro de 20,3 L queda justo en el umbral para uno y
+     * por encima para el otro.
+     */
+    public function testSinEsperadoElFeedYElListadoCuentanLoMismoConSumasDeDecimales(): void
+    {
+        $idMaquina = $this->crearMaquina('Sumas con decimales');
+        foreach ([[10.1, 3], [10.2, 2], [20.3, 1]] as [$litros, $dias]) {
+            $this->cargarUso($idMaquina, $this->fechaHace($dias), 1, $litros);
+        }
+
+        $listado = $this->capturar(fn () => (new MaquinariaController($this->base()))->listarRegistros((string) $idMaquina))['cuerpo'];
+        $marcados = count(array_filter($listado, fn (array $r): bool => $r['alerta_consumo']));
+        $alertas = $this->alertasDeMaquinaria($this->resumen('Gerente')['cuerpo']);
+
+        self::assertCount($marcados === 0 ? 0 : 1, $alertas, "el listado marca {$marcados} registros");
+    }
+
     // ----------------------------------------------------------------
     //  Ayudas
     // ----------------------------------------------------------------

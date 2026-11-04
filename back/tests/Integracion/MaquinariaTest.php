@@ -407,6 +407,20 @@ final class MaquinariaTest extends CasoConBase
         self::assertSame(['error' => 'Maquinaria no encontrada'], $respuesta['cuerpo']);
     }
 
+    /**
+     * Hallazgo del revisor: un id que no es un numero entero ("1abc") no es la
+     * maquina 1. MySQL compara '1abc' = 1 y lo daria por existente.
+     */
+    public function testActualizarConUnIdConBasuraDetrasDa404YNoTocaLaMaquina(): void
+    {
+        $id = $this->crearMaquina('Retro', 8);
+
+        $respuesta = $this->capturar(fn () => $this->maquinaria()->actualizar($id . 'abc', ['consumo_esperado_por_hora' => 3]));
+
+        self::assertSame(404, $respuesta['codigo']);
+        self::assertNumero(8.0, $this->maquina($this->capturar(fn () => $this->maquinaria()->listar())['cuerpo'], $id)['consumo_esperado_por_hora']);
+    }
+
     public function testElListadoDeRegistrosTraeElConsumoEsperadoComoNumeroONull(): void
     {
         $con = $this->crearMaquina('Con dato', 8);

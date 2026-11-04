@@ -24,13 +24,15 @@ use Sgso\Env;
  * cargue el consumo esperado desde la pantalla de Maquinaria.
  *
  * Orden: primero este script y despues desplegar la API. El codigo nuevo lee la
- * columna en cada listado de maquinaria, asi que sin ella la API falla.
+ * columna, asi que sin ella fallan GET /analisis (para todos los roles: Tablero y
+ * Alertas), GET /maquinaria, GET /maquinaria/{id}/registros y POST /maquinaria.
  *
  * Uso, con las credenciales en back/.env (copiado de back/.env.example):
  *   php back/sql/migracion-consumo-esperado.php
  *
  * Tambien sirven las variables de entorno, y tienen prioridad sobre back/.env:
- *   DB_HOST=... DB_PORT=... DB_NAME=... DB_USER=... DB_PASSWORD=... DB_SSL=true  *     php back/sql/migracion-consumo-esperado.php
+ *   DB_HOST=... DB_PORT=... DB_NAME=... DB_USER=... DB_PASSWORD=... DB_SSL=true \
+ *     php back/sql/migracion-consumo-esperado.php
  */
 
 // Credenciales: primero back/.env, despues el entorno real. Env::cargar NO pisa
@@ -109,9 +111,6 @@ $pdo->exec(
 
 $total = (int) $pdo->query('SELECT COUNT(*) FROM maquinaria')->fetchColumn();
 
-echo "Listo. maquinaria.consumo_esperado_por_hora agregada.
-";
-echo "Maquinas existentes: {$total}, todas sin dato esperado (NULL).
-";
-echo "Siguen alertando contra su promedio hasta que se cargue el dato.
-";
+echo "Listo. maquinaria.consumo_esperado_por_hora agregada.\n";
+echo "Maquinas existentes: {$total}, todas sin dato esperado (NULL).\n";
+echo "Siguen alertando contra su promedio hasta que se cargue el dato.\n";

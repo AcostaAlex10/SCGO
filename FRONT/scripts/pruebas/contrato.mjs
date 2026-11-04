@@ -858,6 +858,42 @@ await cargarUso(idPromedio, hace(2), 30);
 chequear('el promedio sigue saliendo de todos los registros: el reciente alerta',
   (await alertasDe(idPromedio))[0] === true, JSON.stringify(await alertasDe(idPromedio)));
 
+// Un registro con fecha futura no esta en los ultimos 30 dias: no alerta, ni en el
+// listado ni en el feed. Uno de hoy sigue alertando.
+const idFuturo = await nuevaMaquina('Fecha futura', 8);
+await cargarUso(idFuturo, '2099-01-01', 40);
+await cargarUso(idFuturo, hace(0), 40);
+chequear('un registro con fecha futura no alerta y el de hoy si',
+  JSON.stringify(await alertasDe(idFuturo)) === JSON.stringify([false, true]), JSON.stringify(await alertasDe(idFuturo)));
+feedD13 = (await api('GET', '/analisis')).datos.alertas.filter((a) => a.tipo === 'maquinaria');
+chequear('el feed cuenta solo el de hoy y no el futuro',
+  feedD13.find((a) => a.maquina === 'Fecha futura')?.mensaje?.startsWith(`Un registro de uso, del ${dmy(hace(0))}`) === true,
+  JSON.stringify(feedD13.find((a) => a.maquina === 'Fecha futura')));
+
+// Borde exacto de 1,5 veces lo esperado con datos de 2 decimales: no depende de como
+// la coma flotante redondea el producto (5,10 * 1,5 da 7,6499999...).
+for (const [esperado, horas, litros] of [[5.1, 2, 15.3], [5.1, 4, 30.6], [4.1, 2, 12.3], [3.3, 10, 49.5], [6.6, 5, 49.5], [8.2, 5, 61.5], [1.9, 10, 28.5]]) {
+  const idB = await nuevaMaquina(`Borde ${esperado} x ${horas}`, esperado);
+  await cargarUso(idB, hace(1), litros, horas);
+  chequear(`justo 1,5 veces el esperado (${esperado} L/h; ${litros} L en ${horas} h) no alerta`,
+    JSON.stringify(await alertasDe(idB)) === JSON.stringify([false]), JSON.stringify(await alertasDe(idB)));
+}
+const idBordeArriba = await nuevaMaquina('Borde 5,10 apenas arriba', 5.1);
+await cargarUso(idBordeArriba, hace(1), 15.32, 2);
+chequear('y 7,66 L/h contra un umbral de 7,65 si alerta',
+  JSON.stringify(await alertasDe(idBordeArriba)) === JSON.stringify([true]), JSON.stringify(await alertasDe(idBordeArriba)));
+
+// El PUT redondea a 2 decimales como la API (PHP round(1.005, 2) da 1,01).
+r = await api('PUT', `/maquinaria/${idRetro}`, { consumo_esperado_por_hora: 1.005 });
+chequear('PUT con 1.005 guarda 1,01, como la API',
+  r.estado === 200 && r.datos?.consumo_esperado_por_hora === 1.01 && await esperadoDe(idRetro) === 1.01, `dio ${r.estado} ${JSON.stringify(r.datos)}`);
+
+// Un id con basura detras no es la maquina: 404 y el dato no se toca.
+await api('PUT', `/maquinaria/${idRetro}`, { consumo_esperado_por_hora: 8 });
+r = await api('PUT', `/maquinaria/${idRetro}abc`, { consumo_esperado_por_hora: 3 });
+chequear('PUT /maquinaria/{id}abc da 404 y no cambia la maquina',
+  r.estado === 404 && await esperadoDe(idRetro) === 8, `dio ${r.estado} ${JSON.stringify(r.datos)}`);
+
 // El feed y el listado de cada maquina siguen diciendo lo mismo, con y sin dato.
 feedD13 = (await api('GET', '/analisis')).datos.alertas.filter((a) => a.tipo === 'maquinaria');
 discrepan = [];
@@ -948,6 +984,36 @@ for (const cuenta of [
   chequear(`${cuenta.rol}: no puede editarlo`,
     (await p.getByRole('button', { name: 'Consumo esperado' }).count()) === 0 &&
       (await p.getByLabel('Consumo esperado (L/h)').count()) === 0);
+  await ctx.close();
+}
+
+// Entrada invalida en el dialogo: con keyboard.type (fill() no la reproduce) un campo
+// numerico con "1e" o "-" queda con value "". Eso no es "dejar vacio para quitar el
+// dato": el dato se conserva y se avisa.
+for (const tecleado of ['1e', '-']) {
+  const { ctx, p } = await entrarComo('admin@sgso.test', 'admin123');
+  await p.evaluate(() => window.sgsoMockFetch('/maquinaria/1', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer mock.1' },
+    body: JSON.stringify({ consumo_esperado_por_hora: 8 }),
+  }));
+  await p.reload({ waitUntil: 'networkidle' });
+  await p.waitForTimeout(1000);
+  await p.locator('#esperado-editar-1').click();
+  await p.waitForTimeout(400);
+  await p.locator('#esperado-valor').click();
+  await p.keyboard.press('Control+A');
+  await p.keyboard.press('Delete');
+  await p.keyboard.type(tecleado);
+  await p.getByRole('dialog').getByRole('button', { name: 'Guardar' }).click();
+  await p.waitForTimeout(800);
+  const guardado = await p.evaluate(async () => (await (await window.sgsoMockFetch('/maquinaria', {
+    headers: { Authorization: 'Bearer mock.1' },
+  })).json()).find((m) => m.id_maquinaria === 1)?.consumo_esperado_por_hora);
+  chequear(`teclear ${JSON.stringify(tecleado)} y Guardar conserva el dato esperado`, guardado === 8, `quedo ${JSON.stringify(guardado)}`);
+  chequear(`y muestra un error en el dialogo, no «Consumo esperado quitado»`,
+    (await p.getByRole('dialog').count()) === 1 && (await p.getByRole('dialog').getByRole('alert').count()) === 1 &&
+      (await p.getByText('Consumo esperado quitado').count()) === 0);
   await ctx.close();
 }
 

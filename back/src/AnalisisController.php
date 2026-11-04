@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Sgso;
 
 use DateTimeImmutable;
-use DateTimeZone;
 use PDO;
 use Sgso\Reglas\Certificacion;
 use Sgso\Reglas\ConsumoMaquinaria;
@@ -173,19 +172,19 @@ final class AnalisisController
             $porMaquina[(int) $r['id_maquinaria']][] = $r;
         }
 
-        $desde = ConsumoMaquinaria::desde(new DateTimeImmutable('today', new DateTimeZone(ConsumoMaquinaria::ZONA)));
+        $desde = ConsumoMaquinaria::desde(ConsumoMaquinaria::hoy(new DateTimeImmutable()));
         $out = [];
         foreach ($porMaquina as $registros) {
-            $promedio = ConsumoMaquinaria::porHora(
-                array_sum(array_map(fn (array $r): float => (float) $r['combustible_consumido'], $registros)),
-                array_sum(array_map(fn (array $r): float => (float) $r['horas_uso'], $registros))
-            );
+            // En centesimos (enteros), como el listado de la maquina: la suma de
+            // decimales en coma flotante (10,1 + 10,2 + 20,3) no da lo mismo que en SQL.
+            $sumaLitros = array_sum(array_map(fn (array $r): int => ConsumoMaquinaria::centesimos($r['combustible_consumido']), $registros));
+            $sumaHoras = array_sum(array_map(fn (array $r): int => ConsumoMaquinaria::centesimos($r['horas_uso']), $registros));
             $esperado = (float) $registros[0]['consumo_esperado_por_hora'];
             $esperado = $esperado > 0 ? $esperado : null;
-            $referencia = ConsumoMaquinaria::referencia($esperado, $promedio);
+            $referencia = ConsumoMaquinaria::fraccionDeReferencia($esperado, $sumaLitros, $sumaHoras);
             $anomalos = array_values(array_filter(
                 $registros,
-                fn (array $r): bool => ConsumoMaquinaria::marcaAlerta(
+                fn (array $r): bool => ConsumoMaquinaria::marcaAlertaExacta(
                     (string) $r['fecha'],
                     (float) $r['horas_uso'],
                     (float) $r['combustible_consumido'],
