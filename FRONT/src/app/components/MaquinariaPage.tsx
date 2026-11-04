@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -6,11 +6,12 @@ import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { Badge } from "./ui/badge";
 import { Checkbox } from "./ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Wrench, Plus, Trash2, AlertTriangle, Fuel, Activity, Users } from "lucide-react";
 import { toast } from "sonner";
 import {
-  listarMaquinaria, crearMaquinaria, eliminarMaquinaria,
+  listarMaquinaria, crearMaquinaria, eliminarMaquinaria, actualizarConsumoEsperado, ErrorDeApi,
   listarRegistrosMaq, crearRegistroMaq, eliminarRegistroMaq,
   listarFallasMaq, crearFallaMaq, marcarFallaMaq, eliminarFallaMaq, rendimientoOperarios,
   listarProyectos,
@@ -20,6 +21,14 @@ import { puedeGestionarObras, puedeCargarDocumentos } from "../auth/permisos";
 
 const hoy = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
 const fmtFecha = (s: string) => new Date(s + "T00:00:00").toLocaleDateString("es-AR");
+const legible = (n: number) => String(n).replace(".", ",");
+const MENSAJE_ESPERADO = "Debe ser un número mayor a 0";
+// "" es "sin dato"; si hay texto, un número finito. El servidor decide el resto (mayor a 0, tope).
+const esperadoDelCampo = (v: string): number | null | undefined => {
+  if (v.trim() === "") return null;
+  const n = Number(v.replace(",", "."));
+  return Number.isFinite(n) ? n : undefined;
+};
 
 export default function MaquinariaPage() {
   const [maquinas, setMaquinas] = useState<Maquinaria[]>([]);
@@ -30,7 +39,14 @@ export default function MaquinariaPage() {
   const [fallas, setFallas] = useState<FallaMaquinaria[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [formMaq, setFormMaq] = useState({ nombre: "", tipo: "" });
+  const [formMaq, setFormMaq] = useState({ nombre: "", tipo: "", consumo_esperado: "" });
+  const [errorEsperadoNuevo, setErrorEsperadoNuevo] = useState("");
+  // Editar el consumo esperado de una maquina que ya existe (D-13).
+  const [editando, setEditando] = useState<Maquinaria | null>(null);
+  const [valorEsperado, setValorEsperado] = useState("");
+  const [errorEsperado, setErrorEsperado] = useState("");
+  const [guardandoEsperado, setGuardandoEsperado] = useState(false);
+  const volverAlBoton = useRef<string | null>(null);
   const [formReg, setFormReg] = useState({ fecha: hoy(), id_proyecto: "", operario: "", horas_uso: "", combustible_consumido: "", produccion_realizada: "" });
   const [formFalla, setFormFalla] = useState({ fecha: hoy(), componente: "", descripcion: "", reemplazo: false });
 
@@ -66,12 +82,69 @@ export default function MaquinariaPage() {
 
   async function guardarMaq(e: React.FormEvent) {
     e.preventDefault();
+    const esperado = esperadoDelCampo(formMaq.consumo_esperado);
+    if (esperado === undefined) {
+      setErrorEsperadoNuevo(MENSAJE_ESPERADO);
+      document.getElementById("me")?.focus();
+      return;
+    }
+    setErrorEsperadoNuevo("");
     try {
-      await crearMaquinaria(formMaq);
+      await crearMaquinaria({
+        nombre: formMaq.nombre,
+        tipo: formMaq.tipo,
+        ...(esperado !== null ? { consumo_esperado_por_hora: esperado } : {}),
+      });
       toast.success("Maquinaria registrada");
-      setFormMaq({ nombre: "", tipo: "" });
+      setFormMaq({ nombre: "", tipo: "", consumo_esperado: "" });
       setMaquinas(await listarMaquinaria());
-    } catch (err) { toast.error(err instanceof Error ? err.message : "Error"); }
+    } catch (err) {
+      const delServidor = err instanceof ErrorDeApi ? err.errores?.consumo_esperado_por_hora : undefined;
+      if (delServidor) {
+        setErrorEsperadoNuevo(delServidor);
+        document.getElementById("me")?.focus();
+      } else {
+        toast.error(err instanceof Error ? err.message : "Error");
+      }
+    }
+  }
+
+  function abrirEsperado(m: Maquinaria) {
+    setEditando(m);
+    setValorEsperado(m.consumo_esperado_por_hora === null ? "" : String(m.consumo_esperado_por_hora));
+    setErrorEsperado("");
+  }
+  function cerrarEsperado() {
+    if (editando) volverAlBoton.current = `esperado-editar-${editando.id_maquinaria}`;
+    setEditando(null);
+  }
+  async function guardarEsperado(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editando) return;
+    const esperado = esperadoDelCampo(valorEsperado);
+    if (esperado === undefined) {
+      setErrorEsperado(MENSAJE_ESPERADO);
+      document.getElementById("esperado-valor")?.focus();
+      return;
+    }
+    setGuardandoEsperado(true);
+    try {
+      await actualizarConsumoEsperado(editando.id_maquinaria, esperado);
+      toast.success(esperado === null ? "Consumo esperado quitado" : "Consumo esperado guardado");
+      const id = editando.id_maquinaria;
+      cerrarEsperado();
+      setMaquinas(await listarMaquinaria());
+      // Cambia contra que se compara cada registro: se vuelven a pedir los de la maquina abierta.
+      if (sel?.id_maquinaria === id) setRegistros(await listarRegistrosMaq(id));
+    } catch (err) {
+      const delServidor = err instanceof ErrorDeApi ? err.errores?.consumo_esperado_por_hora : undefined;
+      if (delServidor) {
+        setErrorEsperado(delServidor);
+        document.getElementById("esperado-valor")?.focus();
+      } else {
+        toast.error(err instanceof Error ? err.message : "Error");
+      }
+    } finally { setGuardandoEsperado(false); }
   }
   async function guardarReg(e: React.FormEvent) {
     e.preventDefault();
@@ -131,6 +204,11 @@ export default function MaquinariaPage() {
                 <Input id="mn" required placeholder="Nombre" value={formMaq.nombre} onChange={(e) => setFormMaq({ ...formMaq, nombre: e.target.value })} /></div>
               <div className="space-y-2"><Label htmlFor="mt">Tipo</Label>
                 <Input id="mt" required placeholder="Ej: Excavación" value={formMaq.tipo} onChange={(e) => setFormMaq({ ...formMaq, tipo: e.target.value })} /></div>
+              <div className="space-y-2"><Label htmlFor="me">Consumo esperado (L/h)</Label>
+                <Input id="me" type="number" min="0.01" step="0.01" placeholder="Opcional" aria-invalid={!!errorEsperadoNuevo}
+                  aria-describedby={errorEsperadoNuevo ? "me-error" : undefined}
+                  value={formMaq.consumo_esperado} onChange={(e) => setFormMaq({ ...formMaq, consumo_esperado: e.target.value })} />
+                {errorEsperadoNuevo && <p id="me-error" role="alert" className="text-sm text-destructive">{errorEsperadoNuevo}</p>}</div>
               <Button type="submit" className="gap-2"><Plus className="w-4 h-4" /> Agregar</Button>
             </form>
           </CardContent>
@@ -149,11 +227,15 @@ export default function MaquinariaPage() {
             <CardContent className="space-y-3 text-sm">
               <div className="flex flex-wrap gap-4 text-muted-foreground">
                 <span className="flex items-center gap-1"><Activity className="w-4 h-4" /> {m.horas} h</span>
-                <span className="flex items-center gap-1"><Fuel className="w-4 h-4" /> {m.combustible} L ({m.combustible_por_hora} L/h)</span>
+                <span className="flex items-center gap-1"><Fuel className="w-4 h-4" /> {m.combustible} L ({m.combustible_por_hora} L/h real,{" "}
+                  {m.consumo_esperado_por_hora !== null ? `esperado: ${legible(m.consumo_esperado_por_hora)} L/h` : "sin dato esperado"})</span>
                 <span>Prod.: {m.produccion} ({m.produccion_por_hora}/h)</span>
               </div>
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" onClick={() => abrir(m)}>Ver uso y fallas</Button>
+                {gestiona && (
+                  <Button size="sm" variant="outline" id={`esperado-editar-${m.id_maquinaria}`} onClick={() => abrirEsperado(m)}>Consumo esperado</Button>
+                )}
                 {gestiona && (
                   <Button size="sm" variant="ghost" onClick={() => { eliminarMaquinaria(m.id_maquinaria).then(() => { setMaquinas((p) => p.filter((x) => x.id_maquinaria !== m.id_maquinaria)); if (sel?.id_maquinaria === m.id_maquinaria) setSel(null); }).catch(() => toast.error("Error")); }}>
                     <Trash2 className="w-4 h-4" style={{ color: "#ef4444" }} />
@@ -164,6 +246,42 @@ export default function MaquinariaPage() {
           </Card>
         ))}
       </div>
+
+      {/* Consumo esperado de una maquina (D-13) */}
+      <Dialog open={editando !== null} onOpenChange={(abierto) => !abierto && cerrarEsperado()}>
+        <DialogContent
+          onCloseAutoFocus={(e) => {
+            e.preventDefault();
+            const id = volverAlBoton.current;
+            volverAlBoton.current = null;
+            if (id) document.getElementById(id)?.focus();
+          }}
+        >
+          <form onSubmit={guardarEsperado} className="space-y-4" noValidate>
+            <DialogHeader>
+              <DialogTitle>Consumo esperado de {editando?.nombre}</DialogTitle>
+              <DialogDescription>
+                Litros de combustible por hora que se esperan de esta máquina. La alerta de consumo alto compara contra este valor.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2">
+              <Label htmlFor="esperado-valor">Consumo esperado (L/h)</Label>
+              <Input id="esperado-valor" type="number" min="0.01" step="0.01" inputMode="decimal" value={valorEsperado}
+                aria-invalid={!!errorEsperado}
+                aria-describedby={errorEsperado ? "esperado-ayuda esperado-error" : "esperado-ayuda"}
+                onChange={(e) => setValorEsperado(e.target.value)} />
+              <p id="esperado-ayuda" className="text-sm text-muted-foreground">
+                Dejalo vacío para quitar el dato: la máquina vuelve a compararse contra su promedio.
+              </p>
+              {errorEsperado && <p id="esperado-error" role="alert" className="text-sm text-destructive">{errorEsperado}</p>}
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={cerrarEsperado}>Cancelar</Button>
+              <Button type="submit" disabled={guardandoEsperado}>Guardar</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {sel && (
         <Card>

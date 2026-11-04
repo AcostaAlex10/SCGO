@@ -57,8 +57,10 @@ Las decisiones que antes tomaba cada controlador por su cuenta viven en
 
 - **`CicloDeVida`** — los siete estados de la obra y qué transición es legal.
 - **`Permisos`** — los grupos de roles del RF19.
-- **`ConsumoMaquinaria`** — cuándo un registro de uso consume de más (RF24). La
-  usan el listado de la máquina y el feed de Alertas.
+- **`ConsumoMaquinaria`** — cuándo un registro de uso consume de más (RF24):
+  más de 1,5 veces el consumo esperado de la máquina si lo tiene, o su promedio si
+  no, y solo dentro de los últimos 30 días (D-13). La usan el listado de la máquina
+  y el feed de Alertas.
 - **`ProtocoloIncidencias`** — a quién se avisa por correo de una incidencia según
   su gravedad (RF26).
 - **`Certificacion`** — el monto certificado de una obra a la fecha (RF15). La usan

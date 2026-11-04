@@ -164,6 +164,51 @@ const texto = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
 const hoy = () => new Date().toISOString().slice(0, 10);
 const redondear = (n: number, dec = 2) => Math.round(n * 10 ** dec) / 10 ** dec;
 
+// ----- Consumo de maquinaria (RF24, D-13). Mismas constantes y reglas que
+// Sgso\Reglas\ConsumoMaquinaria en el backend.
+const FACTOR_CONSUMO = 1.5;
+/** Dias de la ventana de alertas. El borde es inclusivo: hace exactamente 30 dias entra. */
+const VENTANA_DIAS = 30;
+const ZONA_LOCAL = "America/Argentina/Buenos_Aires";
+/** Tope de maquinaria.consumo_esperado_por_hora, DECIMAL(8,2). */
+const ESPERADO_MAXIMO = 999999.99;
+
+/** La fecha local (Buenos Aires) como YYYY-MM-DD: el servidor real corre en UTC pero cuenta con esta. */
+const hoyLocal = () => new Intl.DateTimeFormat("en-CA", { timeZone: ZONA_LOCAL }).format(new Date());
+
+/** Primer dia de la ventana, contando hacia atras desde la fecha local. */
+function desdeVentana(): string {
+  const d = new Date(hoyLocal() + "T00:00:00Z");
+  d.setUTCDate(d.getUTCDate() - VENTANA_DIAS);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Un numero como lo lee el usuario: coma decimal y sin ceros de mas (1,5; 8). */
+function formatearNumero(n: number): string {
+  return n.toFixed(2).replace(/0+$/, "").replace(/\.$/, "").replace(".", ",");
+}
+
+/** El dato esperado de una maquina: null si no lo tiene (0 no es un dato). */
+function consumoEsperadoDe(m: Fila): number | null {
+  const v = num(m.consumo_esperado_por_hora);
+  return v > 0 ? v : null;
+}
+
+/** Como MaquinariaController::validarEsperado(): ausente, null o vacio es "sin dato". */
+function validarEsperado(v: unknown): { valor: number | null; error: string | null } {
+  if (v === undefined || v === null || (typeof v === "string" && v.trim() === "")) {
+    return { valor: null, error: null };
+  }
+  const invalido = { valor: null, error: "Debe ser un número mayor a 0" };
+  const numerico =
+    typeof v === "number" ||
+    (typeof v === "string" && /^\s*[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?\s*$/.test(v));
+  const n = numerico ? Number(v) : NaN;
+  if (Number.isNaN(n) || redondear(n) <= 0) return invalido;
+  if (n > ESPERADO_MAXIMO) return { valor: null, error: "Debe ser un número menor o igual a 999999,99" };
+  return { valor: redondear(n), error: null };
+}
+
 /** La API usa el email recortado y en minúsculas como identidad del contador. */
 const claveDeCuenta = (email: string) => email.trim().toLowerCase();
 const ahoraEnSegundos = () => Math.floor(Date.now() / 1000);
@@ -432,6 +477,10 @@ function analisis(rol: string) {
     const ultimo = anomalos[0];
     const obra = db.proyectos.find((p) => Number(p.id) === ultimo.id_proyecto);
     const fecha = ultimo.fecha.split("-").reverse().join("/");
+    const factor = formatearNumero(FACTOR_CONSUMO);
+    const esperado = consumoEsperadoDe(m);
+    const referencia =
+      esperado !== null ? `esperado de la máquina (${formatearNumero(esperado)} L/h)` : "promedio de la máquina";
     alertas.push({
       tipo: "maquinaria",
       gravedad: "media",
@@ -439,8 +488,8 @@ function analisis(rol: string) {
       maquina: String(m.nombre),
       mensaje:
         anomalos.length === 1
-          ? `Un registro de uso, del ${fecha}, consumió más de 1,5 veces el combustible por hora promedio de la máquina.`
-          : `${anomalos.length} registros de uso consumieron más de 1,5 veces el combustible por hora promedio de la máquina; el último, del ${fecha}.`,
+          ? `Un registro de uso, del ${fecha}, consumió más de ${factor} veces el combustible por hora ${referencia}.`
+          : `${anomalos.length} registros de uso consumieron más de ${factor} veces el combustible por hora ${referencia}; el último, del ${fecha}.`,
     });
   }
   return { proyectos, alertas };
@@ -459,6 +508,7 @@ function maquinariaConTotales() {
       nombre: String(m.nombre),
       tipo: String(m.tipo),
       activa: m.activa !== false,
+      consumo_esperado_por_hora: consumoEsperadoDe(m),
       horas: redondear(horas),
       combustible: redondear(combustible),
       produccion: redondear(produccion),
@@ -477,12 +527,18 @@ function registrosDeMaquina(idMaq: number) {
     "fecha",
     "id_registro"
   );
-  // Como Sgso\Reglas\ConsumoMaquinaria: el promedio sale de los registros con
-  // horas, y la comparacion usa el consumo sin redondear.
+  // Como Sgso\Reglas\ConsumoMaquinaria: el promedio sale de TODOS los registros
+  // con horas (la ventana no lo achica), la referencia es el consumo esperado de
+  // la maquina si lo tiene y el promedio si no, y la comparacion usa el consumo
+  // sin redondear. Solo alertan los registros de la ventana.
   const conHoras = regs.filter((r) => num(r.horas_uso) > 0);
   const horas = conHoras.reduce((s, r) => s + num(r.horas_uso), 0);
   const combustible = conHoras.reduce((s, r) => s + num(r.combustible_consumido), 0);
   const promedio = horas > 0 ? combustible / horas : 0;
+  const maquina = db.maquinaria.find((m) => Number(m.id_maquinaria) === idMaq);
+  const esperado = maquina ? consumoEsperadoDe(maquina) : null;
+  const referencia = esperado ?? promedio;
+  const desde = desdeVentana();
   return regs.map((r) => {
     const h = num(r.horas_uso);
     const cph = h > 0 ? num(r.combustible_consumido) / h : 0;
@@ -496,8 +552,9 @@ function registrosDeMaquina(idMaq: number) {
       combustible_consumido: num(r.combustible_consumido),
       produccion_realizada: num(r.produccion_realizada),
       combustible_por_hora: redondear(cph),
-      // RF24: consumo anomalo si supera 1,5 veces el promedio de la maquina.
-      alerta_consumo: promedio > 0 && cph > promedio * 1.5,
+      consumo_esperado_por_hora: esperado,
+      // RF24: consumo anomalo si, dentro de la ventana, supera 1,5 veces la referencia.
+      alerta_consumo: h > 0 && String(r.fecha) >= desde && referencia > 0 && cph > referencia * FACTOR_CONSUMO,
     };
   });
 }
@@ -969,11 +1026,14 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
       const veto = exige(ROLES_GESTION_OBRA);
       if (veto) return veto;
       if (!texto(cuerpo.nombre)) return json(422, { errors: { nombre: "Obligatorio" } });
+      const esperadoNuevo = validarEsperado(cuerpo.consumo_esperado_por_hora);
+      if (esperadoNuevo.error) return json(422, { errors: { consumo_esperado_por_hora: esperadoNuevo.error } });
       const nueva: Fila = {
         id_maquinaria: proximoId(db.maquinaria, "id_maquinaria"),
         nombre: texto(cuerpo.nombre),
         tipo: texto(cuerpo.tipo) || "General",
         activa: true,
+        consumo_esperado_por_hora: esperadoNuevo.valor,
       };
       db.maquinaria.push(nueva);
       guardar();
@@ -1007,6 +1067,22 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
       const veto = exige(ROLES_GESTION_OBRA);
       if (veto) return veto;
       return eliminarDe(db.maquinaria, "id_maquinaria", idMaq);
+    }
+    if (metodo === "PUT" && s.length === 2) {
+      // Como MaquinariaController::actualizar() (D-13): solo cambia el consumo
+      // esperado. Que el campo falte es un error; null o vacio lo borra.
+      const veto = exige(ROLES_GESTION_OBRA);
+      if (veto) return veto;
+      if (!("consumo_esperado_por_hora" in cuerpo)) {
+        return json(422, { errors: { consumo_esperado_por_hora: "Obligatorio (null para borrar el dato)" } });
+      }
+      const nuevo = validarEsperado(cuerpo.consumo_esperado_por_hora);
+      if (nuevo.error) return json(422, { errors: { consumo_esperado_por_hora: nuevo.error } });
+      const maquina = db.maquinaria.find((m) => Number(m.id_maquinaria) === idMaq);
+      if (!maquina) return noEncontrado("Maquinaria no encontrada");
+      maquina.consumo_esperado_por_hora = nuevo.valor;
+      guardar();
+      return ok({ id_maquinaria: idMaq, consumo_esperado_por_hora: nuevo.valor });
     }
     if (s[2] === "registros") {
       if (metodo === "GET") return listado(registrosDeMaquina(idMaq), params);

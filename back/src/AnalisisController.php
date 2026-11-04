@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sgso;
 
 use DateTimeImmutable;
+use DateTimeZone;
 use PDO;
 use Sgso\Reglas\Certificacion;
 use Sgso\Reglas\ConsumoMaquinaria;
@@ -138,7 +139,7 @@ final class AnalisisController
                 'gravedad' => 'media',
                 'proyecto' => $maquina['obra'],
                 'maquina' => $maquina['nombre'],
-                'mensaje' => self::mensajeDeConsumo($maquina['registros'], $maquina['ultimo']),
+                'mensaje' => self::mensajeDeConsumo($maquina['registros'], $maquina['ultimo'], $maquina['referencia']),
             ];
         }
 
@@ -150,15 +151,17 @@ final class AnalisisController
      * sola vez cada una: con cuantos son y el ultimo, que es el que conviene
      * mirar primero. La obra es la de ese ultimo registro, o null si no tenia.
      *
-     * Se calcula en PHP con la misma regla que MaquinariaController, para que
-     * el feed y el listado de la maquina no puedan discrepar.
+     * Se calcula en PHP con la misma regla que MaquinariaController (misma
+     * referencia, misma ventana, misma funcion), para que el feed y el listado
+     * de la maquina no puedan discrepar. El promedio sale de todos los registros
+     * de la maquina; la ventana solo decide cuales alertan.
      *
-     * @return list<array{nombre: string, registros: int, ultimo: string, obra: ?string}>
+     * @return list<array{nombre: string, registros: int, ultimo: string, obra: ?string, referencia: string}>
      */
     private function consumosAnomalos(): array
     {
         $stmt = $this->db->query(
-            'SELECT r.id_maquinaria, m.nombre, r.fecha, r.horas_uso, r.combustible_consumido, p.nombre AS obra
+            'SELECT r.id_maquinaria, m.nombre, m.consumo_esperado_por_hora, r.fecha, r.horas_uso, r.combustible_consumido, p.nombre AS obra
              FROM registro_maquinaria r
              JOIN maquinaria m ON m.id_maquinaria = r.id_maquinaria
              LEFT JOIN proyecto p ON p.id_proyecto = r.id_proyecto
@@ -170,17 +173,24 @@ final class AnalisisController
             $porMaquina[(int) $r['id_maquinaria']][] = $r;
         }
 
+        $desde = ConsumoMaquinaria::desde(new DateTimeImmutable('today', new DateTimeZone(ConsumoMaquinaria::ZONA)));
         $out = [];
         foreach ($porMaquina as $registros) {
             $promedio = ConsumoMaquinaria::porHora(
                 array_sum(array_map(fn (array $r): float => (float) $r['combustible_consumido'], $registros)),
                 array_sum(array_map(fn (array $r): float => (float) $r['horas_uso'], $registros))
             );
+            $esperado = (float) $registros[0]['consumo_esperado_por_hora'];
+            $esperado = $esperado > 0 ? $esperado : null;
+            $referencia = ConsumoMaquinaria::referencia($esperado, $promedio);
             $anomalos = array_values(array_filter(
                 $registros,
-                fn (array $r): bool => ConsumoMaquinaria::esAnomalo(
-                    ConsumoMaquinaria::porHora((float) $r['combustible_consumido'], (float) $r['horas_uso']),
-                    $promedio
+                fn (array $r): bool => ConsumoMaquinaria::marcaAlerta(
+                    (string) $r['fecha'],
+                    (float) $r['horas_uso'],
+                    (float) $r['combustible_consumido'],
+                    $referencia,
+                    $desde
                 )
             ));
             if ($anomalos === []) {
@@ -191,20 +201,22 @@ final class AnalisisController
                 'registros' => count($anomalos),
                 'ultimo' => (string) $anomalos[0]['fecha'],
                 'obra' => $anomalos[0]['obra'] !== null ? (string) $anomalos[0]['obra'] : null,
+                'referencia' => ConsumoMaquinaria::textoDeReferencia($esperado),
             ];
         }
 
         return $out;
     }
 
-    private static function mensajeDeConsumo(int $registros, string $ultimo): string
+    private static function mensajeDeConsumo(int $registros, string $ultimo, string $referencia): string
     {
         $fecha = (new DateTimeImmutable($ultimo))->format('d/m/Y');
+        $factor = ConsumoMaquinaria::formatear(ConsumoMaquinaria::FACTOR);
         if ($registros === 1) {
-            return "Un registro de uso, del {$fecha}, consumió más de 1,5 veces el combustible por hora promedio de la máquina.";
+            return "Un registro de uso, del {$fecha}, consumió más de {$factor} veces el combustible por hora {$referencia}.";
         }
 
-        return "{$registros} registros de uso consumieron más de 1,5 veces el combustible por hora promedio de la máquina; el último, del {$fecha}.";
+        return "{$registros} registros de uso consumieron más de {$factor} veces el combustible por hora {$referencia}; el último, del {$fecha}.";
     }
 
     /**

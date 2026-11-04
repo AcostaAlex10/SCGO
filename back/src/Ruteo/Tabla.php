@@ -45,6 +45,7 @@ final class Tabla
             new Ruta('POST', '/maquinaria/{id}/registros', Permisos::DOC, false, 'maquinaria.registros.crear'),
             new Ruta('GET', '/maquinaria/{id}/fallas', null, false, 'maquinaria.fallas.listar'),
             new Ruta('POST', '/maquinaria/{id}/fallas', Permisos::DOC, false, 'maquinaria.fallas.crear'),
+            new Ruta('PUT', '/maquinaria/{id}', Permisos::GESTION_OBRA, false, 'maquinaria.actualizar'),
             new Ruta('DELETE', '/maquinaria/{id}', Permisos::GESTION_OBRA, false, 'maquinaria.eliminar'),
 
             new Ruta('GET', '/usuarios', Permisos::ADMIN, false, 'usuarios.listar'),

@@ -276,6 +276,22 @@ nada. Un cambio de tipo necesita su propio script con el `ALTER`, como
 `migracion-estado-enum.php`. Por eso el esquema del repositorio y el de Aiven
 pueden no coincidir.
 
+**Las columnas nuevas se agregan con su script, y antes de desplegar.** El que
+corresponde a D-13 (RF24) es `back/sql/migracion-consumo-esperado.php`: agrega
+`maquinaria.consumo_esperado_por_hora` y no toca ningún valor. Se puede correr más
+de una vez (si la columna existe, no hace nada). El orden importa: **primero
+migrar y después desplegar la API**, porque el código nuevo lee la columna en cada
+listado de maquinaria y sin ella falla. Se corre con las credenciales de Aiven en
+`back/.env` (o en las variables `DB_*`):
+
+```bash
+php back/sql/migracion-consumo-esperado.php
+```
+
+Después hay que cargar el consumo esperado de cada máquina real desde la pantalla
+de Maquinaria; hasta entonces las alertas comparan contra el promedio, como antes.
+Es el mismo patrón que `migracion-reporte-final.php` y `migracion-estado-enum.php`.
+
 **El antivirus borra los scripts PHP que se conectan a la base.** `migrar.php` y
 similares desaparecen del árbol de trabajo. Están versionados: si falta uno,
 `git checkout` sobre ese archivo, y cuidado con un `git add -A` a ciegas.

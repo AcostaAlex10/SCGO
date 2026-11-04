@@ -298,6 +298,191 @@ final class MaquinariaTest extends CasoConBase
     }
 
     // ----------------------------------------------------------------
+    //  D-13: consumo esperado por hora y ventana de la alerta (RF24)
+    // ----------------------------------------------------------------
+
+    public function testCrearSinElConsumoEsperadoSigueDando201YQuedaSinDato(): void
+    {
+        $respuesta = $this->capturar(fn () => $this->maquinaria()->crear(['nombre' => 'Grua', 'tipo' => 'Elevacion']));
+        $maquinas = $this->capturar(fn () => $this->maquinaria()->listar())['cuerpo'];
+
+        self::assertSame(201, $respuesta['codigo']);
+        self::assertNull($respuesta['cuerpo']['consumo_esperado_por_hora']);
+        self::assertNull($this->maquina($maquinas, $respuesta['cuerpo']['id_maquinaria'])['consumo_esperado_por_hora']);
+    }
+
+    public function testCrearConElConsumoEsperadoLoGuardaYLoDevuelveComoNumero(): void
+    {
+        $respuesta = $this->capturar(fn () => $this->maquinaria()->crear([
+            'nombre' => 'Grua',
+            'tipo' => 'Elevacion',
+            'consumo_esperado_por_hora' => '7.5',
+        ]));
+        $maquinas = $this->capturar(fn () => $this->maquinaria()->listar())['cuerpo'];
+
+        self::assertSame(201, $respuesta['codigo']);
+        self::assertNumero(7.5, $respuesta['cuerpo']['consumo_esperado_por_hora']);
+        self::assertNumero(7.5, $this->maquina($maquinas, $respuesta['cuerpo']['id_maquinaria'])['consumo_esperado_por_hora']);
+    }
+
+    public function testElConsumoEsperadoInvalidoAlCrearDa422YNoGuardaNada(): void
+    {
+        foreach ([0, -3, '0', 'abc', true, '12 litros', 1000000] as $invalido) {
+            $respuesta = $this->capturar(fn () => $this->maquinaria()->crear([
+                'nombre' => 'Grua',
+                'tipo' => 'Elevacion',
+                'consumo_esperado_por_hora' => $invalido,
+            ]));
+
+            self::assertSame(422, $respuesta['codigo'], var_export($invalido, true));
+            self::assertArrayHasKey('consumo_esperado_por_hora', $respuesta['cuerpo']['errors'], var_export($invalido, true));
+        }
+        $mensaje = $this->capturar(fn () => $this->maquinaria()->crear([
+            'nombre' => 'Grua',
+            'tipo' => 'Elevacion',
+            'consumo_esperado_por_hora' => 0,
+        ]))['cuerpo']['errors']['consumo_esperado_por_hora'];
+        self::assertSame('Debe ser un número mayor a 0', $mensaje);
+        self::assertSame([], $this->capturar(fn () => $this->maquinaria()->listar())['cuerpo']);
+    }
+
+    public function testActualizarCargaCambiaYBorraElConsumoEsperado(): void
+    {
+        $id = $this->crearMaquina('Retro');
+
+        $carga = $this->capturar(fn () => $this->maquinaria()->actualizar((string) $id, ['consumo_esperado_por_hora' => 8]));
+        self::assertSame(200, $carga['codigo']);
+        self::assertNumero(8.0, $carga['cuerpo']['consumo_esperado_por_hora']);
+        self::assertNumero(8.0, $this->maquina($this->capturar(fn () => $this->maquinaria()->listar())['cuerpo'], $id)['consumo_esperado_por_hora']);
+
+        $this->capturar(fn () => $this->maquinaria()->actualizar((string) $id, ['consumo_esperado_por_hora' => '9.25']));
+        self::assertNumero(9.25, $this->maquina($this->capturar(fn () => $this->maquinaria()->listar())['cuerpo'], $id)['consumo_esperado_por_hora']);
+
+        foreach ([null, '', '  '] as $vacio) {
+            $this->capturar(fn () => $this->maquinaria()->actualizar((string) $id, ['consumo_esperado_por_hora' => 8]));
+            $borra = $this->capturar(fn () => $this->maquinaria()->actualizar((string) $id, ['consumo_esperado_por_hora' => $vacio]));
+
+            self::assertSame(200, $borra['codigo'], var_export($vacio, true));
+            self::assertNull($this->maquina($this->capturar(fn () => $this->maquinaria()->listar())['cuerpo'], $id)['consumo_esperado_por_hora']);
+        }
+    }
+
+    public function testActualizarSoloCambiaElConsumoEsperado(): void
+    {
+        $id = $this->crearMaquina('Retro');
+
+        $this->capturar(fn () => $this->maquinaria()->actualizar((string) $id, [
+            'consumo_esperado_por_hora' => 8,
+            'nombre' => 'Otro nombre',
+            'tipo' => 'Otro tipo',
+            'activa' => false,
+        ]));
+        $maquina = $this->maquina($this->capturar(fn () => $this->maquinaria()->listar())['cuerpo'], $id);
+
+        self::assertSame('Retro', $maquina['nombre']);
+        self::assertSame('Excavacion', $maquina['tipo']);
+        self::assertTrue($maquina['activa']);
+    }
+
+    public function testActualizarConUnValorInvalidoDa422YConservaElDato(): void
+    {
+        $id = $this->crearMaquina('Retro', 8);
+
+        foreach ([0, -1, 'abc'] as $invalido) {
+            $respuesta = $this->capturar(fn () => $this->maquinaria()->actualizar((string) $id, ['consumo_esperado_por_hora' => $invalido]));
+
+            self::assertSame(422, $respuesta['codigo'], var_export($invalido, true));
+            self::assertSame('Debe ser un número mayor a 0', $respuesta['cuerpo']['errors']['consumo_esperado_por_hora']);
+        }
+        // Un cuerpo sin el campo tampoco borra el dato.
+        self::assertSame(422, $this->capturar(fn () => $this->maquinaria()->actualizar((string) $id, []))['codigo']);
+        self::assertNumero(8.0, $this->maquina($this->capturar(fn () => $this->maquinaria()->listar())['cuerpo'], $id)['consumo_esperado_por_hora']);
+    }
+
+    public function testActualizarUnaMaquinaInexistenteDa404(): void
+    {
+        $respuesta = $this->capturar(fn () => $this->maquinaria()->actualizar('999', ['consumo_esperado_por_hora' => 8]));
+
+        self::assertSame(404, $respuesta['codigo']);
+        self::assertSame(['error' => 'Maquinaria no encontrada'], $respuesta['cuerpo']);
+    }
+
+    public function testElListadoDeRegistrosTraeElConsumoEsperadoComoNumeroONull(): void
+    {
+        $con = $this->crearMaquina('Con dato', 8);
+        $sin = $this->crearMaquina('Sin dato');
+        $this->registrar($con, horas: 1, combustible: 8);
+        $this->registrar($sin, horas: 1, combustible: 8);
+
+        $deLaCon = $this->capturar(fn () => $this->maquinaria()->listarRegistros((string) $con))['cuerpo'][0];
+        $deLaSin = $this->capturar(fn () => $this->maquinaria()->listarRegistros((string) $sin))['cuerpo'][0];
+
+        self::assertNumero(8.0, $deLaCon['consumo_esperado_por_hora']);
+        self::assertNull($deLaSin['consumo_esperado_por_hora']);
+    }
+
+    /** El caso que motivo D-13: contra su propio promedio, nunca se aparta. */
+    public function testUnaMaquinaQueSiempreConsumeElDobleDeLoEsperadoAlertaEnSusRegistros(): void
+    {
+        $sinDato = $this->crearMaquina('Sin dato');
+        $conDato = $this->crearMaquina('Con dato', 8);
+        foreach ([$sinDato, $conDato] as $id) {
+            for ($dia = 1; $dia <= 3; $dia++) {
+                $this->registrar($id, horas: 1, combustible: 16, fecha: $this->fechaHace($dia));
+            }
+        }
+
+        $sinAlertas = $this->capturar(fn () => $this->maquinaria()->listarRegistros((string) $sinDato))['cuerpo'];
+        $conAlertas = $this->capturar(fn () => $this->maquinaria()->listarRegistros((string) $conDato))['cuerpo'];
+
+        self::assertSame([false, false, false], array_column($sinAlertas, 'alerta_consumo'), 'sin dato, contra su promedio');
+        self::assertSame([true, true, true], array_column($conAlertas, 'alerta_consumo'), '16 L/h contra 8 esperados');
+    }
+
+    public function testContraElEsperadoJustoUnaVezYMediaNoAlerta(): void
+    {
+        $id = $this->crearMaquina('Con dato', 8);
+        $justo = $this->registrar($id, horas: 2, combustible: 24);
+        $pasado = $this->registrar($id, horas: 2, combustible: 24.1);
+
+        $alertas = array_column($this->capturar(fn () => $this->maquinaria()->listarRegistros((string) $id))['cuerpo'], 'alerta_consumo', 'id_registro');
+
+        self::assertFalse($alertas[$justo], '12 L/h contra 12 de umbral');
+        self::assertTrue($alertas[$pasado]);
+    }
+
+    /** Hace 30 dias todavia entra; hace 31, no. */
+    public function testSoloAlertanLosRegistrosDeLosUltimosTreintaDias(): void
+    {
+        $id = $this->crearMaquina('Con dato', 8);
+        $hoy = $this->registrar($id, horas: 1, combustible: 40, fecha: $this->fechaHace(0));
+        $borde = $this->registrar($id, horas: 1, combustible: 40, fecha: $this->fechaHace(30));
+        $viejo = $this->registrar($id, horas: 1, combustible: 40, fecha: $this->fechaHace(31));
+
+        $alertas = array_column($this->capturar(fn () => $this->maquinaria()->listarRegistros((string) $id))['cuerpo'], 'alerta_consumo', 'id_registro');
+
+        self::assertTrue($alertas[$hoy]);
+        self::assertTrue($alertas[$borde], 'hace exactamente 30 dias entra');
+        self::assertFalse($alertas[$viejo], 'hace 31 dias ya no alerta');
+    }
+
+    /** La ventana decide quien alerta, no achica el promedio de una maquina sin dato. */
+    public function testLaVentanaNoAchicaElPromedioDeUnaMaquinaSinDato(): void
+    {
+        $id = $this->crearMaquina();
+        // Promedio de todos: (2 + 2 + 2 + 30) / 4 = 9 L/h y umbral 13,5. Si solo
+        // contara la ventana, el promedio seria 30 y el registro reciente no alertaria.
+        foreach ([60, 61, 62] as $dias) {
+            $this->registrar($id, horas: 1, combustible: 2, fecha: $this->fechaHace($dias));
+        }
+        $reciente = $this->registrar($id, horas: 1, combustible: 30, fecha: $this->fechaHace(2));
+
+        $alertas = array_column($this->capturar(fn () => $this->maquinaria()->listarRegistros((string) $id))['cuerpo'], 'alerta_consumo', 'id_registro');
+
+        self::assertTrue($alertas[$reciente]);
+    }
+
+    // ----------------------------------------------------------------
     //  Ayudas
     // ----------------------------------------------------------------
 
@@ -306,9 +491,10 @@ final class MaquinariaTest extends CasoConBase
         return new MaquinariaController($this->base());
     }
 
-    private function crearMaquina(string $nombre = 'Maquina de prueba'): int
+    private function crearMaquina(string $nombre = 'Maquina de prueba', ?float $esperado = null): int
     {
-        $this->base()->prepare('INSERT INTO maquinaria (nombre, tipo) VALUES (?, ?)')->execute([$nombre, 'Excavacion']);
+        $this->base()->prepare('INSERT INTO maquinaria (nombre, tipo, consumo_esperado_por_hora) VALUES (?, ?, ?)')
+            ->execute([$nombre, 'Excavacion', $esperado]);
 
         return (int) $this->base()->lastInsertId();
     }
@@ -318,12 +504,13 @@ final class MaquinariaTest extends CasoConBase
         float $horas = 0,
         float $combustible = 0,
         float $produccion = 0,
-        ?string $operario = 'Operario'
+        ?string $operario = 'Operario',
+        ?string $fecha = null
     ): int {
         $this->base()->prepare(
             'INSERT INTO registro_maquinaria (id_maquinaria, fecha, operario, horas_uso, combustible_consumido, produccion_realizada)
              VALUES (?, ?, ?, ?, ?, ?)'
-        )->execute([$idMaquina, '2026-03-01', $operario, $horas, $combustible, $produccion]);
+        )->execute([$idMaquina, $fecha ?? $this->fechaHace(1), $operario, $horas, $combustible, $produccion]);
 
         return (int) $this->base()->lastInsertId();
     }

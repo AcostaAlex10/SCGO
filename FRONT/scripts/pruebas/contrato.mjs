@@ -48,6 +48,13 @@ const api = (metodo, ruta, cuerpo = null, token = 'mock.1') => page.evaluate(asy
 
 const estadoObra = async (id) => (await api('GET', `/proyectos/${id}`)).datos?.estado;
 
+// Fechas relativas a hoy, en la fecha local del producto (Buenos Aires, sin horario
+// de verano): la alerta de consumo cuenta una ventana de 30 dias hacia atras desde
+// hoy (D-13), asi que un registro con fecha fija deja de alertar con el tiempo.
+const hace = (dias) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' })
+  .format(new Date(Date.now() - dias * 86400000));
+const dmy = (iso) => iso.split('-').reverse().join('/');
+
 await page.goto(BASE, { waitUntil: 'networkidle' });
 await entrar();
 await page.evaluate(() => window.sgsoMockReset());
@@ -264,16 +271,18 @@ chequear('ver mas trae el resto y el boton desaparece',
 // ---- 11. El consumo anomalo de maquinaria llega a Alertas (D-03) ----
 // La API lo marcaba solo en el listado de la maquina. El feed tiene que traer
 // una alerta por maquina, con la misma regla: mas de 1,5 veces su promedio.
+// Las fechas son relativas a hoy porque solo alertan los ultimos 30 dias (D-13).
 const maquina = await api('POST', '/maquinaria', { nombre: 'Excavadora de contrato', tipo: 'Movimiento de suelos' });
 const idMaq = maquina.datos?.id_maquinaria;
-for (const [fecha, litros] of [['2026-03-01', 10], ['2026-03-02', 10], ['2026-03-03', 40]]) {
+for (const [fecha, litros] of [[hace(3), 10], [hace(2), 10], [hace(1), 40]]) {
   await api('POST', `/maquinaria/${idMaq}/registros`, { fecha, horas_uso: 1, combustible_consumido: litros, id_proyecto: 1 });
 }
 const obra1 = (await api('GET', '/proyectos/1')).datos?.nombre;
 let feed = (await api('GET', '/analisis')).datos.alertas;
 const alertaMaq = feed.find((a) => a.tipo === 'maquinaria' && a.maquina === 'Excavadora de contrato');
 chequear('el consumo anomalo aparece en el feed de alertas, con la obra y la fecha',
-  alertaMaq?.proyecto === obra1 && alertaMaq?.gravedad === 'media' && String(alertaMaq?.mensaje).includes('03/03/2026'),
+  alertaMaq?.proyecto === obra1 && alertaMaq?.gravedad === 'media' && String(alertaMaq?.mensaje).includes(dmy(hace(1))) &&
+    String(alertaMaq?.mensaje).includes('combustible por hora promedio de la máquina'),
   JSON.stringify(alertaMaq ?? null));
 
 // El feed y el listado de cada maquina dicen lo mismo.
@@ -734,6 +743,213 @@ const tableroGerente = await entrarYMirarTablero('gerente@sgso.test', 'gerente12
 chequear('el Gerente ve «Presupuesto Total» en el tablero', tableroGerente.entro && tableroGerente.presupuesto, JSON.stringify(tableroGerente));
 const tableroAuditor = await entrarYMirarTablero(rolNuevo.email, rolNuevo.contrasena);
 chequear('un rol nuevo entra y no ve «Presupuesto Total»', tableroAuditor.entro && !tableroAuditor.presupuesto, JSON.stringify(tableroAuditor));
+
+// ---- 21. Consumo esperado por hora de una maquina y ventana de la alerta (D-13, RF24) ----
+// Antes, una maquina que siempre consumia de mas no alertaba nunca (se
+// comparaba contra su propio promedio) y un registro anomalo alertaba para
+// siempre. Ahora: con dato esperado se compara contra el, y solo alertan los
+// registros de los ultimos 30 dias (borde inclusivo). La ventana no achica el
+// promedio. Mismas reglas que Sgso\Reglas\ConsumoMaquinaria.
+const MENSAJE_ESPERADO = 'Debe ser un número mayor a 0';
+const esperadoDe = async (id) => (await api('GET', '/maquinaria')).datos.find((m) => m.id_maquinaria === id)?.consumo_esperado_por_hora;
+const alertasDe = async (id) => (await api('GET', `/maquinaria/${id}/registros`)).datos.map((x) => x.alerta_consumo);
+const cargarUso = (id, fecha, litros, horas = 1) =>
+  api('POST', `/maquinaria/${id}/registros`, { fecha, horas_uso: horas, combustible_consumido: litros });
+const nuevaMaquina = async (nombre, esperado) =>
+  (await api('POST', '/maquinaria', { nombre, tipo: 'Excavacion', ...(esperado === undefined ? {} : { consumo_esperado_por_hora: esperado }) })).datos?.id_maquinaria;
+
+// Crear: sin el campo sigue dando 201 y sin dato; con el, se guarda como numero.
+r = await api('POST', '/maquinaria', { nombre: 'Sin esperado', tipo: 'Excavacion' });
+chequear('crear una maquina sin consumo esperado da 201 y queda en null',
+  r.estado === 201 && r.datos.consumo_esperado_por_hora === null && await esperadoDe(r.datos.id_maquinaria) === null, `dio ${r.estado}`);
+r = await api('POST', '/maquinaria', { nombre: 'Con esperado', tipo: 'Excavacion', consumo_esperado_por_hora: '7.5' });
+chequear('crear una maquina con consumo esperado lo guarda como numero',
+  r.estado === 201 && await esperadoDe(r.datos.id_maquinaria) === 7.5, `dio ${r.estado}`);
+for (const invalido of [0, -3, '0', 'abc', true, 1000000]) {
+  r = await api('POST', '/maquinaria', { nombre: 'Invalida', tipo: 'Excavacion', consumo_esperado_por_hora: invalido });
+  chequear(`crear con consumo esperado ${JSON.stringify(invalido)} da 422`,
+    r.estado === 422 && Boolean(r.datos?.errors?.consumo_esperado_por_hora), `dio ${r.estado}`);
+}
+r = await api('POST', '/maquinaria', { nombre: 'Invalida', tipo: 'Excavacion', consumo_esperado_por_hora: 0 });
+chequear('el mensaje del 422 es «Debe ser un número mayor a 0»', r.datos?.errors?.consumo_esperado_por_hora === MENSAJE_ESPERADO, JSON.stringify(r.datos));
+chequear('y no se guarda ninguna de las invalidas', (await api('GET', '/maquinaria')).datos.every((m) => m.nombre !== 'Invalida'));
+
+// PUT /maquinaria/{id}: cargar, cambiar y borrar; solo toca ese dato.
+const idRetro = await nuevaMaquina('Retro de contrato');
+r = await api('PUT', `/maquinaria/${idRetro}`, { consumo_esperado_por_hora: 8, nombre: 'Otro nombre', tipo: 'Otro' });
+chequear('PUT carga el consumo esperado', r.estado === 200 && r.datos.consumo_esperado_por_hora === 8 && await esperadoDe(idRetro) === 8, `dio ${r.estado}`);
+const retro = (await api('GET', '/maquinaria')).datos.find((m) => m.id_maquinaria === idRetro);
+chequear('y no cambia el nombre ni el tipo', retro.nombre === 'Retro de contrato' && retro.tipo === 'Excavacion', JSON.stringify(retro));
+r = await api('PUT', `/maquinaria/${idRetro}`, { consumo_esperado_por_hora: '9.25' });
+chequear('PUT lo cambia', r.estado === 200 && await esperadoDe(idRetro) === 9.25, `dio ${r.estado}`);
+for (const vacio of [null, '', '  ']) {
+  await api('PUT', `/maquinaria/${idRetro}`, { consumo_esperado_por_hora: 8 });
+  r = await api('PUT', `/maquinaria/${idRetro}`, { consumo_esperado_por_hora: vacio });
+  chequear(`PUT con ${JSON.stringify(vacio)} borra el dato`, r.estado === 200 && await esperadoDe(idRetro) === null, `dio ${r.estado}`);
+}
+await api('PUT', `/maquinaria/${idRetro}`, { consumo_esperado_por_hora: 8 });
+for (const invalido of [0, -1, 'abc']) {
+  r = await api('PUT', `/maquinaria/${idRetro}`, { consumo_esperado_por_hora: invalido });
+  chequear(`PUT con ${JSON.stringify(invalido)} da 422 con el mensaje`,
+    r.estado === 422 && r.datos?.errors?.consumo_esperado_por_hora === MENSAJE_ESPERADO, `dio ${r.estado} ${JSON.stringify(r.datos)}`);
+}
+r = await api('PUT', `/maquinaria/${idRetro}`, {});
+chequear('PUT sin el campo da 422 y no borra el dato', r.estado === 422 && await esperadoDe(idRetro) === 8, `dio ${r.estado}`);
+r = await api('PUT', '/maquinaria/99999', { consumo_esperado_por_hora: 8 });
+chequear('PUT de una maquina inexistente da 404', r.estado === 404 && r.datos?.error === 'Maquinaria no encontrada', `dio ${r.estado} ${JSON.stringify(r.datos)}`);
+chequear('PUT /maquinaria/falla/{id} sigue siendo el de las fallas',
+  (await api('PUT', '/maquinaria/falla/99999', { resuelto: true })).datos?.error === 'Falla no encontrada');
+r = await api('PUT', `/maquinaria/${idRetro}`, { consumo_esperado_por_hora: 5 }, 'mock.3');
+chequear('el Personal Tecnico no puede cargar el consumo esperado', r.estado === 403, `dio ${r.estado}`);
+r = await api('PUT', `/maquinaria/${idRetro}`, { consumo_esperado_por_hora: 5 }, 'mock.5');
+chequear('el Gerente tampoco', r.estado === 403, `dio ${r.estado}`);
+r = await api('PUT', `/maquinaria/${idRetro}`, { consumo_esperado_por_hora: 5 }, 'mock.4');
+chequear('el Personal Administrativo si', r.estado === 200, `dio ${r.estado}`);
+for (const [rol, token] of [['PersonalTecnico', 'mock.3'], ['Gerente', 'mock.5']]) {
+  const visto = (await api('GET', '/maquinaria', null, token)).datos.find((m) => m.id_maquinaria === idRetro);
+  chequear(`${rol} ve el consumo esperado (son litros, no importes)`, visto?.consumo_esperado_por_hora === 5, JSON.stringify(visto));
+}
+await api('PUT', `/maquinaria/${idRetro}`, { consumo_esperado_por_hora: null });
+
+// La maquina que siempre consume el doble de lo esperado: sin dato nunca alerta, con dato siempre.
+const idSinDato = await nuevaMaquina('Siempre el doble, sin dato');
+const idConDato = await nuevaMaquina('Siempre el doble, con dato', 8);
+for (const id of [idSinDato, idConDato]) {
+  for (const dias of [3, 2, 1]) await cargarUso(id, hace(dias), 16);
+}
+chequear('sin dato esperado, la que siempre consume el doble no alerta',
+  (await alertasDe(idSinDato)).every((a) => a === false));
+chequear('con dato esperado, la que siempre consume el doble alerta en todos sus registros',
+  (await alertasDe(idConDato)).length === 3 && (await alertasDe(idConDato)).every((a) => a === true));
+let feedD13 = (await api('GET', '/analisis')).datos.alertas.filter((a) => a.tipo === 'maquinaria');
+chequear('el feed la trae con el texto del esperado, sin «1,5» fijo en otro lado',
+  feedD13.find((a) => a.maquina === 'Siempre el doble, con dato')?.mensaje ===
+    `3 registros de uso consumieron más de 1,5 veces el combustible por hora esperado de la máquina (8 L/h); el último, del ${dmy(hace(1))}.`,
+  JSON.stringify(feedD13.find((a) => a.maquina === 'Siempre el doble, con dato')));
+chequear('y a la que no tiene dato no la trae', !feedD13.some((a) => a.maquina === 'Siempre el doble, sin dato'));
+
+// Borrar el dato devuelve la maquina a su promedio.
+await api('PUT', `/maquinaria/${idConDato}`, { consumo_esperado_por_hora: null });
+chequear('al borrar el dato, la maquina vuelve a compararse contra su promedio y deja de alertar',
+  (await alertasDe(idConDato)).every((a) => a === false));
+
+// Borde de 1,5 contra el esperado y de la ventana.
+const idBorde = await nuevaMaquina('Borde', 8);
+await cargarUso(idBorde, hace(1), 24, 2);
+await cargarUso(idBorde, hace(2), 24.1, 2);
+chequear('justo 1,5 veces lo esperado no alerta; apenas mas, si',
+  JSON.stringify(await alertasDe(idBorde)) === JSON.stringify([false, true]), JSON.stringify(await alertasDe(idBorde)));
+
+const idVentana = await nuevaMaquina('Ventana', 8);
+await cargarUso(idVentana, hace(31), 40);
+await cargarUso(idVentana, hace(30), 40);
+await cargarUso(idVentana, hace(0), 40);
+chequear('hace 31 dias no alerta; hace 30 y hoy, si',
+  JSON.stringify(await alertasDe(idVentana)) === JSON.stringify([true, true, false]), JSON.stringify(await alertasDe(idVentana)));
+feedD13 = (await api('GET', '/analisis')).datos.alertas.filter((a) => a.tipo === 'maquinaria');
+chequear('el feed cuenta los mismos dos y no el de hace 31 dias',
+  /^2 registros/.test(feedD13.find((a) => a.maquina === 'Ventana')?.mensaje ?? ''), JSON.stringify(feedD13.find((a) => a.maquina === 'Ventana')));
+
+// La ventana no achica el promedio: (2 + 2 + 2 + 30) / 4 = 9 y el umbral es 13,5; si
+// el promedio saliera solo de la ventana seria 30 y el registro reciente no alertaria.
+const idPromedio = await nuevaMaquina('Promedio completo');
+for (const dias of [60, 61, 62]) await cargarUso(idPromedio, hace(dias), 2);
+await cargarUso(idPromedio, hace(2), 30);
+chequear('el promedio sigue saliendo de todos los registros: el reciente alerta',
+  (await alertasDe(idPromedio))[0] === true, JSON.stringify(await alertasDe(idPromedio)));
+
+// El feed y el listado de cada maquina siguen diciendo lo mismo, con y sin dato.
+feedD13 = (await api('GET', '/analisis')).datos.alertas.filter((a) => a.tipo === 'maquinaria');
+discrepan = [];
+for (const m of (await api('GET', '/maquinaria')).datos) {
+  const marcados = (await alertasDe(m.id_maquinaria)).filter(Boolean).length;
+  const alerta = feedD13.find((a) => a.maquina === m.nombre);
+  const cuenta = !alerta ? 0 : /^Un registro/.test(alerta.mensaje) ? 1 : Number(alerta.mensaje.match(/^(\d+) registros/)?.[1]);
+  if (cuenta !== marcados) discrepan.push(`${m.nombre}: listado ${marcados}, feed ${cuenta}`);
+}
+chequear('con la ventana y el dato esperado, el feed y el listado de cada maquina coinciden', discrepan.length === 0, discrepan.join('; '));
+
+// En pantalla. Cada cuenta entra en su propio contexto, que parte de los datos base.
+const entrarComo = async (email, pass) => {
+  const ctx = await nav.newContext({ viewport: { width: 1400, height: 1000 } });
+  const p = await ctx.newPage();
+  await p.goto(BASE, { waitUntil: 'networkidle' });
+  await p.waitForTimeout(700);
+  await p.fill('input[type=email]', email);
+  await p.fill('input[type=password]', pass);
+  await p.click('button[type=submit]');
+  await p.waitForTimeout(2500);
+  await p.goto(BASE + '#/maquinaria', { waitUntil: 'networkidle' });
+  await p.waitForTimeout(1000);
+  return { ctx, p };
+};
+const tarjeta = (p, nombre) => p.locator('[data-slot=card]').filter({ hasText: nombre }).first();
+
+{
+  const { ctx, p } = await entrarComo('admin@sgso.test', 'admin123');
+  const retroTarjeta = tarjeta(p, 'Retroexcavadora CAT 320');
+  chequear('el administrador ve «sin dato esperado» en una maquina sin dato',
+    (await retroTarjeta.innerText()).includes('sin dato esperado'));
+  chequear('y el campo opcional «Consumo esperado (L/h)» al crear una maquina',
+    (await p.getByLabel('Consumo esperado (L/h)').count()) === 1);
+
+  await p.getByLabel('Nueva máquina').fill('Pala de pantalla');
+  await p.getByLabel('Tipo').fill('Carga');
+  await p.getByLabel('Consumo esperado (L/h)').fill('6.5');
+  await p.getByRole('button', { name: 'Agregar' }).click();
+  await p.waitForTimeout(800);
+  chequear('crear una maquina con consumo esperado lo muestra junto al real',
+    (await tarjeta(p, 'Pala de pantalla').innerText()).includes('esperado: 6,5 L/h'));
+
+  await p.locator('#esperado-editar-1').click();
+  await p.waitForTimeout(400);
+  chequear('«Consumo esperado» abre el dialogo con el campo enfocable y su etiqueta',
+    (await p.getByRole('dialog').getByLabel('Consumo esperado (L/h)').count()) === 1);
+  await p.getByRole('dialog').getByLabel('Consumo esperado (L/h)').fill('0');
+  await p.getByRole('dialog').getByRole('button', { name: 'Guardar' }).click();
+  await p.waitForTimeout(600);
+  chequear('un valor invalido muestra el error del servidor, asociado al campo',
+    (await p.getByRole('alert').filter({ hasText: MENSAJE_ESPERADO }).count()) === 1 &&
+      (await p.locator('#esperado-valor').getAttribute('aria-describedby')).includes('esperado-error') &&
+      (await p.locator('#esperado-valor').getAttribute('aria-invalid')) === 'true');
+  chequear('y deja el foco en el campo', await p.evaluate(() => document.activeElement?.id === 'esperado-valor'));
+  await p.locator('#esperado-valor').fill('8');
+  await p.getByRole('dialog').getByRole('button', { name: 'Guardar' }).click();
+  await p.waitForTimeout(800);
+  chequear('guardar un valor valido cierra el dialogo y la tarjeta muestra el esperado',
+    (await p.getByRole('dialog').count()) === 0 && (await retroTarjeta.innerText()).includes('esperado: 8 L/h'));
+  chequear('y el foco vuelve al boton que abrio el dialogo', await p.evaluate(() => document.activeElement?.id === 'esperado-editar-1'));
+
+  await p.locator('#esperado-editar-1').click();
+  await p.waitForTimeout(400);
+  await p.locator('#esperado-valor').fill('');
+  await p.getByRole('dialog').getByRole('button', { name: 'Guardar' }).click();
+  await p.waitForTimeout(800);
+  chequear('dejar el campo vacio quita el dato',
+    (await retroTarjeta.innerText()).includes('sin dato esperado'));
+  await ctx.close();
+}
+
+for (const cuenta of [
+  { rol: 'PersonalTecnico', email: 'tecnico@sgso.test', pass: 'tecnico123' },
+  { rol: 'Gerente', email: 'gerente@sgso.test', pass: 'gerente123' },
+]) {
+  const { ctx, p } = await entrarComo(cuenta.email, cuenta.pass);
+  // Se carga el dato con el administrador, en el mismo contexto, y se vuelve a mirar.
+  await p.evaluate(() => window.sgsoMockFetch('/maquinaria/1', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer mock.1' },
+    body: JSON.stringify({ consumo_esperado_por_hora: 8 }),
+  }));
+  await p.reload({ waitUntil: 'networkidle' });
+  await p.waitForTimeout(1000);
+  chequear(`${cuenta.rol}: ve el consumo esperado en la tarjeta`,
+    (await tarjeta(p, 'Retroexcavadora CAT 320').innerText()).includes('esperado: 8 L/h'));
+  chequear(`${cuenta.rol}: no puede editarlo`,
+    (await p.getByRole('button', { name: 'Consumo esperado' }).count()) === 0 &&
+      (await p.getByLabel('Consumo esperado (L/h)').count()) === 0);
+  await ctx.close();
+}
 
 await nav.close();
 console.log(`\n${ok.length}/${ok.length + mal.length} OK`);
