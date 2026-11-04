@@ -25,7 +25,7 @@ use Sgso\Seguridad\OpcionesTls;
  *   php back/sql/migracion-reporte-final.php
  *
  * Tambien sirven las variables de entorno, y tienen prioridad sobre back/.env:
- *   DB_HOST=... DB_PORT=... DB_NAME=... DB_USER=... DB_PASSWORD=... DB_SSL=true \
+ *   DB_HOST=... DB_PORT=... DB_NAME=... DB_USER=... DB_PASSWORD=... DB_SSL=true DB_SSL_CA=... \
  *     php back/sql/migracion-reporte-final.php
  */
 
@@ -64,7 +64,7 @@ try {
         Esos son los valores por defecto: no se encontraron las credenciales.
         Opciones:
           1. Copia back/.env.example a back/.env y completalo (recomendado).
-          2. O defini DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD y DB_SSL
+          2. O defini DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_SSL y DB_SSL_CA
              en la MISMA consola desde la que corres este script.
 
         TXT);

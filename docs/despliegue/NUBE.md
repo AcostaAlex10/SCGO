@@ -20,7 +20,7 @@ La app son **3 piezas** y cada una va a un servicio distinto:
 ## Paso 1 — Base de datos en la nube
 
 1. Crear una cuenta en un proveedor de **MySQL gratis** (ej. [Aiven](https://aiven.io) o [Clever Cloud](https://www.clever-cloud.com)).
-2. Crear una base MySQL. Anotar los datos de conexión: **host, puerto, usuario, contraseña, nombre de la base**.
+2. Crear una base MySQL. Si el proveedor no es Aiven, el certificado de la CA se saca de su panel (ver el Paso 1b). Anotar los datos de conexión: **host, puerto, usuario, contraseña, nombre de la base**.
 3. Cargar el esquema y el usuario admin **desde tu PC**, apuntando a la base remota:
    - En `back/.env`, poner los datos de la base remota, `DB_SSL=true` y `DB_SSL_CA` con la ruta completa a la copia local del certificado de la CA (ver el Paso 1b).
    - Ejecutar:
@@ -65,7 +65,7 @@ Si Aiven cambia la CA del servicio, hay que bajar el certificado de nuevo y actu
 
    **Orden: primero el archivo y la variable `DB_SSL_CA` en Render, y recién después mergear el cambio que verifica el certificado.** Si el código llega antes, la API falla en todos los pedidos que usan la base (también `/api/health`) hasta cargarlos.
 
-4. Deploy. Render da una URL tipo `https://sgso-backend.onrender.com`. Probar `https://.../api/health` → debe responder `{"status":"ok"}`.
+4. Deploy. Render da una URL tipo `https://sgso-backend.onrender.com`. Probar `https://.../api/health` → debe responder `{"status":"ok","db":"ok"}`. Si da 500, buscar la `referencia` en el log de Render: lo más probable es el Secret File o `DB_SSL_CA`. Para volver atrás, hacer *Rollback* en Render al despliegue anterior; no se apaga la verificación.
 
 ---
 

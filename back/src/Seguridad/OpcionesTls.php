@@ -22,15 +22,22 @@ use RuntimeException;
 final class OpcionesTls
 {
     /**
-     * @param string|null $ssl  valor de DB_SSL; solo 'true' activa TLS
+     * @param string|null $ssl  valor de DB_SSL: 'true' activa TLS; 'false', vacio o null lo apagan
      * @param string|null $ca   valor de DB_SSL_CA: ruta al certificado de la CA
      * @return array<int, mixed>  opciones de PDO a sumar a las demas; vacio sin TLS
-     * @throws RuntimeException si DB_SSL=true y no hay un DB_SSL_CA legible
+     * @throws RuntimeException si DB_SSL tiene otro valor, o si es true y no hay un DB_SSL_CA legible
      */
     public static function desde(?string $ssl, ?string $ca): array
     {
-        if ($ssl !== 'true') {
+        // Un valor mal escrito (TRUE, 1, yes, ' true') no puede dejar la conexion
+        // sin TLS en silencio: se rechaza. El valor no va en el mensaje.
+        if ($ssl === null || $ssl === '' || $ssl === 'false') {
             return [];
+        }
+        if ($ssl !== 'true') {
+            throw new RuntimeException(
+                "DB_SSL tiene un valor no valido: tiene que ser exactamente 'true' o 'false'."
+            );
         }
 
         $ruta = $ca === null ? '' : trim($ca);

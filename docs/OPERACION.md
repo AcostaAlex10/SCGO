@@ -91,7 +91,7 @@ credencial; igual no se sube al repositorio.
 3. En Render: variable `DB_SSL_CA=/etc/secrets/aiven-ca.pem`.
 4. Para correr scripts desde una PC (`migrar.php`, `seed.php`, las migraciones):
    `DB_SSL_CA` en `back/.env` apunta a la copia local de `ca.pem`, con la ruta
-   completa. Esa copia queda fuera del repositorio.
+   completa y sin comillas (el cargador de `.env` las conserva). Esa copia queda fuera del repositorio.
 
 Si Aiven cambia la CA del servicio (al recrearlo, o al rotarla), hay que bajar el
 certificado de nuevo y actualizar el Secret File, o la API deja de conectar.
@@ -289,13 +289,23 @@ Cosas que ya costaron tiempo. Conviene leerlas antes de repetirlas.
 ### Base de datos
 
 **Todos los pedidos que usan la base dan 500 después de activar la verificación
-TLS (A-19).** El log de Render dice `DB_SSL=true requiere DB_SSL_CA` o `DB_SSL_CA
-apunta a un archivo que no existe o no se puede leer`. Falta el Secret File, la
-variable `DB_SSL_CA`, o la ruta no coincide con el nombre del archivo. Se arregla
-cargándolos (ver §2) y redeplegando. Si el mensaje es de conexión y el certificado
-no valida, probablemente Aiven cambió la CA: bajarla de nuevo. Para no llegar
-acá, **primero se carga el archivo y la variable en Render, y recién después se
+TLS (A-19).** El log de Render dice `DB_SSL=true requiere DB_SSL_CA`, `DB_SSL_CA
+apunta a un archivo que no existe o no se puede leer` o `DB_SSL tiene un valor no
+valido`. Las causas: falta el Secret File, falta la variable `DB_SSL_CA`, la ruta
+no coincide con el nombre del archivo, el archivo no tiene permiso de lectura para
+el usuario de Apache, o `DB_SSL` está mal escrito (tiene que ser exactamente
+`true` o `false`). Con el plan gratuito de Render no suele haber Shell: el síntoma
+es el 500 con su `referencia`, y la causa se ve buscando esa referencia en *Logs*
+del servicio. Se arregla cargando o corrigiendo la variable o el archivo (ver §2)
+y redesplegando. Si el mensaje es de conexión y el certificado no valida,
+probablemente Aiven cambió la CA: bajarla de nuevo. Para no llegar acá,
+**primero se carga el archivo y la variable en Render, y recién después se
 mergea**. `/api/health` también cae, porque usa la base.
+
+**Después del despliegue, comprobar y, si falla, volver atrás.** `curl
+https://<la API>/api/health` tiene que dar `{"status":"ok","db":"ok"}`. Si da 500,
+buscar su `referencia` en el log de Render. Para volver atrás: *Rollback* en Render
+al despliegue anterior. **No se apaga la verificación** para salir del paso.
 
 **`migrar.php` no aplica cambios de tipo de columna.** Solo ejecuta `schema.sql`,
 cuyas tablas usan `CREATE TABLE IF NOT EXISTS`: sobre una base existente no hace

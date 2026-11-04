@@ -33,28 +33,60 @@ final class VerificacionTlsTest extends TestCase
         '/[\'"]verify_peer(_name)?[\'"]\s*=>\s*(false|0)\b/i',
         '/[\'"]allow_self_signed[\'"]\s*=>\s*(true|1)\b/i',
         '/CURLOPT_SSL_VERIFY(PEER|HOST)\s*,\s*(false|0)\b/i',
-        '/MYSQL_ATTR_SSL_VERIFY_SERVER_CERT\s*\]?\s*(=>|=)\s*(false|0)\b/i',
+        '/(MYSQL_ATTR|Mysql::ATTR)_SSL_VERIFY_SERVER_CERT\s*\]?\s*(=>|=)\s*(false|null|0|[\'"]0[\'"]|!\s*1)(?![\w.])/i',
     ];
 
-    public function testNingunArchivoDelBackendApagaLaVerificacionTls(): void
+    /**
+     * Los PHP de src (la API), sql (migraciones y seed) y public (el front controller).
+     *
+     * @return array<string, string>  ruta relativa a back/ => contenido
+     */
+    private static function codigoDelBackend(): array
     {
-        // src (la API), sql (migraciones y seed) y public (el front controller).
         $back = dirname(__DIR__, 2);
-        $culpables = [];
+        $archivos = [];
         foreach (['src', 'sql', 'public'] as $carpeta) {
             $raiz = $back . '/' . $carpeta;
             self::assertDirectoryExists($raiz);
             /** @var SplFileInfo $archivo */
             foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($raiz)) as $archivo) {
-                if ($archivo->getExtension() !== 'php') {
-                    continue;
+                if ($archivo->getExtension() === 'php') {
+                    $ruta = $carpeta . '/' . substr($archivo->getPathname(), strlen($raiz) + 1);
+                    $archivos[str_replace('\\', '/', $ruta)] = (string) file_get_contents($archivo->getPathname());
                 }
-                $codigo = (string) file_get_contents($archivo->getPathname());
-                foreach (self::PATRONES as $patron) {
-                    if (preg_match($patron, $codigo) === 1) {
-                        $culpables[] = $carpeta . '/' . substr($archivo->getPathname(), strlen($raiz) + 1);
-                        break;
-                    }
+            }
+        }
+        ksort($archivos);
+        return $archivos;
+    }
+
+    /** Cada conexion a la base arma sus opciones TLS con OpcionesTls, no a mano. */
+    public function testTodoArchivoQueAbreUnaConexionUsaOpcionesTls(): void
+    {
+        $abren = 0;
+        $sinOpciones = [];
+        foreach (self::codigoDelBackend() as $ruta => $codigo) {
+            if (preg_match('/new\s+\\\\?(PDO|Pdo\\\\Mysql)\b/i', $codigo) !== 1) {
+                continue;
+            }
+            $abren++;
+            if (!str_contains($codigo, 'OpcionesTls')) {
+                $sinOpciones[] = $ruta;
+            }
+        }
+
+        self::assertGreaterThan(0, $abren, 'La prueba no encontro ninguna conexion que revisar');
+        self::assertSame([], $sinOpciones, 'Estos archivos abren una conexion sin usar OpcionesTls');
+    }
+
+    public function testNingunArchivoDelBackendApagaLaVerificacionTls(): void
+    {
+        $culpables = [];
+        foreach (self::codigoDelBackend() as $ruta => $codigo) {
+            foreach (self::PATRONES as $patron) {
+                if (preg_match($patron, $codigo) === 1) {
+                    $culpables[] = $ruta;
+                    break;
                 }
             }
         }
@@ -74,6 +106,9 @@ final class VerificacionTlsTest extends TestCase
             'curl_setopt($c, CURLOPT_SSL_VERIFYHOST, 0);',
             '$o[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;',
             '$o = [PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => 0];',
+            '$o = [PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => null];',
+            '$o = [\Pdo\Mysql::ATTR_SSL_VERIFY_SERVER_CERT => "0"];',
+            '$o[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = !1;',
         ];
         foreach ($ejemplos as $ejemplo) {
             $reconocido = false;
