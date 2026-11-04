@@ -70,7 +70,7 @@ final class VerificacionTlsTest extends TestCase
                 continue;
             }
             $abren++;
-            if (!str_contains($codigo, 'OpcionesTls')) {
+            if (!str_contains($codigo, 'OpcionesTls::desde(')) {
                 $sinOpciones[] = $ruta;
             }
         }
