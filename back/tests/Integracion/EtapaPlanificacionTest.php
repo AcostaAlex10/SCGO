@@ -193,6 +193,27 @@ final class EtapaPlanificacionTest extends CasoConBase
         self::assertSame(['Primera', 'Segunda', 'Tercera'], array_column($respuesta['cuerpo'], 'nombre'));
     }
 
+    /** RF20: el presupuesto de la etapa es un importe, igual que el de la obra. */
+    public function testElPresupuestoDeLaEtapaSoloLlegaAQuienVeCostos(): void
+    {
+        $idPlan = $this->planDeUnaObra();
+        $this->crearEtapa($idPlan, 70, '2026-01-01', '2026-03-31', 55555.55);
+
+        foreach (['PersonalTecnico', 'Auditor', null] as $rol) {
+            $respuesta = $this->capturar(fn () => $this->etapas()->listar((string) $idPlan, $rol));
+
+            self::assertSame(200, $respuesta['codigo']);
+            self::assertArrayNotHasKey('presupuesto_base', $respuesta['cuerpo'][0]);
+            self::assertStringNotContainsString('55555', (string) json_encode($respuesta['cuerpo']));
+        }
+
+        foreach (['AdministradorSistema', 'PersonalAdministrativo', 'Gerente'] as $rol) {
+            $cuerpo = $this->capturar(fn () => $this->etapas()->listar((string) $idPlan, $rol))['cuerpo'];
+
+            self::assertNumero(55555.55, $cuerpo[0]['presupuesto_base'], $rol);
+        }
+    }
+
     public function testEliminarUnaEtapaLiberaSuPeso(): void
     {
         $idPlan = $this->planDeUnaObra();

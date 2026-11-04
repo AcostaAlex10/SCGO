@@ -260,8 +260,6 @@ tres cosas:
 
 **Lo siguiente del plan.** C-13 (#72) y D-11 (#68) ya están. Quedan:
 
-- **A-15:** RF20 por lista negra. Cada importe nuevo hay que acordarse de
-  quitarlo, como pasó con `certificado` en el #48.
 - **DEC-03 → D-01:** documentos como archivos. DEC-03 es una decisión del equipo.
 - **D-05** (registro de cambios): pide una tabla nueva, o sea una migración, así
   que se pregunta antes.
