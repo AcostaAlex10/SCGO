@@ -4,10 +4,10 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-11-03, al devolverle al producto el nombre **SGSO**
-  (Sistema de Gestión y Seguimiento Operativo de obras, DEC-01); el repositorio
-  de GitHub también se renombró a `SGSO`
-- **Base:** `main` @ `6cd4308`, CI en verde. **La base de Aiven volvió**:
+- **Actualizado:** 2026-11-04, al cerrar A-15. El 2026-11-03 el producto volvió
+  a llamarse **SGSO** (Sistema de Gestión y Seguimiento Operativo de obras,
+  DEC-01); el repositorio de GitHub también se renombró a `SGSO`
+- **Base:** `main` @ `44f1853`. **La base de Aiven volvió**:
   `/api/health` responde `{"status":"ok","db":"ok"}`. **Brevo ya funciona**: Alex
   probó la recuperación de contraseña el 2026-10-21 y el correo llegó (sección 3)
 - **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23).
@@ -84,8 +84,9 @@ día de dependencias.
 | #76 | D-23: la cantidad asignada de un material se ajusta sin bajar de lo consumido, y quitarlo pide confirmación |
 | #69 | Marco de proceso basado en CMMI (`docs/PROCESO.md`): criterios del CU y RF en cada PR, plantilla de PR, registro de riesgos (`OPERACION.md` §8) y cinco agentes por rol en `.claude/agents/`. Claude orquesta y delega |
 
-**No queda ningún P0 de seguridad abierto.** De seguridad quedan A-09, A-11, A-12
-y A-15, ninguno bloqueante.
+**No queda ningún P0 de seguridad abierto.** De seguridad quedan A-09, A-11 y
+A-12, ninguno bloqueante. A-15 se cerró con los PR #89 (API) y #90 (front y
+simulador).
 
 ---
 

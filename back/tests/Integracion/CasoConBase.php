@@ -19,7 +19,8 @@ use RuntimeException;
  * SEGURIDAD. Estas pruebas VACIAN las tablas antes de cada prueba, asi que:
  *
  * 1. No leen `back/.env` ni usan `Sgso\Database`. La conexion sale solo de las
- *    variables `SGSO_TEST_DB_*`, que no existen en ningun entorno real.
+ *    variables `SGSO_TEST_DB_*`, que no existen en ningun entorno real. La unica
+ *    que levanta la API de verdad, `RutaDeEtapasTest`, se saltea si ese archivo existe.
  * 2. Si no estan definidas, la prueba se saltea en vez de conectarse a algo.
  * 3. El nombre de la base tiene que contener "test", o abortan. Esa es la
  *    barrera que impide que una configuracion distraida apunte a Aiven.
@@ -67,10 +68,7 @@ abstract class CasoConBase extends TestCase
             );
         }
 
-        $host = (string) (getenv('SGSO_TEST_DB_HOST') ?: '127.0.0.1');
-        $puerto = (string) (getenv('SGSO_TEST_DB_PORT') ?: '3306');
-        $usuario = (string) (getenv('SGSO_TEST_DB_USER') ?: 'root');
-        $clave = (string) (getenv('SGSO_TEST_DB_PASSWORD') ?: '');
+        ['host' => $host, 'puerto' => $puerto, 'usuario' => $usuario, 'clave' => $clave] = self::datosDeConexion();
 
         self::$pdo = new PDO(
             "mysql:host={$host};port={$puerto};dbname={$nombre};charset=utf8mb4",
@@ -84,6 +82,22 @@ abstract class CasoConBase extends TestCase
         );
 
         return self::$pdo;
+    }
+
+    /**
+     * Donde esta la base de pruebas, para quien tenga que pasarsela a otro proceso.
+     *
+     * @return array{host: string, puerto: string, nombre: string, usuario: string, clave: string}
+     */
+    protected static function datosDeConexion(): array
+    {
+        return [
+            'host' => (string) (getenv('SGSO_TEST_DB_HOST') ?: '127.0.0.1'),
+            'puerto' => (string) (getenv('SGSO_TEST_DB_PORT') ?: '3306'),
+            'nombre' => (string) (getenv('SGSO_TEST_DB_NAME') ?: ''),
+            'usuario' => (string) (getenv('SGSO_TEST_DB_USER') ?: 'root'),
+            'clave' => (string) (getenv('SGSO_TEST_DB_PASSWORD') ?: ''),
+        ];
     }
 
     /** El esquema real, el mismo que se despliega. Una sola vez por proceso. */
