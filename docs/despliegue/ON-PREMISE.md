@@ -154,5 +154,7 @@ backend y el frontend) vuelven a levantar **sin que nadie tenga que tocar nada**
 - [ ] Login OK desde otra PC de la red con `admin@sgso.com` / `admin123`.
 
 > **Seguridad mínima para producción:** cambiar la contraseña del admin y del
-> usuario root de MariaDB, usar un `JWT_SECRET` largo y único, y restringir
-> `CORS_ORIGIN` al dominio/IP real del frontend.
+> usuario root de MariaDB, usar un `JWT_SECRET` largo y único, y cargar en
+> `CORS_ORIGIN` el dominio/IP real del frontend. Esa variable se suma a la lista
+> por defecto de `back/src/Cors.php`, no la reemplaza: la lista sigue permitiendo
+> la producción en la nube y las previews de Vercel.

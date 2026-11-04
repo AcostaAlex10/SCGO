@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/cors-previews-vercel` | `main` @ `1b4a55e` (2026-11-04) | CORS: el comodín de previews pasa a la forma real, `sgso-*-acostaalex10s-projects.vercel.app`, y su `*` cubre una sola etiqueta DNS. Limita la forma, no prueba quién controla el dominio (R-08) | #93 |
+| `claude/docs-cors` | `main` @ `b4621dc` (2026-11-04) | Corregir lo que `NUBE.md`, `ON-PREMISE.md` y `TRASPASO.md` dicen de CORS | #96 |
 
 ### Reglas
 
@@ -179,6 +179,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/rf20-front-lista-blanca` | A-15, el resto: `puedeVerCostos` y el simulador pasan a lista blanca, el contrato controla `/etapas`, y una prueba levanta `index.php` para ver que le pasa el rol al listado de etapas | PR #90 |
 | `claude/url-sgsos` | La URL de producción pasa a `sgsos.vercel.app`: la API la acepta por defecto y la documentación la nombra | PR #91 |
 | `claude/logo-pestana` | Logo de SGSO en la pestaña del navegador: el casco de la aplicación sobre el naranja de la marca | PR #92 |
+| `claude/cors-previews-vercel` | CORS: el comodín de previews pasa a la forma real, `sgso-*-acostaalex10s-projects.vercel.app`, y su `*` cubre una sola etiqueta DNS. Limita la forma, no prueba quién controla el dominio (R-08) | PR #93 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir

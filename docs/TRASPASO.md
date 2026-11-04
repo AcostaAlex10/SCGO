@@ -96,13 +96,13 @@ simulador).
 
 ### El comodín de CORS de las previews
 
-En revisión, rama `claude/cors-previews-vercel`: el comodín anterior aceptaba
+Hecho en el PR #93, activo en producción: el comodín anterior aceptaba
 `https://evil-acostaalex10.vercel.app` y rechazaba las previews reales. Ahora el
 patrón es `https://sgso-*-acostaalex10s-projects.vercel.app`, con el `*` limitado a
 una etiqueta DNS. Queda el riesgo R-08 de `OPERACION.md` §8: el patrón limita la
-forma del origen, pero no prueba quién lo controla. Antes de mergear, mirar en
-Render que `CORS_ORIGIN` no use `*` ni un comodín de varias etiquetas, que dejan
-de valer.
+forma del origen, pero no prueba quién lo controla. Falta mirar en Render que
+`CORS_ORIGIN` no use `*` ni un comodín de varias etiquetas, que dejaron de valer:
+su valor no se ve desde el repositorio.
 
 ### La base volvió y el correo anda
 

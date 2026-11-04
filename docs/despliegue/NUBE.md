@@ -85,10 +85,10 @@ La app son **3 piezas** y cada una va a un servicio distinto:
 - [ ] Login con el usuario creado por `seed.php` → entra al dashboard.
 - [ ] El frontend consume la API de Render sin errores de CORS.
 
-> **CORS:** `back/src/Cors.php` devuelve el `Origin` de la petición y solo usa
-> `CORS_ORIGIN` cuando la petición no trae `Origin`. Es decir, hoy la API responde
-> a cualquier origen. Para restringirla de verdad hay que validar el `Origin`
-> recibido contra `CORS_ORIGIN` antes de reflejarlo.
+> **CORS:** `back/src/Cors.php` solo responde a los orígenes permitidos: su lista
+> por defecto, más los que agregue `CORS_ORIGIN`, separados por coma. A un origen
+> que no está en la lista no le manda `Access-Control-Allow-Origin`. Una URL
+> nueva del frontend hay que sumarla a `CORS_ORIGIN`.
 
 > **Nota para la cátedra:** el backend es PHP sobre MariaDB, como exige la
 > asignatura. La base de Aiven puede ser MySQL o MariaDB: el esquema usa solo
