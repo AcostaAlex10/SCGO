@@ -49,9 +49,13 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
+# El Secret File de Render no lo puede leer el proceso web de Apache. Este script
+# corre como root: copia la CA, que es publica, a una ruta legible y apunta
+# DB_SSL_CA ahi. Si el archivo no esta, no toca nada y la API falla cerrado.
+#
 # Render (y otros) inyectan el puerto en la variable $PORT. Apache debe
 # escuchar en ese puerto. Lo ajustamos al arrancar.
-RUN printf '#!/bin/sh\nset -e\nP="${PORT:-80}"\nsed -ri "s/^Listen .*/Listen ${P}/" /etc/apache2/ports.conf\nsed -ri "s/<VirtualHost \\*:[0-9]+>/<VirtualHost *:${P}>/" /etc/apache2/sites-available/000-default.conf\nexec apache2-foreground\n' > /usr/local/bin/start.sh \
+RUN printf '#!/bin/sh\nset -e\nP="${PORT:-80}"\nsed -ri "s/^Listen .*/Listen ${P}/" /etc/apache2/ports.conf\nsed -ri "s/<VirtualHost \\*:[0-9]+>/<VirtualHost *:${P}>/" /etc/apache2/sites-available/000-default.conf\nif [ -n "${DB_SSL_CA:-}" ] && [ -r "$DB_SSL_CA" ]; then\n  install -m 0644 "$DB_SSL_CA" /usr/local/etc/sgso-db-ca.pem\n  export DB_SSL_CA=/usr/local/etc/sgso-db-ca.pem\nfi\nexec apache2-foreground\n' > /usr/local/bin/start.sh \
  && chmod +x /usr/local/bin/start.sh
 
 CMD ["/usr/local/bin/start.sh"]
