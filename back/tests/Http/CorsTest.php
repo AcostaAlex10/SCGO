@@ -12,7 +12,7 @@ use Sgso\Cors;
 #[CoversClass(Cors::class)]
 final class CorsTest extends TestCase
 {
-    private const PRODUCCION = 'https://ingenieria-en-software-proyecto.vercel.app';
+    private const PRODUCCION = 'https://sgsos.vercel.app';
 
     public function testUnOrigenPermitidoRecibeSuPropioOrigenYVary(): void
     {
@@ -20,6 +20,14 @@ final class CorsTest extends TestCase
 
         self::assertContains('Access-Control-Allow-Origin: ' . self::PRODUCCION, $encabezados);
         self::assertContains('Vary: Origin', $encabezados);
+    }
+
+    /** La URL anterior sigue conectada en Vercel: quien la tenga guardada puede entrar. */
+    public function testLaUrlAnteriorDeProduccionSigueSiendoUnOrigenPermitido(): void
+    {
+        $origen = 'https://ingenieria-en-software-proyecto.vercel.app';
+
+        self::assertContains("Access-Control-Allow-Origin: {$origen}", Cors::encabezados($origen));
     }
 
     public function testUnOrigenAjenoNoRecibePermiso(): void
