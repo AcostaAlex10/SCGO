@@ -905,6 +905,31 @@ for (const m of (await api('GET', '/maquinaria')).datos) {
 }
 chequear('con la ventana y el dato esperado, el feed y el listado de cada maquina coinciden', discrepan.length === 0, discrepan.join('; '));
 
+// Lo que no entra en la columna DECIMAL se rechaza con 422 (antes, 1e308 horas daba 500
+// en el listado y en el feed), y las horas se guardan con dos decimales como la base.
+const idColumna = await nuevaMaquina('Columnas', 8);
+for (const [campo, valor] of [['horas_uso', 1e308], ['horas_uso', '1e999'], ['horas_uso', 1000000], ['combustible_consumido', 100000000]]) {
+  r = await api('POST', `/maquinaria/${idColumna}/registros`, { fecha: hace(1), horas_uso: 1, combustible_consumido: 1, [campo]: valor });
+  chequear(`un registro con ${campo} ${JSON.stringify(valor)} da 422 y no se guarda`,
+    r.estado === 422 && Boolean(r.datos?.errors?.[campo]), `dio ${r.estado} ${JSON.stringify(r.datos)}`);
+}
+chequear('y el listado y el feed siguen respondiendo',
+  (await api('GET', `/maquinaria/${idColumna}/registros`)).estado === 200 && (await api('GET', '/analisis')).estado === 200);
+await cargarUso(idColumna, hace(1), 40, 0.004);
+chequear('0,004 h con 40 L se guardan como 0 h y no alertan, como en la API',
+  (await alertasDe(idColumna)).every((a) => a === false) &&
+    (await api('GET', `/maquinaria/${idColumna}/registros`)).datos[0].horas_uso === 0);
+
+// El L/h real de la tarjeta sale solo de los registros con horas: (0 h, 100 L), (10 h, 50 L)
+// y (1 h, 16 L) dan 66 / 11 = 6, no 166 / 11.
+const idTarjeta = await nuevaMaquina('Tarjeta');
+await cargarUso(idTarjeta, hace(3), 100, 0);
+await cargarUso(idTarjeta, hace(2), 50, 10);
+await cargarUso(idTarjeta, hace(1), 16, 1);
+const tarjetaApi = (await api('GET', '/maquinaria')).datos.find((m) => m.id_maquinaria === idTarjeta);
+chequear('el L/h real de la tarjeta excluye los registros sin horas',
+  tarjetaApi.combustible_por_hora === 6 && tarjetaApi.combustible === 166, JSON.stringify(tarjetaApi));
+
 // En pantalla. Cada cuenta entra en su propio contexto, que parte de los datos base.
 const entrarComo = async (email, pass) => {
   const ctx = await nav.newContext({ viewport: { width: 1400, height: 1000 } });

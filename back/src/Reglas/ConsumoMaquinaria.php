@@ -63,15 +63,6 @@ final class ConsumoMaquinaria
     }
 
     /**
-     * Contra qué se compara un registro: el consumo esperado si la máquina lo
-     * tiene (mayor a 0), y si no, el promedio.
-     */
-    public static function referencia(?float $esperado, float $promedio): float
-    {
-        return $esperado !== null && $esperado > 0 ? $esperado : $promedio;
-    }
-
-    /**
      * La referencia como fracción exacta, `[litros, horas]` en centésimos: el
      * esperado si la máquina lo tiene (x litros en 1 hora) y si no, el promedio
      * (suma de litros sobre suma de horas de todos sus registros con horas).
@@ -83,16 +74,6 @@ final class ConsumoMaquinaria
         return $esperado !== null && $esperado > 0
             ? [self::centesimos($esperado), 100]
             : [$sumaLitros, $sumaHoras];
-    }
-
-    /**
-     * Sin referencia (0) no hay contra qué comparar. Con números que ya son
-     * flotantes no hay forma de evitar su error; el listado y el feed usan
-     * `marcaAlertaExacta`.
-     */
-    public static function esAnomalo(float $porHora, float $referencia): bool
-    {
-        return $referencia > 0 && $porHora > $referencia * self::FACTOR;
     }
 
     /** `$hoy` a medianoche en la zona local, a partir de un instante cualquiera (en UTC o donde sea). */
@@ -125,41 +106,25 @@ final class ConsumoMaquinaria
     }
 
     /**
-     * La decisión completa para un registro, contra una referencia en litros
-     * por hora con hasta dos decimales (el consumo esperado). Para el promedio,
-     * que no siempre los tiene, ver `marcaAlertaExacta`.
-     */
-    public static function marcaAlerta(string $fecha, float $horas, float $combustible, float $referencia, string $desde): bool
-    {
-        if ($referencia > 0 && abs($referencia * 100 - round($referencia * 100)) > 1e-6) {
-            // Referencia con mas de dos decimales: no hay fraccion exacta que armar.
-            return $horas > 0
-                && self::enVentana($fecha, $desde)
-                && self::esAnomalo(self::porHora($combustible, $horas), $referencia);
-        }
-
-        return self::marcaAlertaExacta($fecha, $horas, $combustible, [self::centesimos($referencia), 100], $desde);
-    }
-
-    /**
      * La decisión completa para un registro, sin coma flotante: con horas,
      * dentro de la ventana y por encima de la referencia (`[litros, horas]` en
-     * centésimos, de `fraccionDeReferencia`). Es la única que usan el listado y
-     * el feed.
+     * centésimos, de `fraccionDeReferencia`). Es la única entrada: la usan el
+     * listado y el feed. Sin horas (en centésimos: 0,004 h se guarda como 0,00)
+     * o sin referencia no hay contra qué comparar.
      *
      * @param array{0: int, 1: int} $referencia
      */
-    public static function marcaAlertaExacta(string $fecha, float $horas, float $combustible, array $referencia, string $desde): bool
+    public static function marcaAlerta(string $fecha, float $horas, float $combustible, array $referencia, string $desde): bool
     {
         [$num, $den] = $referencia;
-        if ($horas <= 0 || $num <= 0 || $den <= 0 || !self::enVentana($fecha, $desde)) {
+        $horasC = self::centesimos($horas);
+        if ($horasC <= 0 || $num <= 0 || $den <= 0 || !self::enVentana($fecha, $desde)) {
             return false;
         }
 
-        // litros / horas > FACTOR * num / den  con FACTOR = 3/2 y num/den en
-        // litros por hora (los centesimos de litros y de horas se compensan salvo
-        // el 100 de las horas del esperado, que ya viene dentro de `den`).
-        return 2 * self::centesimos($combustible) * $den > 3 * $num * self::centesimos($horas);
+        // litros / horas > FACTOR * num / den, con FACTOR = 3/2. Litros y horas
+        // estan en centesimos y se compensan; num / den ya es litros por hora.
+        return 2 * self::centesimos($combustible) * $den > 3 * $num * $horasC;
     }
 
     /** Un número como lo lee el usuario: coma decimal y sin ceros de más (`1,5`, `8`). */

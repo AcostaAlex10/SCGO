@@ -25,7 +25,8 @@ use Sgso\Env;
  *
  * Orden: primero este script y despues desplegar la API. El codigo nuevo lee la
  * columna, asi que sin ella fallan GET /analisis (para todos los roles: Tablero y
- * Alertas), GET /maquinaria, GET /maquinaria/{id}/registros y POST /maquinaria.
+ * Alertas), GET /maquinaria, GET /maquinaria/{id}/registros, POST /maquinaria y
+ * PUT /maquinaria/{id}.
  *
  * Uso, con las credenciales en back/.env (copiado de back/.env.example):
  *   php back/sql/migracion-consumo-esperado.php

@@ -496,6 +496,25 @@ final class MaquinariaTest extends CasoConBase
         self::assertTrue($alertas[$reciente]);
     }
 
+    /**
+     * El L/h real de la tarjeta sale solo de los registros con horas, como la
+     * referencia de la alerta: (0 h, 100 L), (10 h, 50 L) y (1 h, 16 L) dan
+     * 66 / 11 = 6 L/h, y el combustible total sigue siendo 166.
+     */
+    public function testElConsumoPorHoraDeLaTarjetaExcluyeLosRegistrosSinHoras(): void
+    {
+        $id = $this->crearMaquina();
+        $this->registrar($id, horas: 0, combustible: 100);
+        $this->registrar($id, horas: 10, combustible: 50);
+        $this->registrar($id, horas: 1, combustible: 16);
+
+        $maquina = $this->maquina($this->capturar(fn () => $this->maquinaria()->listar())['cuerpo'], $id);
+
+        self::assertNumero(6.0, $maquina['combustible_por_hora']);
+        self::assertNumero(166.0, $maquina['combustible']);
+        self::assertNumero(11.0, $maquina['horas']);
+    }
+
     // ----------------------------------------------------------------
     //  Ayudas
     // ----------------------------------------------------------------

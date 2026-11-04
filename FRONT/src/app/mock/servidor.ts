@@ -193,6 +193,13 @@ const redondearComoPhp = (n: number): number => Math.round(Number((n * 100).toPr
 /** Litros u horas de dos decimales en centesimos enteros (BigInt: el producto de abajo no entra en un double exacto). */
 const centesimos = (v: unknown): bigint => BigInt(Math.round(num(v) * 100));
 
+/** Tope de cada columna DECIMAL de registro_maquinaria: horas (8,2), combustible (10,2) y produccion (12,2). */
+const MAXIMO_DE_COLUMNA: Record<string, number> = {
+  horas_uso: 999999.99,
+  combustible_consumido: 99999999.99,
+  produccion_realizada: 9999999999.99,
+};
+
 /** Ultimo dia de la ventana: hoy. */
 const hastaVentana = hoyLocal;
 
@@ -207,9 +214,8 @@ function consumoEsperadoDe(m: Fila): number | null {
   return v > 0 ? v : null;
 }
 
-/** Como MaquinariaController::validarEsperado(): ausente, null o vacio es "sin dato". */
 /**
- * La decision de Sgso\Reglas\ConsumoMaquinaria::marcaAlertaExacta(), sin coma
+ * La decision de Sgso\Reglas\ConsumoMaquinaria::marcaAlerta(), sin coma
  * flotante: con horas, dentro de la ventana (de hace 30 dias a hoy, inclusive) y
  * `2 * litros * den > 3 * num * horas`, donde `num / den` es la referencia en
  * litros por hora como fraccion de centesimos.
@@ -217,11 +223,13 @@ function consumoEsperadoDe(m: Fila): number | null {
 function marcaAlerta(r: Fila, referencia: [bigint, bigint], desde: string): boolean {
   const [numRef, denRef] = referencia;
   const fecha = String(r.fecha);
-  if (num(r.horas_uso) <= 0 || numRef <= 0n || denRef <= 0n) return false;
+  const horas = centesimos(r.horas_uso);
+  if (horas <= 0n || numRef <= 0n || denRef <= 0n) return false;
   if (fecha < desde || fecha > hastaVentana()) return false;
-  return 2n * centesimos(r.combustible_consumido) * denRef > 3n * numRef * centesimos(r.horas_uso);
+  return 2n * centesimos(r.combustible_consumido) * denRef > 3n * numRef * horas;
 }
 
+/** Como MaquinariaController::validarEsperado(): ausente, null o vacio es "sin dato". */
 function validarEsperado(v: unknown): { valor: number | null; error: string | null } {
   if (v === undefined || v === null || (typeof v === "string" && v.trim() === "")) {
     return { valor: null, error: null };
@@ -529,6 +537,10 @@ function maquinariaConTotales() {
     );
     const horas = regs.reduce((s, r) => s + num(r.horas_uso), 0);
     const combustible = regs.reduce((s, r) => s + num(r.combustible_consumido), 0);
+    // El L/h real sale solo de los registros con horas, como la referencia de la alerta.
+    const combustibleConHoras = regs
+      .filter((r) => num(r.horas_uso) > 0)
+      .reduce((s, r) => s + num(r.combustible_consumido), 0);
     const produccion = regs.reduce((s, r) => s + num(r.produccion_realizada), 0);
     return {
       id_maquinaria: Number(m.id_maquinaria),
@@ -539,7 +551,7 @@ function maquinariaConTotales() {
       horas: redondear(horas),
       combustible: redondear(combustible),
       produccion: redondear(produccion),
-      combustible_por_hora: horas > 0 ? redondear(combustible / horas) : 0,
+      combustible_por_hora: horas > 0 ? redondear(combustibleConHoras / horas) : 0,
       produccion_por_hora: horas > 0 ? redondear(produccion / horas) : 0,
       fallas_abiertas: db.fallas_maquinaria.filter(
         (f) => Number(f.id_maquinaria) === Number(m.id_maquinaria) && f.resuelto !== true
@@ -1132,6 +1144,14 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
             errores[campo] = "Debe ser un número mayor o igual a 0";
           }
         }
+        // Lo que no entra en la columna DECIMAL: la API lo deja pasar y la base lo
+        // rechaza con un 500; el simulador contesta 422 con el motivo.
+        for (const [campo, maximo] of Object.entries(MAXIMO_DE_COLUMNA)) {
+          const v = cuerpo[campo];
+          if (!errores[campo] && v !== undefined && v !== null && v !== "" && redondearComoPhp(Number(v)) > maximo) {
+            errores[campo] = `Debe ser un número menor o igual a ${formatearNumero(maximo)}`;
+          }
+        }
         if (cuerpo.id_proyecto && !db.proyectos.some((p) => String(p.id) === String(cuerpo.id_proyecto))) {
           errores.id_proyecto = "Obra inexistente";
         }
@@ -1142,9 +1162,10 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
           id_proyecto: cuerpo.id_proyecto ? num(cuerpo.id_proyecto) : null,
           fecha: texto(cuerpo.fecha) || hoy(),
           operario: texto(cuerpo.operario) || null,
-          horas_uso: num(cuerpo.horas_uso),
-          combustible_consumido: num(cuerpo.combustible_consumido),
-          produccion_realizada: num(cuerpo.produccion_realizada),
+          // Dos decimales, como DECIMAL(.,2): 0,004 h se guarda como 0.
+          horas_uso: redondearComoPhp(num(cuerpo.horas_uso)),
+          combustible_consumido: redondearComoPhp(num(cuerpo.combustible_consumido)),
+          produccion_realizada: redondearComoPhp(num(cuerpo.produccion_realizada)),
         };
         db.registros_maquinaria.push(nuevo);
         guardar();

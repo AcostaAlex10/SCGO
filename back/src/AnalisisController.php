@@ -184,7 +184,7 @@ final class AnalisisController
             $referencia = ConsumoMaquinaria::fraccionDeReferencia($esperado, $sumaLitros, $sumaHoras);
             $anomalos = array_values(array_filter(
                 $registros,
-                fn (array $r): bool => ConsumoMaquinaria::marcaAlertaExacta(
+                fn (array $r): bool => ConsumoMaquinaria::marcaAlerta(
                     (string) $r['fecha'],
                     (float) $r['horas_uso'],
                     (float) $r['combustible_consumido'],

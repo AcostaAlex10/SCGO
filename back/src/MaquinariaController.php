@@ -33,6 +33,7 @@ final class MaquinariaController
             'SELECT m.id_maquinaria, m.nombre, m.tipo, m.activa, m.consumo_esperado_por_hora,
                     COALESCE(SUM(r.horas_uso),0) AS horas,
                     COALESCE(SUM(r.combustible_consumido),0) AS combustible,
+                    COALESCE(SUM(CASE WHEN r.horas_uso > 0 THEN r.combustible_consumido ELSE 0 END),0) AS combustible_con_horas,
                     COALESCE(SUM(r.produccion_realizada),0) AS produccion
              FROM maquinaria m
              LEFT JOIN registro_maquinaria r ON r.id_maquinaria = m.id_maquinaria
@@ -44,6 +45,9 @@ final class MaquinariaController
         $out = array_map(function (array $m) use ($fallas): array {
             $horas = (float) $m['horas'];
             $comb = (float) $m['combustible'];
+            // El L/h real sale solo de los registros con horas, como la referencia
+            // de la alerta: el combustible cargado sin horas no tiene por hora.
+            $combConHoras = (float) $m['combustible_con_horas'];
             $prod = (float) $m['produccion'];
             return [
                 'id_maquinaria' => (int) $m['id_maquinaria'],
@@ -54,7 +58,7 @@ final class MaquinariaController
                 'horas' => $horas,
                 'combustible' => $comb,
                 'produccion' => $prod,
-                'combustible_por_hora' => $horas > 0 ? round($comb / $horas, 2) : 0,
+                'combustible_por_hora' => $horas > 0 ? round($combConHoras / $horas, 2) : 0,
                 'produccion_por_hora' => $horas > 0 ? round($prod / $horas, 2) : 0,
                 'fallas_abiertas' => $fallas[(int) $m['id_maquinaria']] ?? 0,
             ];
@@ -164,7 +168,7 @@ final class MaquinariaController
                 'produccion_realizada' => (float) $r['produccion_realizada'],
                 'combustible_por_hora' => round($cph, 2),
                 'consumo_esperado_por_hora' => $esperado,
-                'alerta_consumo' => ConsumoMaquinaria::marcaAlertaExacta(
+                'alerta_consumo' => ConsumoMaquinaria::marcaAlerta(
                     (string) $r['fecha'],
                     $horas,
                     (float) $r['combustible_consumido'],

@@ -27,20 +27,20 @@ final class ConsumoMaquinariaTest extends TestCase
 
     public function testEsAnomaloAlSuperarUnaVezYMediaElPromedio(): void
     {
-        self::assertTrue(ConsumoMaquinaria::esAnomalo(15.01, 10));
+        self::assertTrue(self::alerta(15.01, 1, self::promedio(10)));
     }
 
     /** El umbral es estricto: justo una vez y media todavía es normal. */
     public function testJustoUnaVezYMediaNoEsAnomalo(): void
     {
-        self::assertFalse(ConsumoMaquinaria::esAnomalo(15, 10));
-        self::assertFalse(ConsumoMaquinaria::esAnomalo(12, 10));
+        self::assertFalse(self::alerta(15, 1, self::promedio(10)));
+        self::assertFalse(self::alerta(12, 1, self::promedio(10)));
     }
 
     /** Sin promedio no hay contra qué comparar: ningún registro alerta. */
     public function testSinPromedioNadaEsAnomalo(): void
     {
-        self::assertFalse(ConsumoMaquinaria::esAnomalo(40, 0));
+        self::assertFalse(self::alerta(40, 1, self::promedio(0)));
     }
 
     // ----------------------------------------------------------------
@@ -49,40 +49,40 @@ final class ConsumoMaquinariaTest extends TestCase
 
     public function testConDatoEsperadoLaReferenciaEsElEsperado(): void
     {
-        self::assertSame(8.0, ConsumoMaquinaria::referencia(8.0, 20.0));
+        self::assertSame([800, 100], ConsumoMaquinaria::fraccionDeReferencia(8.0, 2000, 100));
     }
 
     public function testSinDatoEsperadoLaReferenciaEsElPromedio(): void
     {
-        self::assertSame(20.0, ConsumoMaquinaria::referencia(null, 20.0));
+        self::assertSame([2000, 100], ConsumoMaquinaria::fraccionDeReferencia(null, 2000, 100));
     }
 
     /** Un 0 guardado no es un dato: no puede dejar a la máquina sin alertas. */
     public function testUnEsperadoEnCeroNoCuentaComoDato(): void
     {
-        self::assertSame(20.0, ConsumoMaquinaria::referencia(0.0, 20.0));
+        self::assertSame([2000, 100], ConsumoMaquinaria::fraccionDeReferencia(0.0, 2000, 100));
     }
 
     /** Lo que no se aparta de su propio promedio sí se aparta de lo esperado. */
     public function testUnaMaquinaQueSiempreConsumeDoblePasaElUmbralDelEsperado(): void
     {
         // Esperado 8 L/h, consume 16 siempre: el promedio también es 16 y nunca alertaría.
-        self::assertFalse(ConsumoMaquinaria::esAnomalo(16, ConsumoMaquinaria::referencia(null, 16)));
-        self::assertTrue(ConsumoMaquinaria::esAnomalo(16, ConsumoMaquinaria::referencia(8, 16)));
+        self::assertFalse(self::alerta(16, 1, ConsumoMaquinaria::fraccionDeReferencia(null, 1600, 100)));
+        self::assertTrue(self::alerta(16, 1, ConsumoMaquinaria::fraccionDeReferencia(8.0, 1600, 100)));
     }
 
     /** El umbral contra el esperado también es estricto. */
     public function testContraElEsperadoJustoUnaVezYMediaNoEsAnomalo(): void
     {
-        self::assertFalse(ConsumoMaquinaria::esAnomalo(12, ConsumoMaquinaria::referencia(8, 3)));
-        self::assertTrue(ConsumoMaquinaria::esAnomalo(12.01, ConsumoMaquinaria::referencia(8, 3)));
+        self::assertFalse(self::alerta(12, 1, ConsumoMaquinaria::fraccionDeReferencia(8.0, 300, 100)));
+        self::assertTrue(self::alerta(12.01, 1, ConsumoMaquinaria::fraccionDeReferencia(8.0, 300, 100)));
     }
 
     /** Referencia 0: ni división por cero ni alerta. */
     public function testConReferenciaCeroNadaEsAnomalo(): void
     {
-        self::assertFalse(ConsumoMaquinaria::esAnomalo(0, 0));
-        self::assertFalse(ConsumoMaquinaria::esAnomalo(40, ConsumoMaquinaria::referencia(null, 0)));
+        self::assertFalse(self::alerta(0, 1, [0, 100]));
+        self::assertFalse(self::alerta(40, 1, ConsumoMaquinaria::fraccionDeReferencia(null, 0, 0)));
     }
 
     public function testLaVentanaEmpiezaTreintaDiasAntesDeHoy(): void
@@ -112,19 +112,19 @@ final class ConsumoMaquinariaTest extends TestCase
     {
         $desde = '2026-10-05';
 
-        self::assertTrue(ConsumoMaquinaria::marcaAlerta('2026-10-05', 1, 40, 10, $desde));
-        self::assertFalse(ConsumoMaquinaria::marcaAlerta('2026-10-04', 1, 40, 10, $desde));
+        self::assertTrue(ConsumoMaquinaria::marcaAlerta('2026-10-05', 1, 40, self::promedio(10), $desde));
+        self::assertFalse(ConsumoMaquinaria::marcaAlerta('2026-10-04', 1, 40, self::promedio(10), $desde));
     }
 
     public function testUnRegistroSinHorasNuncaMarcaAlerta(): void
     {
-        self::assertFalse(ConsumoMaquinaria::marcaAlerta('2026-11-01', 0, 50, 10, '2026-10-05'));
+        self::assertFalse(ConsumoMaquinaria::marcaAlerta('2026-11-01', 0, 50, self::promedio(10), '2026-10-05'));
     }
 
     public function testElBordeExactoDeUnaVezYMediaNoMarcaAlertaDentroDeLaVentana(): void
     {
-        self::assertFalse(ConsumoMaquinaria::marcaAlerta('2026-11-01', 2, 30, 10, '2026-10-05'), '15 L/h contra 10');
-        self::assertTrue(ConsumoMaquinaria::marcaAlerta('2026-11-01', 2, 30.02, 10, '2026-10-05'));
+        self::assertFalse(ConsumoMaquinaria::marcaAlerta('2026-11-01', 2, 30, self::promedio(10), '2026-10-05'), '15 L/h contra 10');
+        self::assertTrue(ConsumoMaquinaria::marcaAlerta('2026-11-01', 2, 30.02, self::promedio(10), '2026-10-05'));
     }
 
     /**
@@ -135,8 +135,8 @@ final class ConsumoMaquinariaTest extends TestCase
     {
         $desde = '2026-10-05';
 
-        self::assertFalse(ConsumoMaquinaria::marcaAlerta('2099-01-01', 1, 40, 8, $desde), 'fecha futura');
-        self::assertTrue(ConsumoMaquinaria::marcaAlerta('2026-11-04', 1, 40, 8, $desde), 'un registro de hoy sigue alertando');
+        self::assertFalse(ConsumoMaquinaria::marcaAlerta('2099-01-01', 1, 40, self::promedio(8), $desde), 'fecha futura');
+        self::assertTrue(ConsumoMaquinaria::marcaAlerta('2026-11-04', 1, 40, self::promedio(8), $desde), 'un registro de hoy sigue alertando');
     }
 
     /**
@@ -163,13 +163,13 @@ final class ConsumoMaquinariaTest extends TestCase
     #[\PHPUnit\Framework\Attributes\DataProvider('bordesConDosDecimales')]
     public function testJustoElUmbralConDosDecimalesNoMarcaAlerta(float $esperado, float $horas, float $litros): void
     {
-        self::assertFalse(ConsumoMaquinaria::marcaAlerta('2026-11-01', $horas, $litros, $esperado, '2026-10-05'));
+        self::assertFalse(ConsumoMaquinaria::marcaAlerta('2026-11-01', $horas, $litros, ConsumoMaquinaria::fraccionDeReferencia($esperado, 0, 0), '2026-10-05'));
     }
 
     /** Y un centavo de litro por encima del umbral (7,66 contra 7,65) si alerta. */
     public function testApenasPorEncimaDelUmbralConDosDecimalesMarcaAlerta(): void
     {
-        self::assertTrue(ConsumoMaquinaria::marcaAlerta('2026-11-01', 2, 15.32, 5.10, '2026-10-05'), '7,66 contra 7,65');
+        self::assertTrue(ConsumoMaquinaria::marcaAlerta('2026-11-01', 2, 15.32, ConsumoMaquinaria::fraccionDeReferencia(5.10, 0, 0), '2026-10-05'), '7,66 contra 7,65');
     }
 
     public function testLosNumerosSeEscribenConComaYSinCerosDeMas(): void
@@ -217,8 +217,8 @@ final class ConsumoMaquinariaTest extends TestCase
     {
         $promedio = ConsumoMaquinaria::fraccionDeReferencia(null, 4060, 300);
 
-        self::assertFalse(ConsumoMaquinaria::marcaAlertaExacta('2026-11-01', 1, 20.3, $promedio, '2026-10-05'), 'justo 1,5 veces');
-        self::assertTrue(ConsumoMaquinaria::marcaAlertaExacta('2026-11-01', 1, 20.31, $promedio, '2026-10-05'));
+        self::assertFalse(ConsumoMaquinaria::marcaAlerta('2026-11-01', 1, 20.3, $promedio, '2026-10-05'), 'justo 1,5 veces');
+        self::assertTrue(ConsumoMaquinaria::marcaAlerta('2026-11-01', 1, 20.31, $promedio, '2026-10-05'));
     }
 
     public function testElEsperadoGanaAlPromedioEnLaFraccion(): void
@@ -229,6 +229,25 @@ final class ConsumoMaquinariaTest extends TestCase
 
     public function testConReferenciaCeroNoHayFraccionQueAlerte(): void
     {
-        self::assertFalse(ConsumoMaquinaria::marcaAlertaExacta('2026-11-01', 1, 40, [0, 0], '2026-10-05'));
+        self::assertFalse(ConsumoMaquinaria::marcaAlerta('2026-11-01', 1, 40, [0, 0], '2026-10-05'));
+    }
+
+    /** 0,004 h se guarda como 0,00: no son horas de uso, así que no hay consumo por hora. */
+    public function testUnRegistroConMenosDeUnaCentesimaDeHoraNoMarcaAlerta(): void
+    {
+        self::assertFalse(self::alerta(40, 0.004, ConsumoMaquinaria::fraccionDeReferencia(8.0, 0, 0)));
+        self::assertTrue(self::alerta(40, 0.01, ConsumoMaquinaria::fraccionDeReferencia(8.0, 0, 0)));
+    }
+
+    /** Un promedio de `$p` litros por hora, como fracción de centésimos. */
+    private static function promedio(float $p): array
+    {
+        return [ConsumoMaquinaria::centesimos($p), 100];
+    }
+
+    /** @param array{0: int, 1: int} $referencia */
+    private static function alerta(float $litros, float $horas, array $referencia): bool
+    {
+        return ConsumoMaquinaria::marcaAlerta('2026-11-01', $horas, $litros, $referencia, '2026-10-05');
     }
 }
