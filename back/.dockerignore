@@ -17,3 +17,7 @@ phpunit.xml
 phpstan.neon
 .phpunit.cache/
 .phpunit.result.cache
+
+# Certificados: el de la CA de la base llega como Secret File de Render, que lo copia
+# a la raiz del contexto de build. No tiene que quedar en la imagen (A-19).
+*.pem
