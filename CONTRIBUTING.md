@@ -1,4 +1,4 @@
-# Cómo se trabaja en SCGO
+# Cómo se trabaja en SGSO
 
 Reglas del equipo para que `main` esté siempre en condiciones de desplegarse.
 
@@ -12,7 +12,7 @@ Reglas del equipo para que `main` esté siempre en condiciones de desplegarse.
 | Rama | Qué es | Se despliega | Quién la toca |
 |---|---|---|---|
 | `main` | La rama de trabajo. Todo el código vive acá. | **Sí**: API en Render, frontend en Vercel | Todo el equipo, **solo por pull request** |
-| `testing` | **La rama de la demo para testers.** Su código es el anterior al cambio de nombre (por eso dice SGSO) y se publica en GitHub Pages con su propio `pages-testing.yml`. Tiene su propia guía, `GUIA-TESTERS.md`. | GitHub Pages | Solo para la demo y su guía, **por PR contra `testing`**. Nunca se mergea con `main`, en ninguna dirección |
+| `testing` | **La rama de la demo para testers.** Su código es anterior al de `main` y se publica en GitHub Pages con su propio `pages-testing.yml`. Tiene su propia guía, `GUIA-TESTERS.md`. | GitHub Pages | Solo para la demo y su guía, **por PR contra `testing`**. Nunca se mergea con `main`, en ninguna dirección |
 
 > **La demo de Pages sale solo de `testing`** (decisión del equipo, 2026-09-23).
 > Disparar el workflow de Pages a mano sobre `main` publica la versión de `main`
@@ -21,7 +21,7 @@ Reglas del equipo para que `main` esté siempre en condiciones de desplegarse.
 
 El repositorio se llamaba `ingenieria-en-software-proyecto` hasta el 2026-09-16.
 GitHub redirige las URLs viejas, **salvo la de la demo**, que ahora es
-https://acostaalex10.github.io/SCGO/.
+https://acostaalex10.github.io/SGSO/.
 
 ### Ramas de trabajo abiertas
 
@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/propuestos-informe-ids2` | `main` @ `36fb1c9` (2026-11-02) | Requerimientos propuestos que salen del informe de Ingeniería de Software II: RF31 ampliado, perfil Compras, historial de cambios, resúmenes PDF o CSV, carga inicial y dimensionamiento de RNF08 | #81 |
+| `claude/rf20-front-lista-blanca` | `main` @ `41c74f8` (2026-11-04) | A-15, el resto: `puedeVerCostos` y el simulador pasan a lista blanca, el contrato controla `/etapas`, y una prueba levanta `index.php` para ver que le pasa el rol al listado de etapas | #90 |
 
 ### Reglas
 
@@ -117,8 +117,8 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/adr-001-fase-2a-3` | `Sgso\Reglas` (ciclo de vida y permisos) y PHPStan nivel 5 | Entró por el PR #6 |
 | `claude/adr-001-fase-4` | Tabla de rutas declarativa (`Sgso\Ruteo`) | PR #6 |
 | `claude/adr-001-fase-2b-5` | Pruebas de integración, CI y plan de producto | PR #7 |
-| `claude/limpieza-docs` | Requerimientos recuperados, documentación ordenada y producto renombrado a SCGO | PR #8 |
-| `claude/renombre-scgo` | Referencias actualizadas al nuevo nombre del repositorio | PR #9 |
+| `claude/limpieza-docs` | Requerimientos recuperados, documentación ordenada y producto renombrado | PR #8 |
+| `claude/renombre-sgso` | Referencias actualizadas al nuevo nombre del repositorio | PR #9 |
 | `claude/seguridad-ola-1` | XSS por enlaces, secreto JWT obligatorio, errores sin detalles internos y `.dockerignore` | PR #10 |
 | `claude/seguridad-a03` | Límite de intentos de login por cuenta y dos filtraciones del login | PR #11 |
 | `claude/seguridad-ola-2` | Contraseñas de 10 caracteres, headers de seguridad y límite de `/auth/olvide` | PR #12 |
@@ -126,8 +126,8 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/ingenieria-software-nube-2ws8jg` | Triaje de los seis PR de Dependabot, `docs/TRASPASO.md` y el borrado de dos primitivos de shadcn sin uso. El nombre se reutilizó: es otra rama que la del PR #4 | PR #20 |
 | `claude/health-con-base` | B-05: `/api/health` ejecuta `SELECT 1` y reporta la base | PR #21 |
 | `claude/traspaso-cierre-sesion` | `docs/TRASPASO.md` al cierre de la sesión del 2026-09-19, revisado después del renombre | PR #22 |
-| `claude/testing-demo-scgo` | **Contra `testing`.** La guía de testers dice que la demo sale de `testing`, y `HANDOFF.md` deja de apuntar a la URL vieja | PR #31, en `testing` |
-| `claude/demo-desde-testing` | La demo de Pages vuelve a salir de `testing`: documentación alineada, la interfaz dice SCGO y `contrato.mjs` lee `SGSO_URL` | PR #32 |
+| `claude/testing-demo-sgso` | **Contra `testing`.** La guía de testers dice que la demo sale de `testing`, y `HANDOFF.md` deja de apuntar a la URL vieja | PR #31, en `testing` |
+| `claude/demo-desde-testing` | La demo de Pages vuelve a salir de `testing`: documentación alineada, la interfaz con el nombre del producto y `contrato.mjs` lee `SGSO_URL` | PR #32 |
 | `claude/preparar-dependabot` | Triaje de los PR de Dependabot #26 a #30: fuera `motion` y `react-responsive-masonry`, y el código listo para TypeScript 7 y recharts 3 | PR #33 |
 | `claude/monitoreo-errores` | B-04: el log dice qué pedido falló y los errores van a Sentry, sin SDK | PR #24 |
 | `claude/staging-decision` | B-02 queda bloqueado por DEC-04, y el CI verifica el `connect-src` de la CSP | PR #25 |
@@ -166,6 +166,16 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/practicas-cmmi` | Marco de proceso basado en CMMI: criterios de aceptación del caso de uso, trazabilidad al RF, registro de riesgos, plantilla de PR con el cierre, `docs/PROCESO.md` y cinco agentes por rol en `.claude/agents/` | PR #69 |
 | `claude/requerimientos-excluidos` | Lo que quedó afuera del sistema, revisado con Alex: importar ofertas (RF34 propuesto), pagos, facturación y ARCA fuera, reglas de alerta a validar, RNF como metas y guía para las entrevistas pendientes | PR #77 |
 | `claude/encabezado-plan` | El encabezado de `PLAN-PRODUCTO.md` al día: fecha, base y cantidad de pruebas | PR #79 |
+| `claude/propuestos-informe-ids2` | Requerimientos propuestos que salen del informe de Ingeniería de Software II: RF31 ampliado, perfil Compras, historial de cambios, resúmenes PDF o CSV, carga inicial y dimensionamiento de RNF08 | PR #81 |
+| `claude/prioridad-gastos-reales` | El desvío de plata entre lo presupuestado y lo gastado de verdad pasa al frente: RF29 a Crítica y D-17 primero en el orden de DEC-08 | PR #82 |
+| `claude/repuestos-proveedores` | Lo que pidió el responsable de obra: catálogo de proveedores (RF39), pedir un repuesto desde una falla (RF40) y el orden del plan rearmado | PR #83 |
+| `claude/pwa-envio-diferido` | Para el trabajo en obra: instalar SGSO en el celular como aplicación (RF41) y guardar sin señal para enviar al volver la conexión (RF42) | PR #84 |
+| `claude/nombre-sgso` | El producto vuelve a llamarse SGSO, Sistema de Gestión y Seguimiento Operativo de obras (DEC-01): interfaz, correo, documentación y el nombre del repositorio | PR #85 |
+| `claude/a15-costos-lista-blanca` | A-15: RF20 pasa a una lista blanca en `Permisos`, para que un rol nuevo no vea costos por defecto, y el listado de etapas deja de mandarle `presupuesto_base` al Personal Técnico | PR #89 |
+| `claude/phpstan-2.3` | Dejar listo el #51 de Dependabot: PHPStan 2.3.1 recuerda el resultado de `estadoDeLaObra()` entre llamadas y marca como siempre verdadera una aserción de `CicloDeVidaObraTest` | PR #78 |
+| `claude/todo-dice-sgso` | Sacar el nombre anterior del producto de todo lo que quedaba: documentación, historial de ramas y prueba de humo | PR #86 |
+| `claude/testing-url-sgso` | **Contra `testing`.** La guía de testers y `HANDOFF.md` apuntan a la URL nueva de la demo y del repositorio | PR #87, en `testing` |
+| `claude/limpieza-archivos` | Sacar lo que ya no sirve: un acceso directo de Windows y el plan de ADR-001 que nadie enlaza; ignorar `.claude/worktrees/` | PR #88 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir

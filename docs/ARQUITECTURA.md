@@ -1,4 +1,4 @@
-# Arquitectura de SCGO
+# Arquitectura de SGSO
 
 Cómo está construido el sistema. Qué tiene que hacer está en
 [REQUERIMIENTOS.md](REQUERIMIENTOS.md); por qué el backend es PHP, en

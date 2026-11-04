@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use PDO;
 use Sgso\Reglas\Certificacion;
 use Sgso\Reglas\ConsumoMaquinaria;
+use Sgso\Reglas\Permisos;
 
 /**
  * Analisis y alertas (RF11/RF13). No tiene tablas propias: calcula
@@ -33,7 +34,7 @@ final class AnalisisController
     /** GET /api/analisis */
     public function resumen(?string $rol = null): void
     {
-        $ocultarCostos = $rol === 'PersonalTecnico';
+        $ocultarCostos = !Permisos::puede($rol, Permisos::VER_COSTOS);
 
         // Proyectos con su planificacion (incluye id_planificacion para calcular etapas).
         $stmt = $this->db->query(

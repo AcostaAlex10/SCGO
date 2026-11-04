@@ -24,7 +24,7 @@ RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 #
 # session.upload_progress es la mitigación que recomienda el mismo aviso para
 # la segunda falla. La API usa JWT y no abre sesiones, así que no lo necesita.
-RUN printf 'expose_php = Off\nsession.upload_progress.enabled = Off\n' > "$PHP_INI_DIR/conf.d/zz-scgo.ini" \
+RUN printf 'expose_php = Off\nsession.upload_progress.enabled = Off\n' > "$PHP_INI_DIR/conf.d/zz-sgso.ini" \
  && sed -ri 's/^ServerTokens .*/ServerTokens Prod/; s/^ServerSignature .*/ServerSignature Off/' \
       /etc/apache2/conf-available/security.conf
 

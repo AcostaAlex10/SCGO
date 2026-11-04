@@ -7,6 +7,7 @@ namespace Sgso;
 use DateTime;
 use PDO;
 use Sgso\Reglas\Fecha;
+use Sgso\Reglas\Permisos;
 
 /**
  * CRUD de etapas de planificacion (1-a-muchos con planificacion).
@@ -30,7 +31,7 @@ final class EtapaPlanificacionController
     }
 
     /** GET /api/planificacion/{planId}/etapas */
-    public function listar(string $planId): void
+    public function listar(string $planId, ?string $rol = null): void
     {
         $stmt = $this->db->prepare('SELECT id_planificacion FROM planificacion WHERE id_planificacion = ?');
         $stmt->execute([$planId]);
@@ -43,7 +44,25 @@ final class EtapaPlanificacionController
             'SELECT * FROM etapa_planificacion WHERE id_planificacion = ? ORDER BY orden ASC, id_etapa ASC'
         );
         $stmt->execute([$planId]);
-        $this->json(200, array_map([$this, 'normalizar'], $stmt->fetchAll()));
+        $etapas = array_map([$this, 'normalizar'], $stmt->fetchAll());
+
+        // RF20: los costos y presupuestos solo van a quien puede verlos.
+        if (!Permisos::puede($rol, Permisos::VER_COSTOS)) {
+            $etapas = array_map([self::class, 'sinCostos'], $etapas);
+        }
+
+        $this->json(200, $etapas);
+    }
+
+    /**
+     * Quita el importe de una etapa (RF20).
+     * @param array<string, mixed> $etapa
+     * @return array<string, mixed>
+     */
+    private static function sinCostos(array $etapa): array
+    {
+        unset($etapa['presupuesto_base']);
+        return $etapa;
     }
 
     /** POST /api/planificacion/{planId}/etapas */

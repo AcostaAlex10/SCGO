@@ -4,10 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**SCGO — Sistema de Control y Gestión de Obras de construcción.** A product built
+**SGSO — Sistema de Gestión y Seguimiento Operativo de obras.** A product built
 for **Triwe**, a construction company, and meant to be sold: quality and security
-come first. It started as a university project, which is why the PHP namespace
-(`Sgso\`) and some URLs keep the old name, SGSO.
+come first. It started as a university project. The name is settled by DEC-01, and the
+GitHub repository is `SGSO`.
 
 The repository contains the full system: React SPA, PHP REST API and relational
 schema. Start here:
@@ -44,8 +44,8 @@ schema. Start here:
 ### Branches
 
 `main` is the only working branch and the one that deploys (Render + Vercel).
-`testing` is the testers' demo branch: its code predates the product rename (it
-still says SGSO) and GitHub Pages publishes only from it. Change it only for the
+`testing` is the testers' demo branch: its code is older than `main` and GitHub
+Pages publishes only from it. Change it only for the
 demo or its own `GUIA-TESTERS.md`, via PR against `testing`; never merge it with
 `main` in either direction. Branch off an up-to-date `main`, keep branches short-lived, and
 **add a row to `CONTRIBUTING.md` when you create one**, not later. Avoid stacking a

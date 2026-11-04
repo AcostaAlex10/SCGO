@@ -27,9 +27,9 @@ export function puedeRegistrarAvance(rol: string = rolActual()): boolean {
   return rol === "AdministradorSistema" || rol === "PersonalTecnico";
 }
 
-/** Ver costos/presupuestos. RF20: el Personal Técnico NO los ve. */
+/** Ver costos/presupuestos (RF20). Lista blanca, como `Permisos::VER_COSTOS`: un rol nuevo no los ve. */
 export function puedeVerCostos(rol: string = rolActual()): boolean {
-  return rol !== "PersonalTecnico";
+  return rol === "AdministradorSistema" || rol === "PersonalAdministrativo" || rol === "Gerente";
 }
 
 /** Gestionar usuarios y asignar roles (solo el AdministradorSistema). */
