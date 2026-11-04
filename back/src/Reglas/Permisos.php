@@ -45,6 +45,13 @@ final class Permisos
     public const ADMIN = [self::ADMINISTRADOR_SISTEMA];
 
     /**
+     * Ver costos, presupuestos e importes (RF20). Es lista blanca: un rol nuevo
+     * no ve plata hasta que se lo agregue aca. No esta en grupos() porque
+     * no protege una ruta: decide que campos lleva la respuesta.
+     */
+    public const VER_COSTOS = [self::ADMINISTRADOR_SISTEMA, self::PERSONAL_ADMINISTRATIVO, self::GERENTE];
+
+    /**
      * Los cinco grupos por nombre. Sirve para recorrerlos en las pruebas en
      * vez de repetirlos a mano, y lo va a usar la tabla de rutas de la Fase 4.
      *

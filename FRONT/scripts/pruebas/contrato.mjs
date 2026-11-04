@@ -14,7 +14,7 @@ import { chromium } from 'playwright';
 // SGSO_URL, como las otras cuatro suites. BASE queda por compatibilidad: era la
 // unica que la leia, y correrla contra otra URL con SGSO_URL iba en silencio a
 // localhost.
-const BASE = process.env.SGSO_URL || process.env.BASE || 'http://127.0.0.1:8123/SCGO/';
+const BASE = process.env.SGSO_URL || process.env.BASE || 'http://127.0.0.1:8123/SGSO/';
 const ok = [], mal = [];
 const chequear = (q, c, d = '') => { (c ? ok : mal).push(q); console.log(`${c ? '  OK  ' : ' FALLA'} ${q}${d ? ' — ' + d : ''}`); };
 
@@ -684,6 +684,56 @@ for (const cuenta of [
   }
   await ctx.close();
 }
+
+// ---- 20. Los importes solo llegan a quien esta en la lista blanca (RF20, A-15) ----
+// La API decide con Permisos::VER_COSTOS y el simulador tiene que hacer lo mismo.
+// La planificacion 4 es la de la obra 1.
+const etapasComo = (token) => api('GET', '/planificacion/4/etapas', null, token);
+for (const [rol, token] of [['AdministradorSistema', 'mock.1'], ['PersonalAdministrativo', 'mock.4'], ['Gerente', 'mock.5']]) {
+  r = await etapasComo(token);
+  chequear(`${rol}: las etapas traen presupuesto_base`,
+    r.estado === 200 && r.datos.length > 0 && r.datos.every((e) => typeof e.presupuesto_base === 'number'), `dio ${r.estado} ${JSON.stringify(r.datos?.[0])}`);
+}
+r = await etapasComo('mock.3');
+chequear('al Personal Tecnico le llegan las etapas sin presupuesto_base',
+  r.estado === 200 && r.datos.length > 0 && r.datos.every((e) => !('presupuesto_base' in e)), `dio ${r.estado} ${JSON.stringify(r.datos?.[0])}`);
+
+// Un rol que no esta en la lista no ve plata. La API no deja crearlo; el simulador
+// si, y es la forma de probar que la lista es blanca y no negra.
+const rolNuevo = { nombre: 'Rol nuevo', email: `auditor-${Date.now()}@sgso.test`, contrasena: 'obras-triwe-2026', rol: 'Auditor' };
+const auditor = await api('POST', '/auth/register', rolNuevo);
+const tokenAuditor = `mock.${auditor.datos?.id_usuario}`;
+chequear('se crea una cuenta con un rol que no esta en la lista', auditor.estado === 201, `dio ${auditor.estado}`);
+r = await etapasComo(tokenAuditor);
+chequear('un rol nuevo recibe las etapas sin presupuesto_base',
+  r.estado === 200 && r.datos.length > 0 && r.datos.every((e) => !('presupuesto_base' in e)), `dio ${r.estado} ${JSON.stringify(r.datos?.[0])}`);
+r = await api('GET', '/proyectos/1', null, tokenAuditor);
+chequear('un rol nuevo recibe la obra sin importes',
+  r.estado === 200 && !('presupuesto' in r.datos) && !('certificado' in r.datos), JSON.stringify(Object.keys(r.datos ?? {})));
+r = await api('GET', '/analisis', null, tokenAuditor);
+chequear('un rol nuevo recibe el analisis sin importes',
+  r.estado === 200 && r.datos.proyectos.every((p) => !('presupuesto' in p) && !('ejecutado' in p) && !('presupuesto_base_total' in p)), JSON.stringify(Object.keys(r.datos?.proyectos?.[0] ?? {})));
+
+// En pantalla, puedeVerCostos usa la misma lista. Se entra en esta misma pagina
+// porque la cuenta nueva vive en su localStorage.
+const entrarYMirarTablero = async (email, pass) => {
+  await page.evaluate(() => { localStorage.removeItem('sgso_token'); localStorage.removeItem('sgso_usuario'); });
+  await page.goto(BASE + '#/', { waitUntil: 'networkidle' });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForTimeout(700);
+  await page.fill('input[type=email]', email);
+  await page.fill('input[type=password]', pass);
+  await page.click('button[type=submit]');
+  await page.waitForTimeout(2500);
+  return {
+    entro: (await page.locator('input[type=password]').count()) === 0,
+    presupuesto: (await page.getByText('Presupuesto Total', { exact: true }).count()) > 0,
+  };
+};
+const tableroGerente = await entrarYMirarTablero('gerente@sgso.test', 'gerente123');
+chequear('el Gerente ve «Presupuesto Total» en el tablero', tableroGerente.entro && tableroGerente.presupuesto, JSON.stringify(tableroGerente));
+const tableroAuditor = await entrarYMirarTablero(rolNuevo.email, rolNuevo.contrasena);
+chequear('un rol nuevo entra y no ve «Presupuesto Total»', tableroAuditor.entro && !tableroAuditor.presupuesto, JSON.stringify(tableroAuditor));
 
 await nav.close();
 console.log(`\n${ok.length}/${ok.length + mal.length} OK`);

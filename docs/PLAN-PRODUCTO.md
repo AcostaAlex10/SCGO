@@ -1,13 +1,14 @@
-# Plan de producto de SCGO
+# Plan de producto de SGSO
 
-Todo lo que falta para que SCGO se pueda entregar y cobrar a Triwe, ordenado por
+Todo lo que falta para que SGSO se pueda entregar y cobrar a Triwe, ordenado por
 prioridad.
 
-- **Actualizado:** 2026-09-26
-- **Base:** `main` @ `057d078`
+- **Actualizado:** 2026-10-24
+- **Base:** `main` @ `5f22010`
 - **Punto de partida:** [ADR-001](adr/ADR-001-stack.md) está completo. El backend ya
-  tiene la base que le faltaba: Composer, 466 pruebas, PHPStan nivel 5, tabla de
-  rutas y CI con cuatro jobs en verde (tres obligatorios; el de Docker es B-10).
+  tiene la base que le faltaba: Composer, 860 pruebas (las del CI de `5f22010`,
+  con las de integración), PHPStan nivel 5, tabla de rutas y CI con cuatro jobs en
+  verde, los cuatro obligatorios desde B-10.
 - **Alcance:** lo que el sistema tiene que hacer está en
   [REQUERIMIENTOS.md](REQUERIMIENTOS.md). Este plan dice qué falta para llegar ahí
   con calidad de producto.
@@ -33,14 +34,14 @@ decisión de ustedes, no de código.
 
 | # | Decisión | Estado | Qué destraba |
 |---|---|---|---|
-| **DEC-01** | Nombre del producto | **Resuelta:** SCGO, Sistema de Control y Gestión de Obras de construcción. El namespace `Sgso\` del código queda como nombre interno: renombrarlo no aporta nada al cliente. | E-05 |
+| **DEC-01** | Nombre del producto | **Resuelta:** SGSO, Sistema de Gestión y Seguimiento Operativo de obras, como el informe de Ingeniería de Software II. Tuvo otro nombre entre 2026-09 y 2026-11; Alex lo devolvió a SGSO el 2026-11-03, junto con el repositorio de GitHub. El namespace `Sgso\` del código queda como nombre interno: renombrarlo no aporta nada al cliente. | E-05 |
 | **DEC-02** | Modelo comercial | **Parcial:** el cliente es Triwe. Falta decidir si después se vende a otras constructoras. Recomendación: entregar a Triwe primero y decidir el multicliente **antes** de que aparezca un segundo cliente, porque migrar el modelo de datos después sale más caro. | E-01 a E-03 |
 | **DEC-03** | RF07 y RF16: documentos como archivo o como enlace | Abierta. Recomendación: **archivos**, en almacenamiento compatible con S3. Triwe va a querer subir el PDF del plano, no pegar un enlace; y además resuelve de raíz el XSS de A-01. | D-01 |
 | **DEC-04** | Hosting pago | **Postergada** (2026-09-26): se decide cuando se cierre la posible venta del sistema, que todavía no es seguro. Mientras tanto se sigue en los planes gratuitos, con sus riesgos a la vista: Render se duerme y tiene tope de horas, y Aiven gratis no tiene SLA ni permite restaurar un respaldo en una base nueva (sin *forking*). Recomendación, para cuando toque: Render sin reposo y una base con respaldos automáticos. Es lo único que hace cumplir RNF03 y RNF07, **y lo único que permite tener staging** (B-02): con el plan gratuito, un segundo servicio encendido agota las 750 horas del workspace y Render suspende también producción. | B-01, B-02 |
 | **DEC-05** | Cómo se factura | Abierta. Condición fiscal y factura electrónica ante ARCA: consultarlo con un contador antes del primer cobro. | E-03, E-04 |
 | **DEC-06** | La rama `TP1-plan-de-testing` | **Resuelta:** borrada. Estaba vacía y el trabajo no correspondía a este repositorio. | — |
-| **DEC-07** | ¿El repositorio es público o privado? | **Resuelta:** sigue **público**, renombrado a `SCGO`. En GitHub Free la protección de `main` solo funciona en repositorios públicos, y se prefirió conservarla. La consecuencia es que el código es visible: **ningún dato de Triwe ni ninguna credencial puede entrar al repositorio**, lo que vuelve más importantes A-02 y A-08. Los datos de producción que se publicaron antes siguen en el historial; son de cuentas del equipo. | E-04 |
-| **DEC-08** | ¿Triwe quiere los RF propuestos RF29 a RF34? | Abierta (2026-10-21). Salen de contrastar los requerimientos con los documentos del relevamiento: gastos reales por obra, pedidos de material, cotizaciones de proveedores, horas aprobadas y pendientes ([REQUERIMIENTOS.md](REQUERIMIENTOS.md) §5); el 2026-10-22 se sumó RF34, importar ofertas desde un archivo. Las preguntas para decidirlo están en [relevamiento/ENTREVISTAS.md](relevamiento/ENTREVISTAS.md). Recomendación: antes de decidir, hacer la entrevista a administración que quedó pendiente en el plan de entrevistas, porque RF29 a RF32 son sus circuitos, y acordar con la dirección técnica las reglas de costos que el estudio de viabilidad pedía validar. | D-17 a D-21, D-24 |
+| **DEC-07** | ¿El repositorio es público o privado? | **Resuelta:** sigue **público**. Se renombró el 2026-09-16 y otra vez, a `SGSO`, el 2026-11-03. En GitHub Free la protección de `main` solo funciona en repositorios públicos, y se prefirió conservarla. La consecuencia es que el código es visible: **ningún dato de Triwe ni ninguna credencial puede entrar al repositorio**, lo que vuelve más importantes A-02 y A-08. Los datos de producción que se publicaron antes siguen en el historial; son de cuentas del equipo. | E-04 |
+| **DEC-08** | ¿Triwe quiere los RF propuestos RF29 a RF40? | Abierta (2026-10-21). Salen de contrastar los requerimientos con los documentos del relevamiento: gastos reales por obra, pedidos de material, cotizaciones de proveedores, horas aprobadas y pendientes ([REQUERIMIENTOS.md](REQUERIMIENTOS.md) §5); el 2026-10-22 se sumó RF34, importar ofertas desde un archivo. El 2026-11-02 se sumaron RF35 a RF38, que salen del informe de Ingeniería de Software II: perfil Compras, historial de cambios, resúmenes PDF o CSV y carga inicial. Las preguntas para decidirlo están en [relevamiento/ENTREVISTAS.md](relevamiento/ENTREVISTAS.md). Recomendación: antes de decidir, hacer la entrevista a administración que quedó pendiente en el plan de entrevistas, porque RF29 a RF32 son sus circuitos, y acordar con la dirección técnica las reglas de costos que el estudio de viabilidad pedía validar. | D-17 a D-21, D-24 a D-27; RF36 a RF38 se apoyan en D-05, D-06 y E-02 |
 
 ---
 
@@ -61,7 +62,7 @@ decisión de ustedes, no de código.
 | **A-12** | P2 | **Límite de intentos por IP.** Detrás del proxy de Render todas las conexiones llegan con la misma IP de origen: limitar por ella bloquearía a todos los usuarios a la vez. Primero hay que confirmar qué cabecera agrega Render con la IP real, y que el cliente no la pueda falsificar. | `AuthController::login` | S | Claude |
 | **A-13** | P1 | **Hecho en el PR #12.** **`/auth/olvide` sin límite.** Como mucho un correo cada 5 minutos por cuenta. El límite es la condición del mismo UPDATE que guarda el token: preguntar primero y escribir después dejaba pasar juntos a veinte pedidos simultáneos, que es justo el ataque. Pasado el límite responde lo mismo de siempre, sin mandar el correo: un 429 delataría qué emails tienen cuenta. | `AuthController::olvide` | S | Claude |
 | **A-14** | **P0** | **Hecho en el PR #40.** **Una baja o un cambio de rol no revocaban el acceso.** Encontrado en C-01 (PR #39). Cada pedido autenticado solo verificaba la firma y el vencimiento del JWT, que dura 8 horas, y `exigirRol` usaba el rol grabado en el token al hacer login. Durante esas 8 horas, una cuenta dada de baja seguía usando la API, restablecer la contraseña no cortaba un token robado, y un administrador degradado conservaba el rol y **podía volver a asignárselo**: reproducido por HTTP contra `main`, con HTTP 200. La sesión única solo la hacía cumplir el front, con `/auth/me`. Ahora `AuthMiddleware` confirma en cada pedido que la cuenta siga activa y que el `sid` del token sea la sesión vigente, y usa el rol de la base. El simulador ya se comportaba así. | `index.php`, `AuthMiddleware` | S | Claude |
-| **A-15** | P2 | **RF20 se decide por lista negra.** `AnalisisController` y `ProyectoController` ocultan los costos solo si el rol es exactamente `PersonalTecnico`: cualquier otro los ve, así que un rol nuevo vería costos por defecto. Es la única regla de roles que no vive en `Sgso\Reglas\Permisos`. Pasarla ahí como lista blanca de quién sí ve costos. Ningún rol actual está afectado. | `AnalisisController`, `ProyectoController` | S | Claude |
+| **A-15** | P2 | **Hecho en el PR #89.** **RF20 se decidía por lista negra.** `AnalisisController` y `ProyectoController` ocultaban los costos solo si el rol era exactamente `PersonalTecnico`, así que un rol nuevo los veía por defecto. Ahora la regla vive en `Permisos::VER_COSTOS`, una lista blanca de quién sí los ve. La revisión encontró además que `GET /planificacion/{id}/etapas` le mandaba `presupuesto_base` al Personal Técnico, y la pantalla solo lo tapaba: también queda filtrado. En el front, `puedeVerCostos` y el simulador usan la misma lista desde el PR #90, y `RutaDeEtapasTest` levanta `index.php` para ver que el rol llega al listado de etapas. | `AnalisisController`, `ProyectoController` | S | Claude |
 | **A-16** | P1 | **Hecho en el PR #45.** **Las llamadas salientes no verificaban el certificado TLS.** Encontrado al preparar D-02. `Mailer` y `Geocoder` apagaban `verify_peer`: cualquiera en el camino entre Render y Brevo podía hacerse pasar por Brevo y quedarse con la API key y con el enlace para restablecer una contraseña, es decir, con la cuenta. Ahora usan la verificación por defecto de PHP, y una prueba recorre `back/src` para que ninguna llamada nueva la vuelva a apagar. | `Mailer`, `Geocoder` | S | Claude |
 | **A-17** | P1 | **Hecho en el PR #50.** **Un correo que no salía no dejaba rastro.** Encontrado cuando la recuperación de contraseña no llegó en producción. `Mailer` devolvía `false` sin decir por qué y `/auth/olvide` contesta siempre lo mismo, así que no había forma de saber si faltaba la cuenta, si Brevo rechazaba el correo o si el enlace estaba mal armado. Ahora el motivo queda en el log de Render, sin la API key, el email ni el token. | `Mailer`, `AuthController::olvide` | S | Claude |
 | **A-18** | P0 | **Hecho en el PR #73.** **Producción corría un PHP con dos fallas críticas de ejecución remota de código.** Aviso de php.net del 2026-10-21 (GHSA-w8hw-w9fx-j79w y GHSA-6wmf-4rv5-p3rp): se explotan con un pedido web sin autenticar, antes de que corra la aplicación, y el peor caso es Apache con mod_php, que es lo que usa la imagen. Las corrige PHP 8.3.36. El `Dockerfile` ahora corta el build si la imagen base trae una versión anterior (un build con caché puede reusarla), y apaga `session.upload_progress`, la mitigación del aviso para la segunda falla. **Desplegado en el deploy automático de `e2bb7b2`; si un build falla en el freno, se redespliega con "Clear build cache & deploy".** | `back/Dockerfile` | S | Claude |
@@ -74,7 +75,7 @@ decisión de ustedes, no de código.
 | # | P | Problema | Tamaño | Quién |
 |---|---|---|---|---|
 | **B-01** | **P0** | **Plan pago y respaldos** (DEC-04). Respaldos automáticos con retención conocida y **una restauración probada al menos una vez**. Es lo que hace cumplir RNF03 (hoy la primera consulta tarda cerca de un minuto) y RNF07 (respaldo diario). | M | Grupo + Claude |
-| **B-02** | P1 | **Bloqueado por DEC-04** (PR #25). **Staging de verdad.** `testing` es una demo con datos simulados; falta un entorno con backend y base propios. **No entra en el plan gratuito:** Render da 750 horas de instancia por mes y por workspace, y el monitor de B-04 mantiene producción despierta todo el mes (~720 h). Un segundo servicio encendido agota las horas, y entonces Render **suspende también producción**. Los Preview Environments de Render piden workspace Pro. Decidido para cuando haya plan pago: la base de staging va **en la misma instancia de Aiven**, como `scgo_staging`, con usuario propio con permisos solo sobre ella. | M | Claude |
+| **B-02** | P1 | **Bloqueado por DEC-04** (PR #25). **Staging de verdad.** `testing` es una demo con datos simulados; falta un entorno con backend y base propios. **No entra en el plan gratuito:** Render da 750 horas de instancia por mes y por workspace, y el monitor de B-04 mantiene producción despierta todo el mes (~720 h). Un segundo servicio encendido agota las horas, y entonces Render **suspende también producción**. Los Preview Environments de Render piden workspace Pro. Decidido para cuando haya plan pago: la base de staging va **en la misma instancia de Aiven**, como `sgso_staging`, con usuario propio con permisos solo sobre ella. | M | Claude |
 | **B-03** | P1 | **Migraciones versionadas.** Hoy son scripts sueltos que alguien tiene que acordarse de correr. Hace falta una tabla `schema_migrations` y un comando que aplique las pendientes en cada deploy. | M | Claude |
 | **B-04** | P1 | **Hecho en el PR #24.** **Logs y monitoreo.** El log dice qué pedido falló (`metodo=`, `ruta=`) y los errores van a Sentry con la misma referencia, sin SDK: el backend sigue sin dependencias de runtime. Oculta los valores de la base, el secreto de los tokens y la clave de Brevo antes de enviarlos. **Falta que alguien ponga `SENTRY_DSN` en Render y cree el monitor externo** (`OPERACION.md` §5). | M | Claude |
 | **B-05** | P1 | **Hecho en el PR #21.** **`/api/health` no revisaba la base.** Ahora ejecuta `SELECT 1` y contesta `{"status":"ok","db":"ok"}` solo si la base devuelve 1. Si falla, el manejador global responde el 500 genérico con referencia, igual que con la base sin conexión. | S | Claude |
@@ -116,8 +117,8 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 | **D-02** | P1 | **Hecho en el PR #46.** **Avisos según la gravedad** de la incidencia. Protocolo decidido por el equipo: una alta avisa por correo a Gerentes y Personal Administrativo activos; una media, al Personal Administrativo; una baja no avisa. Un solo correo por incidencia, con todo escapado, y quien la carga ve a cuántos se avisó. | RF26 | M | Codex |
 | **D-03** | P1 | **Hecho en el PR #44.** **La alerta de consumo de maquinaria no aparecía en Alertas.** Ahora el feed trae una alerta por máquina con consumos anómalos, con cuántos son, el último y su obra. La regla pasó a `Sgso\Reglas\ConsumoMaquinaria`, que usan el listado y el feed. | RF24 | S | Codex |
 | **D-04** | P2 | **Hecho en el PR #47.** **Distinguir `creada` de `planificacion`.** Toda obra nueva arranca `creada`; cargar su planificación la pasa a `planificacion`, y borrarla antes de arrancar la devuelve a `creada`. Las obras que ya existen no se tocaron: las que están en `planificacion` sin planificación cargada siguen así hasta que se decida migrarlas. | ciclo de vida | S | Codex |
-| **D-05** | P1 | **Registro de cambios:** quién modificó qué y cuándo. Ninguna tabla lo guarda hoy, salvo el autor del reporte. Es trazabilidad ante un reclamo y suele pedirse en un peritaje. | — | L | Claude |
-| **D-06** | P2 | **Exportar a PDF y Excel** los reportes y el avance. *A validar con Triwe.* | RF14 | M | Codex |
+| **D-05** | P1 | **Registro de cambios:** quién modificó qué y cuándo. Ninguna tabla lo guarda hoy, salvo el autor del reporte. Es trazabilidad ante un reclamo y suele pedirse en un peritaje. | RF36 | L | Claude |
+| **D-06** | P2 | **Exportar a PDF y Excel** los reportes y el avance. *A validar con Triwe.* | RF14, RF37 | M | Codex |
 | **D-07** | P1 | **Uso desde el celular.** El Personal Técnico carga todo en obra: revisar cada pantalla en un celular y medir el tiempo del registro diario. | RNF01, RNF02, RNF09 | M | Claude |
 | **D-08** | P2 | **Avisos por correo** de aprobaciones, rechazos y asignaciones. | — | M | Codex |
 | **D-09** | P1 | **Hecho en el PR #48.** **La certificación se calculaba en el navegador.** Ahora sale de `Sgso\Reglas\Certificacion`: la API devuelve `certificado` en el listado y el detalle de cada obra, al centavo, y el análisis usa la misma cuenta para "ejecutado". Antes el detalle redondeaba al peso y el análisis al centavo, y la misma obra daba dos montos. `certificado` es un importe más que hubo que sumar a la lista negra de RF20 (ver A-15). | RF15 | M | Claude |
@@ -129,12 +130,17 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 | **D-16** | P2 | **Hecho en el PR #64.** **El consumo se carga de a un material.** DEF-04 del informe de testing: el CU22 pide cargar una lista de consumos y enviarla junta ("Guardar y enviar"). Ahora `POST /proyectos/{id}/consumos` guarda la lista en una sola transacción, entera o nada, y Materiales tiene "Guardar y enviar". | RF10 | M | Claude |
 | **D-17** | P1 | *Propuesto, espera DEC-08.* **Gastos reales por obra.** Hoy el "ejecutado" de RF13 es presupuesto por avance, una estimación (desvío 3). Falta registrar lo gastado: precio de los materiales, horas, combustible y otros gastos, cada uno *provisional* hasta la factura y *confirmado* después, y que el análisis compare contra eso. Pide tablas nuevas (*migración*) y reglas de costos acordadas con administración. | RF13, RF29 | L | Claude |
 | **D-18** | P1 | *Propuesto, espera DEC-08.* **Pedidos de material desde la obra**, con estado (pedido, comprado, recibido), quién y cuándo. Reemplaza el pedido por WhatsApp como registro. *Migración.* | RF30 | M | Claude + Codex |
-| **D-19** | P2 | *Propuesto, espera DEC-08 y D-18.* **Cotizaciones de proveedores cargadas a mano** y comparadas por pedido: material, unidad, precio, fecha y vigencia. La captura automática de precios sigue fuera de alcance. *Migración.* | RF31 | M | Claude + Codex |
+| **D-19** | P2 | *Propuesto, espera DEC-08 y D-18.* **Cotizaciones de proveedores cargadas a mano** y comparadas por pedido: material, unidad, cantidad, precio, moneda, fecha, vigencia y condiciones, marcando las que no se pueden comparar (otra unidad u otra moneda) o les faltan datos. El proveedor guarda **correo y rubro** desde el principio: los necesitan D-26 y D-27. La captura automática de precios sigue fuera de alcance. *Migración.* | RF31 | M | Claude + Codex |
 | **D-20** | P2 | *Propuesto, espera DEC-08.* **Horas de entrada y salida** del personal y de los maquinistas, aprobadas por el encargado. Alimenta D-17. *Migración.* | RF32 | M | Claude + Codex |
 | **D-21** | P2 | *Propuesto, espera DEC-08.* **Pendientes con vencimiento y aviso** por correo, como D-02. *Migración.* | RF33 | S | Codex |
 | **D-22** | P2 | **Hecho en el PR #74.** **La tabla de usuarios mezclaba activos y dados de baja, y un clic daba de baja sin confirmar.** Ahora la tabla principal lista solo las cuentas activas, los dados de baja van en una sección plegable debajo ("Usuarios dados de baja (M)") con un botón para reactivar, y la baja pide confirmación en un diálogo. No se borra de verdad: la clave foránea `fk_reporte_usuario` (`reporte.id_usuario`) no tiene `ON DELETE` en `back/sql/schema.sql`, así que en MariaDB es `RESTRICT` y el `DELETE` de un autor de reportes falla (error 1451); solo con `CASCADE` se llevaría los reportes, aprobados y el de cierre. La baja lógica conserva la trazabilidad. | RF19 | S | Claude |
 | **D-23** | P1 | **Hecho en el PR #76.** **No se podía dar más material a una obra: la única vía era borrar la asignación, que además borra sus consumos sin pedir confirmación.** Ahora `PUT /proyectos/material/{id}` fija la cantidad asignada (valor absoluto) sin tocar los consumos, y se rechaza con 422 una cantidad por debajo de lo ya consumido (`Sgso\Reglas\StockMaterial::puedeAsignar`, en centésimos); el alta también rechaza más de 9999999999,99. En Materiales, quien gestiona obras ve un botón para ajustar la asignación (diálogo con el mínimo consumido) y quitar el material pide confirmación y avisa que se borran sus consumos. El simulador repite la API, y "Nuevo usuario" ya no se autocompleta con los datos de quien lo crea. | RF10 | S | Claude |
 | **D-24** | P2 | *Propuesto, espera DEC-08 y D-19.* **Importar las ofertas de un proveedor desde un archivo** (CSV o planilla), con el mismo formato que la carga a mano de D-19, avisando qué filas no se pudieron leer. Es lo que queda en lugar de la captura automática de precios, que está fuera de alcance. El formato sale de la entrevista a administración. | RF34 | S | Codex |
+| **D-25** | P2 | *Propuesto, espera DEC-08 y D-18.* **Perfil Compras:** un rol que prepara los pedidos y carga y compara las ofertas, sin gestionar obras ni cuentas. Es un valor más del rol y un grupo en `Sgso\Reglas\Permisos`, más las pruebas de `TablaTest`; el enum del rol en `usuario` pide *migración*. | RF35 | S | Claude |
+| **D-26** | P2 | *Propuesto, espera DEC-08 y D-19.* **Catálogo de proveedores:** qué ofrece cada uno, armado con las cotizaciones, y una búsqueda ante una falta ("¿quién nos ofreció esto o algo parecido, y a cuánto?"). Lo pidió el responsable de obra. Sin IA y sin dependencias. | RF39 | M | Claude + Codex |
+| **D-27** | P2 | *Propuesto, espera DEC-08, D-18 y D-19.* **Pedir un repuesto desde la falla de una máquina:** marca, modelo y número de parte, el pedido y un pedido de cotización por correo con `Mailer` a los proveedores del rubro. *Migración* (marca y modelo en `maquinaria`). La búsqueda con IA en internet queda a evaluar después de esto. | RF40 | M | Claude + Codex |
+| **D-28** | P2 | *Propuesto, no depende de Triwe; después de D-07.* **SGSO instalable en el celular (PWA):** un manifiesto (nombre, ícono, colores) y un *service worker* que guarda la aplicación en el teléfono para que abra rápido con poca señal. Mismo código React; sin aplicación nativa. Con `vite-plugin-pwa` es chico, pero es *una dependencia nueva* y Alex tiene que aprobarla; sin ella, se escribe a mano. En iPhone se instala desde Safari, con "Agregar a inicio". | RF41 | S–M | Claude |
+| **D-29** | P2 | *Propuesto, después de D-28.* **Guardar sin señal y enviar al volver la conexión.** Si al guardar no hay conexión, el envío queda en una cola en el teléfono (IndexedDB) y se manda solo cuando vuelve la señal, o al abrir SGSO. Cada envío lleva un identificador generado en el teléfono, y el servidor lo guarda en una columna única: si llega dos veces, no se duplica (*migración*). Solo altas de campo (avance, asistencia, consumos, incidencias), no ediciones ni bajas. Lo que el servidor rechaza al llegar (por ejemplo, falta de stock) se le muestra al usuario para corregirlo. Si la sesión venció (8 horas), pide entrar de nuevo antes de mandar. iPhone no tiene sincronización en segundo plano: allá se envía con SGSO abierto. El simulador del front lo replica. | RF42 | L | Claude + Codex |
 | **D-10** | — | **Consulta de lotes a la municipalidad.** Aparece en el diagrama de contexto del relevamiento, sin requerimiento asociado. *Confirmar con Triwe si se necesita:* es la pregunta 7 de la entrevista con la dirección técnica ([relevamiento/ENTREVISTAS.md](relevamiento/ENTREVISTAS.md)). | — | — | Grupo |
 
 ---
@@ -144,10 +150,10 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 | # | P | Qué falta | Tamaño | Quién |
 |---|---|---|---|---|
 | **E-01** | P1 | **Multicliente** (DEC-02). Ninguna de las 17 tablas sabe a qué empresa pertenece un dato. Necesita su propio ADR: organización en el modelo, aislamiento por fila, un middleware que fije la empresa en cada pedido, y **pruebas de que una empresa no ve datos de otra**. | L | Claude |
-| **E-02** | P1 | **Alta de cliente e importación inicial** de obras y materiales desde CSV. | M | Claude + Codex |
+| **E-02** | P1 | **Alta de cliente e importación inicial** de obras, materiales y proveedores desde CSV o planilla (RF38, propuesto). | M | Claude + Codex |
 | **E-03** | P2 | **Suscripción y cobro** (si DEC-02 va a SaaS). | L | Claude |
 | **E-04** | P1 | **Legal.** Términos y condiciones, política de privacidad, Ley 25.326 de protección de datos personales (con la inscripción de la base ante la AAIP) y acuerdo de tratamiento de datos con Triwe. | M | Grupo, con asesoramiento |
-| **E-05** | P1 | **Identidad de SCGO.** Dominio propio, correos desde ese dominio (Brevo con SPF y DKIM, para que no caigan en spam) y una página de presentación. | M | Grupo + Claude |
+| **E-05** | P1 | **Identidad de SGSO.** Dominio propio, correos desde ese dominio (Brevo con SPF y DKIM, para que no caigan en spam) y una página de presentación. | M | Grupo + Claude |
 | **E-06** | P2 | **Soporte.** Manual de usuario por rol, canal de soporte y tiempos de respuesta comprometidos. | M | Grupo |
 | **E-07** | P1 | **Entrega a Triwe.** Demo con datos creíbles, el informe del pentest (A-11) y respuestas a su cuestionario de seguridad. | M | Grupo + Claude |
 
@@ -185,13 +191,34 @@ Cada ítem remite a un requerimiento de [REQUERIMIENTOS.md](REQUERIMIENTOS.md).
 8. ~~**C-01**~~ (pruebas de controladores, PR #39, #41 y #42) y ~~**C-03**~~ (paginación, PR #43).
 9. ~~**D-03, D-02, D-04 y D-09**~~ (PR #44, #46, #47 y #48): funcionalidad chica y ya especificada.
 10. **DEC-03**, después **D-01** (archivos) y **D-05** (registro de cambios).
-11. **D-07:** SCGO usable desde el celular.
+11. **D-07:** SGSO usable desde el celular.
 12. **C-02:** el contrato OpenAPI, que corta de raíz el problema del simulador duplicado.
 
-Si Triwe acepta los RF propuestos (**DEC-08**), van en este orden: **D-18**
-(pedidos), **D-17** (gastos reales, que vuelve a cumplido RF13), **D-19**
-(cotizaciones, que necesita los pedidos), **D-24** (importar ofertas, sobre
-D-19), **D-20** y **D-21**.
+**Antes de DEC-08, lo que se puede hacer ya** (rearmado el 2026-11-03, sin esperar a
+Triwe): **D-13** (consumo esperado por máquina, RF24, con el dato opcional),
+**D-06** (resúmenes en CSV y PDF por impresión del navegador, RF37, sin
+dependencias), **E-02** en su base (importador de CSV con datos inventados, RF38) y
+**D-05** (historial de cambios, RF36) si Alex define el alcance. Para el trabajo
+en obra, **D-07** (revisar cada pantalla en el celular), después **D-28** (instalar
+SGSO como aplicación, RF41) y **D-29** (guardar sin señal y enviar al volver,
+RF42).
+
+Si Triwe acepta los RF propuestos (**DEC-08**), van en este orden:
+
+1. **D-17** (gastos reales, RF29): primero, porque el desvío entre lo presupuestado
+   y lo gastado es lo que más importa (decidido el 2026-11-02). Vuelve cumplido RF13.
+2. **D-18** (pedidos, RF30): la base del circuito de compras y de D-27.
+3. Decidir **D-25** (perfil Compras, RF35) antes de los permisos de D-19.
+4. **D-19** (cotizaciones, RF31), guardando desde el principio **el correo y el
+   rubro de cada proveedor**: es lo que destraba D-26 y D-27 sin rehacer nada.
+5. **D-27** (repuesto desde una falla, RF40): lo que más pidió el responsable de
+   obra.
+6. **D-26** (catálogo de proveedores, RF39): sale de las cotizaciones cargadas.
+7. **D-24** (importar ofertas, RF34).
+8. **D-20** (horas, RF32) y **D-21** (pendientes, RF33), independientes.
+
+Después, *a evaluar*: la búsqueda de repuestos con IA en internet, sobre el
+catálogo de D-26 y solo como sugerencia que una persona confirma.
 
 ### Ola 4 — Entrega
 
@@ -214,7 +241,7 @@ del arreglo, CI en verde, el simulador al día y el número de PR anotado acá.
 |---|---|
 | 2026-09-16 | Primera versión, a partir de la auditoría del código. |
 | 2026-09-16 | Resueltas DEC-01 y DEC-06; agregadas DEC-07, C-11, D-09 y D-10; cerrado el bloque F. Las decisiones pasan a `DEC-xx` para no confundirse con los ítems del bloque D. |
-| 2026-09-16 | B-06 hecho: `main` protegida con un ruleset. DEC-07 resuelta: el repositorio sigue público y se renombra a `SCGO`. |
+| 2026-09-16 | B-06 hecho: `main` protegida con un ruleset. DEC-07 resuelta: el repositorio sigue público y cambia de nombre. |
 | 2026-09-16 | A-01, A-02, A-04 y A-08 hechos (PR #10). A-03 hecho (PR #11); agregados A-12 y A-13. Con eso no queda ningún P0 de seguridad abierto. |
 | 2026-09-17 | A-05, A-07 y A-13 hechos (PR #12). De seguridad quedan A-06, A-09, A-10, A-11 y A-12, ninguno P0. |
 | 2026-09-19 | A-06, A-10 y B-09 hechos (PR #13); agregado B-10. Fuera el mapa sin usar y el PDF del TP, que tenía datos personales. De seguridad quedan A-09, A-11 y A-12. |
@@ -248,3 +275,11 @@ del arreglo, CI en verde, el simulador al día y el número de PR anotado acá.
 | 2026-10-21 | D-22 hecho (PR #74): la tabla de usuarios lista solo los activos, los dados de baja van en una sección plegable con reactivación, y dar de baja pide confirmación. |
 | 2026-10-21 | D-23 hecho (PR #76): la cantidad asignada de un material se ajusta sin bajar de lo consumido, y quitarlo de la obra pide confirmación y avisa que se borran sus consumos. |
 | 2026-10-22 | Revisado con Alex lo que había quedado afuera del sistema. Se agrega RF34 (importar ofertas desde un archivo) y D-24, que entra en DEC-08. Quedan fuera, por ahora: pagos, facturación y retención de ARCA (exclusión contable), la captura automática de precios y el registro sin conexión. Las reglas de alerta de costos (RF12, RF13) pasan a "a validar" y los RNF a "metas por comprobar". Guía para las entrevistas pendientes en `relevamiento/ENTREVISTAS.md`. |
+| 2026-11-02 | Contrastado el informe de Ingeniería de Software II (TP2, 2026-10-31) con estos requerimientos. Se suman como propuestos, a la espera de DEC-08: RF35 (perfil Compras, D-25), RF36 (historial de cambios, D-05), RF37 (resúmenes PDF o CSV, D-06) y RF38 (carga inicial, E-02); RF31 suma moneda, condiciones y datos incompatibles; RNF08 anota el dimensionamiento del informe. El registro sin conexión sigue afuera. |
+| 2026-11-02 | RF29 (gastos reales) pasa a prioridad Crítica y D-17 va primero en el orden de DEC-08: el desvío entre lo presupuestado y lo gastado de verdad es lo que más importa. Sigue esperando DEC-08. |
+| 2026-11-03 | El responsable de obra pidió buscar rápido quién vende lo que falta, sobre todo repuestos de maquinaria. Se suman como propuestos, a la espera de DEC-08: RF39 (catálogo de proveedores, D-26) y RF40 (repuesto desde una falla, D-27). La búsqueda con IA en internet queda a evaluar después; la exclusión de IA sigue. |
+| 2026-11-03 | Orden rearmado con el pedido del responsable de obra: una etapa previa a DEC-08 con lo que se puede hacer ya (A-15, D-13, D-06, base de E-02 y D-05), y dentro de DEC-08 D-27 antes que D-26, con D-19 guardando correo y rubro del proveedor. |
+| 2026-11-03 | Para quienes trabajan en obra, Alex decide sumar como propuestos RF41 (instalar SGSO en el celular como aplicación, D-28) y RF42 (guardar sin señal lo que el usuario mandó a guardar y enviarlo solo al volver la conexión, D-29). RF42 reabre la exclusión del registro sin conexión; el funcionamiento completamente offline sigue afuera. No dependen de Triwe: van en la etapa previa a DEC-08, después de D-07. |
+| 2026-11-03 | DEC-01 cambia: el producto vuelve a llamarse **SGSO**, Sistema de Gestión y Seguimiento Operativo de obras, como en el informe de Ingeniería de Software II. Cambian la interfaz, el correo del aviso de incidencias, la documentación, el CI y el nombre del repositorio de GitHub, que Alex renombró a `SGSO`. |
+| 2026-11-03 | A-15 hecho (PR #89): RF20 pasa a lista blanca en `Permisos::VER_COSTOS`. Un rol desconocido ya no recibe importes, y el listado de etapas deja de mandarle `presupuesto_base` al Personal Técnico. |
+| 2026-11-04 | A-15 terminado (PR #90): `puedeVerCostos` y el simulador usan la misma lista blanca que la API, el contrato controla `/planificacion/{id}/etapas`, y `RutaDeEtapasTest` prueba que `index.php` le pasa el rol al listado. |

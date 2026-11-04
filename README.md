@@ -1,6 +1,6 @@
-# SCGO — Sistema de Control y Gestión de Obras
+# SGSO — Sistema de Gestión y Seguimiento Operativo de obras
 
-[![CI](https://github.com/AcostaAlex10/SCGO/actions/workflows/ci.yml/badge.svg)](https://github.com/AcostaAlex10/SCGO/actions/workflows/ci.yml)
+[![CI](https://github.com/AcostaAlex10/SGSO/actions/workflows/ci.yml/badge.svg)](https://github.com/AcostaAlex10/SGSO/actions/workflows/ci.yml)
 
 Sistema web para que una empresa constructora controle sus obras en un solo lugar:
 planificación, avance físico, asistencia, materiales, maquinaria, documentación,
@@ -14,7 +14,7 @@ Desarrollado para **Triwe**, empresa de construcción.
 
 La gestión de obras con planillas y archivos sueltos deja sin control el presupuesto
 frente al avance real, pierde la trazabilidad de los materiales y separa a la obra de
-la oficina. SCGO centraliza esa información y avisa cuando algo se desvía.
+la oficina. SGSO centraliza esa información y avisa cuando algo se desvía.
 
 | Módulo | Para qué |
 |---|---|

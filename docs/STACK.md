@@ -1,4 +1,4 @@
-# Stack tecnológico de SCGO
+# Stack tecnológico de SGSO
 
 Qué usa el sistema hoy, con las versiones de los lockfiles. Actualizado el
 2026-09-26, después de C-11.

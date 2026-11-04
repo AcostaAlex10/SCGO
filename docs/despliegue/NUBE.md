@@ -1,6 +1,6 @@
 # Despliegue en la nube (plan gratuito)
 
-Guía para publicar SCGO y que sea accesible desde cualquier lado, sin depender
+Guía para publicar SGSO y que sea accesible desde cualquier lado, sin depender
 de una PC encendida. Todo con capas gratuitas.
 
 ## Arquitectura

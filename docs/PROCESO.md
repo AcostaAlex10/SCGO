@@ -1,11 +1,11 @@
-# Proceso de SCGO
+# Proceso de SGSO
 
-Cómo se trabaja en SCGO: qué modelo se toma de referencia, quién hace qué (personas
+Cómo se trabaja en SGSO: qué modelo se toma de referencia, quién hace qué (personas
 y agentes de IA), cuánta autonomía tiene cada uno y cómo se controla que nadie
 invente resultados.
 
 El marco vive en este repositorio, y no en uno compartido, porque cada proyecto
-se evalúa por separado: la evidencia de SCGO es de SCGO. Otro proyecto puede
+se evalúa por separado: la evidencia de SGSO es de SGSO. Otro proyecto puede
 copiarlo y adaptarlo.
 
 Las reglas del día a día (ramas, PR, qué cuenta como terminado) siguen en
@@ -29,7 +29,7 @@ CMMI 3.0 tiene 19 áreas en el dominio de Desarrollo: las 17 del núcleo más
 solución técnica (TS) e integración del producto (PI). La equivalencia con las
 22 de la v1.3 es **aproximada**: la 3.0 juntó, partió y renombró áreas.
 
-| v1.3 | 3.0 | Dónde está en SCGO | Nivel estimado |
+| v1.3 | 3.0 | Dónde está en SGSO | Nivel estimado |
 |---|---|---|---|
 | REQM, RD | **RDM** Desarrollo y gestión de requisitos | `REQUERIMIENTOS.md`, criterios del CU en cada PR, el RF en las pruebas | 1, en camino a 2 |
 | VER, VAL | **VV** Verificación y validación; **PR** Revisiones entre pares | CI con cuatro chequeos, pruebas, informe del Grupo 9, revisión de cada PR | 2 |
@@ -46,7 +46,7 @@ solución técnica (TS) e integración del producto (PI). La equivalencia con la
 | OPD | **PAD** Desarrollo de activos de procesos | Este archivo, plantilla de PR, agentes | 1 |
 | OT | **OT** Capacitación organizacional | `TRASPASO.md` como inducción | 1 |
 | — | **GOV** Gobernanza; **II** Infraestructura de implementación | Secciones 2 a 4 de este archivo | 1 |
-| SAM | Dominio de proveedores | No aplica: SCGO no contrata proveedores de desarrollo | — |
+| SAM | Dominio de proveedores | No aplica: SGSO no contrata proveedores de desarrollo | — |
 
 Los niveles son una autoevaluación, no una evaluación formal. Para contar como
 evidencia, cada uno necesita artefactos y afirmaciones (sección 5).
@@ -133,7 +133,7 @@ Por eso:
 
 CMMI separa dos tipos de evidencia, y cada proyecto junta la suya:
 
-- **Artefactos:** lo que el trabajo produce. En SCGO sobran: PR con su
+- **Artefactos:** lo que el trabajo produce. En SGSO sobran: PR con su
   descripción, corridas del CI, commits que explican el porqué, pruebas que
   nombran el RF, `TRASPASO.md`, `PLAN-PRODUCTO.md`, `OPERACION.md` §8.
 - **Afirmaciones:** lo que la gente cuenta de cómo trabaja ("antes de cerrar un

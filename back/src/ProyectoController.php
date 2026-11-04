@@ -6,6 +6,7 @@ namespace Sgso;
 
 use Sgso\Reglas\CicloDeVida;
 use Sgso\Reglas\Fecha;
+use Sgso\Reglas\Permisos;
 
 
 /**
@@ -42,7 +43,7 @@ final class ProyectoController
     {
         $proyectos = $this->repositorio->listar($busqueda);
 
-        // RF20: el Personal Tecnico (obra) no debe ver costos/presupuestos.
+        // RF20: los costos y presupuestos solo van a quien puede verlos.
         if ($this->debeOcultarCostos($rol)) {
             $proyectos = array_map([self::class, 'sinCostos'], $proyectos);
         }
@@ -59,7 +60,7 @@ final class ProyectoController
             return;
         }
 
-        // RF20: ocultar el presupuesto al Personal Tecnico.
+        // RF20: ocultar el presupuesto a quien no puede verlo.
         if ($this->debeOcultarCostos($rol)) {
             $proyecto = self::sinCostos($proyecto);
         }
@@ -67,10 +68,10 @@ final class ProyectoController
         $this->responderJson(200, $proyecto);
     }
 
-    /** RF20: solo el Personal Tecnico tiene oculta la informacion de costos. */
+    /** RF20: ve costos solo quien esta en la lista blanca de Permisos. */
     private function debeOcultarCostos(?string $rol): bool
     {
-        return $rol === 'PersonalTecnico';
+        return !Permisos::puede($rol, Permisos::VER_COSTOS);
     }
 
     /**

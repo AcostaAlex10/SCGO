@@ -49,7 +49,7 @@ cotizaciones, y dónde termina lo que hace el sistema contable.
    las unidades o los nombres de un proveedor a otro? ¿Cuánto dura una oferta?
    (RF34, RF31)
 9. ¿Qué resuelve hoy el sistema contable con pagos, facturación y retenciones, y
-   qué queda afuera (planillas, papel, a mano)? *Es para entender el límite: SCGO
+   qué queda afuera (planillas, papel, a mano)? *Es para entender el límite: SGSO
    no lo va a reemplazar.* (§3, exclusión contable)
 10. ¿Cómo controlan hoy las horas de entrada y salida que se pagan? ¿Quién las
     revisa antes de pagar? (RF32)
@@ -65,7 +65,7 @@ conexión, para que entre en menos de 10 minutos.
 2. ¿Con qué dispositivo y qué aplicaciones registrás y mandás información hoy?
    ¿Qué pasa cuando tenés que escribir mucho desde el celular? (RNF01, RNF09)
 3. ¿Hay señal o datos en la obra? Cuando no hay, ¿cómo lo resolvés y cuánto
-   tarda en llegar la información? (conectividad, RNF01, RNF10)
+   tarda en llegar la información? (conectividad, RNF01, RNF10, RF41, RF42)
 4. ¿Cuánto te lleva hoy el reporte del día? ¿Qué parte sobra o se repite? ¿Cuánto
    te parecería razonable? (RNF02)
 5. ¿Cómo se pide hoy un material desde la obra y cómo te enterás de que se compró
@@ -83,7 +83,7 @@ conexión, para que entre en menos de 10 minutos.
 
 **Objetivo:** validar las reglas de alerta de costos y decidir qué se construye.
 **Duración:** 20 a 25 minutos. Conviene llevar un ejemplo con números, de una
-obra real o inventada, con el resultado que daría hoy SCGO.
+obra real o inventada, con el resultado que daría hoy SGSO.
 
 1. ¿Cómo se mide el avance de una obra: por etapas terminadas, por porcentaje
    estimado, por cantidad de trabajo? ¿Quién lo define? (reglas de alerta, RF13)
@@ -96,8 +96,10 @@ obra real o inventada, con el resultado que daría hoy SCGO.
 4. Con el ejemplo en la mano: ¿esta alerta les parece correcta o una falsa
    alarma? (reglas de alerta; los ejemplos quedan como casos de prueba)
 5. De los circuitos propuestos (gastos reales, pedidos de material, cotizaciones,
-   horas, pendientes e importar ofertas), ¿cuáles quieren, en qué orden, y
-   cuáles no? (DEC-08: RF29 a RF34)
+   horas, pendientes, importar ofertas, un perfil de Compras, historial de
+   cambios, resúmenes en PDF o CSV, carga inicial de datos, catálogo de proveedores
+   y pedido de repuestos), ¿cuáles quieren, en qué orden, y cuáles no? (DEC-08:
+   RF29 a RF40)
 6. Para las ofertas, ¿les sirve cargarlas a mano o importarlas de una planilla,
    sabiendo que la captura automática de precios queda afuera? (DEC-08, RF31,
    RF34)
@@ -113,9 +115,11 @@ obra real o inventada, con el resultado que daría hoy SCGO.
 | Respuesta | Dónde va |
 |---|---|
 | Gastos, pedidos, cotizaciones y formato de las ofertas | RF29 a RF31 y RF34 en `REQUERIMIENTOS.md` §5; D-17 a D-19 y D-24 en `PLAN-PRODUCTO.md` |
+| Catálogo de proveedores y repuestos de maquinaria | RF39 y RF40; D-26 y D-27 |
+| Perfil Compras, historial de cambios, resúmenes y carga inicial | RF35 a RF38 en `REQUERIMIENTOS.md` §5; D-25, D-05, D-06 y E-02 en `PLAN-PRODUCTO.md` |
 | El límite con el sistema contable | `REQUERIMIENTOS.md` §3 |
 | Horas y pendientes | RF32 y RF33; D-20 y D-21 |
-| Uso en obra, tiempos y conectividad | RNF01, RNF02, RNF09 y RNF10 en `REQUERIMIENTOS.md` §6; D-07 en el plan |
+| Uso en obra, tiempos y conectividad | RNF01, RNF02, RNF09 y RNF10 en `REQUERIMIENTOS.md` §6, RF41 y RF42 en §5; D-07, D-28 y D-29 en el plan |
 | Reglas de alerta (medición, costos, períodos, umbrales) | RF12 y RF13 dejan de decir "reglas a validar"; los ejemplos pasan a pruebas |
 | Qué circuitos quiere Triwe y quién acepta cambios | DEC-08 en `PLAN-PRODUCTO.md`, que se cierra |
 | La consulta de lotes | D-10: se descarta o se convierte en un RF |
