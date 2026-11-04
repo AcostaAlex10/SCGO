@@ -78,6 +78,24 @@ SEED_ADMIN_PASSWORD=una-clave-larga php back/sql/seed.php
 > en el código, y quedó en el historial de git al publicarse el repositorio. Esa
 > cuenta se dio de baja y se reemplazó: la contraseña del historial ya no sirve.
 
+**`DB_SSL_CA`: el certificado que prueba que la base es la base (A-19).** Con
+`DB_SSL=true` la conexión va cifrada y además se verifica el certificado de la
+base contra la CA de Aiven. Sin `DB_SSL_CA` la API **no conecta** (falla cerrado,
+no cae a una conexión sin verificar). El certificado de la CA es público, no una
+credencial; igual no se sube al repositorio.
+
+1. En la consola de Aiven: el servicio de la base → *Overview* → *CA certificate*
+   → descargar `ca.pem`.
+2. En Render: el servicio → *Environment* → *Secret Files* → crear uno con ese
+   contenido, por ejemplo `/etc/secrets/aiven-ca.pem`.
+3. En Render: variable `DB_SSL_CA=/etc/secrets/aiven-ca.pem`.
+4. Para correr scripts desde una PC (`migrar.php`, `seed.php`, las migraciones):
+   `DB_SSL_CA` en `back/.env` apunta a la copia local de `ca.pem`, con la ruta
+   completa y sin comillas (el cargador de `.env` las conserva). Esa copia queda fuera del repositorio.
+
+Si Aiven cambia la CA del servicio (al recrearlo, o al rotarla), hay que bajar el
+certificado de nuevo y actualizar el Secret File, o la API deja de conectar.
+
 Las únicas contraseñas versionadas a propósito son las del modo de prueba
 (`FRONT/src/app/mock/datos.json`): son ficticias, con dominio `.test`, y no existen
 en ningún sistema real.
@@ -270,6 +288,25 @@ Cosas que ya costaron tiempo. Conviene leerlas antes de repetirlas.
 
 ### Base de datos
 
+**Todos los pedidos que usan la base dan 500 después de activar la verificación
+TLS (A-19).** El log de Render dice `DB_SSL=true requiere DB_SSL_CA`, `DB_SSL_CA
+apunta a un archivo que no existe o no se puede leer` o `DB_SSL tiene un valor no
+valido`. Las causas: falta el Secret File, falta la variable `DB_SSL_CA`, la ruta
+no coincide con el nombre del archivo, el archivo no tiene permiso de lectura para
+el usuario de Apache, o `DB_SSL` está mal escrito (tiene que ser exactamente
+`true` o `false`). Con el plan gratuito de Render no suele haber Shell: el síntoma
+es el 500 con su `referencia`, y la causa se ve buscando esa referencia en *Logs*
+del servicio. Se arregla cargando o corrigiendo la variable o el archivo (ver §2)
+y redesplegando. Si el mensaje es de conexión y el certificado no valida,
+probablemente Aiven cambió la CA: bajarla de nuevo. Para no llegar acá,
+**primero se carga el archivo y la variable en Render, y recién después se
+mergea**. `/api/health` también cae, porque usa la base.
+
+**Después del despliegue, comprobar y, si falla, volver atrás.** `curl
+https://<la API>/api/health` tiene que dar `{"status":"ok","db":"ok"}`. Si da 500,
+buscar su `referencia` en el log de Render. Para volver atrás: *Rollback* en Render
+al despliegue anterior. **No se apaga la verificación** para salir del paso.
+
 **`migrar.php` no aplica cambios de tipo de columna.** Solo ejecuta `schema.sql`,
 cuyas tablas usan `CREATE TABLE IF NOT EXISTS`: sobre una base existente no hace
 nada. Un cambio de tipo necesita su propio script con el `ALTER`, como
@@ -398,3 +435,4 @@ responsable**. Hoy es Alex en todos; cuando se sume alguien al equipo, se repart
 | **R-06** | Una credencial o un dato de Triwe entra al repositorio, que es público | Baja | **Alto**: queda visible para cualquiera (DEC-07) | Revisando el PR | Rotar la credencial en el momento: borrarla del historial no alcanza, porque ya pudo copiarse | Alex |
 | **R-07** | El simulador acepta datos que la API rechaza | **Alta**: pasó tres veces | **Medio**: la demo de los testers muestra algo que el sistema real no hace | Los testers, o una suite de Playwright | Tocar las dos validaciones juntas (§7, "Modo de prueba"); C-02 lo corta de raíz | Alex |
 | **R-08** | Otra cuenta de Vercel consigue un subdominio con la forma de una preview (`sgso-*-acostaalex10s-projects.vercel.app`) y `back/src/Cors.php` lo acepta. Por ejemplo, el proyecto `sgso` de un equipo con slug `evil-acostaalex10s-projects`. `vercel.app` es compartido y la documentación de Vercel no dice que ese sufijo esté reservado; no se probó, porque haría falta crear un proyecto en una cuenta ajena. Ningún patrón lo evita: una rama puede llamarse `main-evil` | Baja | **Bajo mientras no haya credenciales de navegador**: no hay cookies ni `Allow-Credentials`, y el JWT vive en `localStorage` del origen propio, así que esa página no recibe ninguna sesión. Pasar el token a cookie (A-09) lo vuelve **alto** | Ninguna alerta | Si se agregan cookies o `Allow-Credentials`, sacar el comodín antes: nombrar cada preview en `CORS_ORIGIN`, o pasar las previews a un dominio propio con Preview Deployment Suffix (plan Pro) | Alex |
+| **R-10** | El certificado de CA de `DB_SSL_CA` falta, no se puede leer o ya no es el de la base (por ejemplo, Aiven cambia su CA) | Media | **Alto**: ningún pedido que use la base responde, y `/api/health` da 500 | Por el monitor o un usuario, y por la referencia en el log de Render | Bajar la CA de nuevo y actualizar el Secret File; si urge, volver al despliegue anterior. No apagar la verificación | Alex |

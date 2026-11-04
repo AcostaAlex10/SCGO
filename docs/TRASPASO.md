@@ -135,6 +135,10 @@ repositorio**.
 
 ### PR abiertos
 
+- **#95 (`claude/tls-base`, A-19): verificar el certificado TLS de la base.** **No se
+  mergea hasta que Alex cargue la CA de Aiven como Secret File en Render y agregue
+  `DB_SSL_CA`**: si no, toda la API da 500. Después hay que actualizar el #94 para
+  que su migración use `OpcionesTls`.
 - **#77 (`claude/requerimientos-excluidos`): lo que quedó afuera del sistema.**
   RF34 propuesto (D-24), pagos, facturación y ARCA fuera, reglas de alerta a
   validar, RNF como metas y la guía de entrevistas. Ver más abajo.

@@ -20,15 +20,25 @@ La app son **3 piezas** y cada una va a un servicio distinto:
 ## Paso 1 — Base de datos en la nube
 
 1. Crear una cuenta en un proveedor de **MySQL gratis** (ej. [Aiven](https://aiven.io) o [Clever Cloud](https://www.clever-cloud.com)).
-2. Crear una base MySQL. Anotar los datos de conexión: **host, puerto, usuario, contraseña, nombre de la base**.
+2. Crear una base MySQL. Si el proveedor no es Aiven, el certificado de la CA se saca de su panel (ver el Paso 1b). Anotar los datos de conexión: **host, puerto, usuario, contraseña, nombre de la base**.
 3. Cargar el esquema y el usuario admin **desde tu PC**, apuntando a la base remota:
-   - En `back/.env`, poner los datos de la base remota y `DB_SSL=true`.
+   - En `back/.env`, poner los datos de la base remota, `DB_SSL=true` y `DB_SSL_CA` con la ruta completa a la copia local del certificado de la CA (ver el Paso 1b).
    - Ejecutar:
      ```bash
      php back/sql/migrar.php   # crea las tablas (idempotente)
      php back/sql/seed.php     # crea el usuario admin con contraseña hasheada
      ```
    - Volver a dejar tu `.env` local como estaba si seguís desarrollando contra tu base local.
+
+## Paso 1b — Certificado de la CA de la base
+
+Con `DB_SSL=true` el backend cifra la conexión **y verifica el certificado** de la base. Necesita el certificado de la CA, que es público (no es una credencial). Sin él la API no conecta: falla cerrado, a propósito.
+
+1. En la consola de Aiven: el servicio → *Overview* → *CA certificate* → descargar `ca.pem`.
+2. Guardarlo en tu PC fuera del repositorio. Es lo que `DB_SSL_CA` del `.env` apunta a, para correr los scripts de `back/sql/`.
+3. En el Paso 2, cargarlo en Render como **Secret File**.
+
+Si Aiven cambia la CA del servicio, hay que bajar el certificado de nuevo y actualizar el Secret File.
 
 ---
 
@@ -45,12 +55,17 @@ La app son **3 piezas** y cada una va a un servicio distinto:
    |---|---|
    | `DB_HOST` / `DB_PORT` / `DB_USER` / `DB_PASSWORD` / `DB_NAME` | los de la base en la nube |
    | `DB_SSL` | `true` |
+   | `DB_SSL_CA` | la ruta del Secret File, ej. `/etc/secrets/aiven-ca.pem` (ver abajo) |
    | `JWT_SECRET` | una clave larga y secreta |
    | `JWT_SEGUNDOS` | `28800` (8 horas) |
    | `BREVO_API_KEY` / `BREVO_SENDER` | credenciales para el correo de recuperación de contraseña |
    | `CORS_ORIGIN` | *(se completa en el Paso 4)* |
 
-4. Deploy. Render da una URL tipo `https://sgso-backend.onrender.com`. Probar `https://.../api/health` → debe responder `{"status":"ok"}`.
+   **Secret File.** En *Environment → Secret Files* crear `aiven-ca.pem` con el contenido del certificado del Paso 1b. Render lo deja en `/etc/secrets/aiven-ca.pem`.
+
+   **Orden: primero el archivo y la variable `DB_SSL_CA` en Render, y recién después mergear el cambio que verifica el certificado.** Si el código llega antes, la API falla en todos los pedidos que usan la base (también `/api/health`) hasta cargarlos.
+
+4. Deploy. Render da una URL tipo `https://sgso-backend.onrender.com`. Probar `https://.../api/health` → debe responder `{"status":"ok","db":"ok"}`. Si da 500, buscar la `referencia` en el log de Render: lo más probable es el Secret File o `DB_SSL_CA`. Para volver atrás, hacer *Rollback* en Render al despliegue anterior; no se apaga la verificación.
 
 ---
 
