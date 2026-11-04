@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/phpstan-2.3` | `main` @ `5f22010` (2026-10-24) | Dejar listo el #51 de Dependabot: PHPStan 2.3.1 recuerda el resultado de `estadoDeLaObra()` entre llamadas y marca como siempre verdadera una aserción de `CicloDeVidaObraTest` | #78 |
+| `claude/rf20-front-lista-blanca` | `main` @ `41c74f8` (2026-11-04) | A-15, el resto: `puedeVerCostos` y el simulador pasan a lista blanca, el contrato controla `/etapas`, y una prueba levanta `index.php` para ver que le pasa el rol al listado de etapas | — |
 
 ### Reglas
 
@@ -172,6 +172,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/pwa-envio-diferido` | Para el trabajo en obra: instalar SGSO en el celular como aplicación (RF41) y guardar sin señal para enviar al volver la conexión (RF42) | PR #84 |
 | `claude/nombre-sgso` | El producto vuelve a llamarse SGSO, Sistema de Gestión y Seguimiento Operativo de obras (DEC-01): interfaz, correo, documentación y el nombre del repositorio | PR #85 |
 | `claude/a15-costos-lista-blanca` | A-15: RF20 pasa a una lista blanca en `Permisos`, para que un rol nuevo no vea costos por defecto, y el listado de etapas deja de mandarle `presupuesto_base` al Personal Técnico | PR #89 |
+| `claude/phpstan-2.3` | Dejar listo el #51 de Dependabot: PHPStan 2.3.1 recuerda el resultado de `estadoDeLaObra()` entre llamadas y marca como siempre verdadera una aserción de `CicloDeVidaObraTest` | PR #78 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir
