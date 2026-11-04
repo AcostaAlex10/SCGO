@@ -176,7 +176,7 @@ final class IncidenciaController
 
         $base = rtrim(getenv('APP_URL') ?: (getenv('CORS_ORIGIN') ?: ''), '/');
         if ($base !== '') {
-            $html .= '<p><a href="' . $e($base . '/proyectos/' . $idProyecto) . '">Ver la obra en SCGO</a></p>';
+            $html .= '<p><a href="' . $e($base . '/proyectos/' . $idProyecto) . '">Ver la obra en SGSO</a></p>';
         }
 
         return ["Incidencia de gravedad {$incidencia['gravedad']} en {$obra}", $html];

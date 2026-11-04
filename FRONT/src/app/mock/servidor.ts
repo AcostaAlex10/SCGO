@@ -2,9 +2,9 @@
  * Servidor simulado para el modo de prueba estatico (VITE_MOCK=1).
  *
  * Reproduce en memoria el contrato de la API PHP de `back/`, incluidas las
- * reglas de autorizacion por rol (RF19) y el ocultamiento de costos al
- * PersonalTecnico (RF20), de modo que la interfaz se comporte igual que contra
- * el backend real. Sirve para probar la UI sin backend, sin base de datos y sin
+ * reglas de autorizacion por rol (RF19) y el ocultamiento de costos a quien no
+ * esta en la lista blanca (RF20), de modo que la interfaz se comporte igual que
+ * contra el backend real. Sirve para probar la UI sin backend, sin base de datos y sin
  * tocar los datos de la demo.
  *
  * NO reemplaza a las pruebas de integracion: aca no se ejercita PHP, ni SQL, ni
@@ -189,6 +189,8 @@ const ROLES_AVANCE = ["AdministradorSistema", "PersonalTecnico"];
 const ROLES_DOC = ["AdministradorSistema", "PersonalAdministrativo", "PersonalTecnico"];
 const ROLES_REPORTE_APROBAR = ["AdministradorSistema", "PersonalAdministrativo"];
 const ROLES_ADMIN = ["AdministradorSistema"];
+// Lista blanca de RF20, como Permisos::VER_COSTOS: un rol nuevo no ve plata.
+const ROLES_VER_COSTOS = ["AdministradorSistema", "PersonalAdministrativo", "Gerente"];
 // A quien avisa una incidencia segun su gravedad: Sgso\Reglas\ProtocoloIncidencias (RF26, D-02).
 const AVISO_POR_GRAVEDAD: Record<string, string[]> = {
   alta: ["Gerente", "PersonalAdministrativo"],
@@ -363,7 +365,7 @@ function sincronizarProyecto(idPlan: number): void {
 }
 
 function analisis(rol: string) {
-  const ocultarCostos = rol === "PersonalTecnico";
+  const ocultarCostos = !ROLES_VER_COSTOS.includes(rol);
   const proyectos = db.proyectos.map((p) => {
     const plan = db.planificaciones.find((pl) => String(pl.id_proyecto) === String(p.id));
     const real = num(p.avance);
@@ -589,11 +591,19 @@ function conEstadoProyecto(cuerpo: object, estado: string | null): object {
   return estado === null ? cuerpo : { ...cuerpo, estado_proyecto: estado };
 }
 
-/** RF20: el PersonalTecnico no ve el presupuesto de la obra. */
+/** RF20: el presupuesto de la etapa solo va a quien ve costos. */
+function etapaSegunRol(e: Fila, rol: string): Fila {
+  if (ROLES_VER_COSTOS.includes(rol)) return e;
+  const copia = { ...e };
+  delete copia.presupuesto_base;
+  return copia;
+}
+
+/** RF20: el presupuesto de la obra solo va a quien ve costos. */
 function proyectoSegunRol(p: Fila, rol: string): Fila {
   // El monto certificado a la fecha, como Sgso\Reglas\Certificacion (RF15, D-09).
-  if (rol !== "PersonalTecnico") return { ...p, certificado: redondear((num(p.presupuesto) * num(p.avance)) / 100) };
-  // RF20: ningun importe para el Personal Tecnico.
+  if (ROLES_VER_COSTOS.includes(rol)) return { ...p, certificado: redondear((num(p.presupuesto) * num(p.avance)) / 100) };
+  // RF20: ningun importe para los demas.
   const copia = { ...p };
   delete copia.presupuesto;
   delete copia.certificado;
@@ -1138,6 +1148,7 @@ async function despachar(ruta: string, opciones: RequestInit): Promise<Response>
           db.etapas
             .filter((e) => Number(e.id_planificacion) === idPlan)
             .sort((a, b) => num(a.orden) - num(b.orden))
+            .map((e) => etapaSegunRol(e, rol))
         );
       }
       if (metodo === "POST") {

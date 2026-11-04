@@ -60,6 +60,23 @@ final class AnalisisTest extends CasoConBase
         }
     }
 
+    /** A-15: RF20 es lista blanca, asi que un rol que nadie autorizo tampoco ve plata. */
+    public function testUnRolDesconocidoOSinRolNoRecibeNingunImporte(): void
+    {
+        $idProyecto = $this->obraConImportes();
+
+        foreach (['Auditor', null] as $rol) {
+            $respuesta = $this->resumen($rol);
+
+            self::assertSame(200, $respuesta['codigo']);
+            $obra = $this->obra($respuesta['cuerpo'], $idProyecto);
+            foreach (['presupuesto', 'ejecutado', 'diferencia', 'presupuesto_base_total'] as $clave) {
+                self::assertArrayNotHasKey($clave, $obra, "Sin autorizacion se recibio '{$clave}'");
+            }
+            self::assertStringNotContainsString('987654', (string) json_encode($respuesta['cuerpo']));
+        }
+    }
+
     public function testElPersonalTecnicoSigueViendoElAvanceYLasAlertas(): void
     {
         $idProyecto = $this->obraConImportes();
@@ -354,7 +371,7 @@ final class AnalisisTest extends CasoConBase
     }
 
     /** @return array{codigo: int, cuerpo: mixed} */
-    private function resumen(string $rol): array
+    private function resumen(?string $rol): array
     {
         return $this->capturar(fn () => (new AnalisisController($this->base()))->resumen($rol));
     }
