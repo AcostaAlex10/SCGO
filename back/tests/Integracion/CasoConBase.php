@@ -265,7 +265,14 @@ abstract class CasoConBase extends TestCase
         return (int) $this->base()->lastInsertId();
     }
 
-    /** El estado actual de la obra, que es lo que casi todas estas pruebas miran. */
+    /**
+     * El estado actual de la obra, que es lo que casi todas estas pruebas miran.
+     *
+     * Lee la base en cada llamada: sin `@phpstan-impure`, PHPStan 2.3 da por
+     * hecho que dos llamadas seguidas devuelven lo mismo.
+     *
+     * @phpstan-impure
+     */
     protected function estadoDeLaObra(int $idProyecto): string
     {
         $stmt = $this->base()->prepare('SELECT estado FROM proyecto WHERE id_proyecto = ?');
