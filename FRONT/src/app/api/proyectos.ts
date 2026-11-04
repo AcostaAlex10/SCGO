@@ -34,7 +34,8 @@ export interface EtapaPlanificacion {
   fecha_inicio: string;
   fecha_fin: string;
   orden: number;
-  presupuesto_base: number;
+  // RF20: no le llega a quien no ve costos.
+  presupuesto_base?: number;
 }
 
 export interface Avance {

@@ -197,7 +197,7 @@ $manejadores = [
     'planificacion.eliminar' => fn (array $p, ?array $u) => $planificacion->eliminar($p['id']),
     'planificacion.proyecto.obtener' => fn (array $p, ?array $u) => $planificacion->obtenerPorProyecto($p['id']),
     'planificacion.proyecto.crear' => fn (array $p, ?array $u) => $planificacion->crear($p['id'], leerCuerpoJson()),
-    'etapa.listar' => fn (array $p, ?array $u) => $etapaCtrl->listar($p['id']),
+    'etapa.listar' => fn (array $p, ?array $u) => $etapaCtrl->listar($p['id'], $u['rol'] ?? null),
     'etapa.crear' => fn (array $p, ?array $u) => $etapaCtrl->crear($p['id'], leerCuerpoJson()),
     'etapa.actualizar' => fn (array $p, ?array $u) => $etapaCtrl->actualizar($p['id'], leerCuerpoJson()),
     'etapa.eliminar' => fn (array $p, ?array $u) => $etapaCtrl->eliminar($p['id']),

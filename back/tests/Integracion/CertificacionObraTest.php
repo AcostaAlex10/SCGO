@@ -44,6 +44,22 @@ final class CertificacionObraTest extends CasoConBase
         self::assertStringNotContainsString('987654', $crudo);
     }
 
+    /** A-15: RF20 es lista blanca, en el detalle y en el listado. */
+    public function testUnRolDesconocidoOSinRolNoRecibeCostos(): void
+    {
+        $idProyecto = $this->obra(987654.32, 25);
+
+        foreach (['Auditor', null] as $rol) {
+            $detalle = $this->capturar(fn () => $this->proyectos()->mostrar((string) $idProyecto, $rol))['cuerpo'];
+            $listado = $this->capturar(fn () => $this->proyectos()->listar(null, $rol))['cuerpo'];
+
+            self::assertArrayNotHasKey('presupuesto', $detalle);
+            self::assertArrayNotHasKey('certificado', $detalle);
+            self::assertStringNotContainsString('987654', (string) json_encode($listado));
+            self::assertStringNotContainsString('246913', (string) json_encode($listado));
+        }
+    }
+
     /** El listado tambien lo trae: de ahi sale el grafico de ejecutado del Dashboard. */
     public function testElListadoTraeElMontoYAlTecnicoNo(): void
     {

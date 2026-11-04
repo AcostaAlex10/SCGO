@@ -105,6 +105,26 @@ final class PermisosTest extends TestCase
         self::assertFalse(Permisos::puede(' AdministradorSistema', $roles), $nombre);
     }
 
+    /**
+     * RF20 es una lista blanca: ver costos hay que concederlo. La lista se
+     * escribe aca a mano para que agregar un rol sin decidirlo se ponga rojo.
+     */
+    public function testSoloEstosRolesVenCostos(): void
+    {
+        self::assertSame(
+            ['AdministradorSistema', 'PersonalAdministrativo', 'Gerente'],
+            Permisos::VER_COSTOS
+        );
+        self::assertFalse(Permisos::puede(Permisos::PERSONAL_TECNICO, Permisos::VER_COSTOS));
+    }
+
+    public function testUnRolDesconocidoOSinRolNoVeCostos(): void
+    {
+        self::assertFalse(Permisos::puede('Auditor', Permisos::VER_COSTOS));
+        self::assertFalse(Permisos::puede('', Permisos::VER_COSTOS));
+        self::assertFalse(Permisos::puede(null, Permisos::VER_COSTOS));
+    }
+
     public function testLosCuatroRolesSonLosDelEnum(): void
     {
         self::assertSame(
