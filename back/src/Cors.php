@@ -25,7 +25,8 @@ final class Cors
 {
     /** @var string[] */
     private const ORIGENES_POR_DEFECTO = [
-        'https://ingenieria-en-software-proyecto.vercel.app', // produccion
+        'https://sgsos.vercel.app',                           // produccion
+        'https://ingenieria-en-software-proyecto.vercel.app', // produccion, URL anterior
         'https://*-acostaalex10.vercel.app',                  // previews por rama
         'http://localhost:5173',                              // vite dev
         'http://localhost:4173',                              // vite preview
