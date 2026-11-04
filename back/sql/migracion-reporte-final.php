@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use Sgso\Env;
+use Sgso\Seguridad\OpcionesTls;
 
 /**
  * Agrega reporte.es_final, la marca que distingue el reporte de cierre de la
@@ -43,8 +44,11 @@ $pass = getenv('DB_PASSWORD') ?: '';
 
 $dsn = "mysql:host={$host};port={$port};dbname={$db};charset=utf8mb4";
 $opciones = [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION];
-if (getenv('DB_SSL') === 'true') {
-    $opciones[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+try {
+    $opciones += OpcionesTls::desde(getenv('DB_SSL') ?: null, getenv('DB_SSL_CA') ?: null);
+} catch (RuntimeException $e) {
+    fwrite(STDERR, $e->getMessage() . PHP_EOL);
+    exit(1);
 }
 
 try {

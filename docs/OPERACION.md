@@ -78,6 +78,24 @@ SEED_ADMIN_PASSWORD=una-clave-larga php back/sql/seed.php
 > en el código, y quedó en el historial de git al publicarse el repositorio. Esa
 > cuenta se dio de baja y se reemplazó: la contraseña del historial ya no sirve.
 
+**`DB_SSL_CA`: el certificado que prueba que la base es la base (A-19).** Con
+`DB_SSL=true` la conexión va cifrada y además se verifica el certificado de la
+base contra la CA de Aiven. Sin `DB_SSL_CA` la API **no conecta** (falla cerrado,
+no cae a una conexión sin verificar). El certificado de la CA es público, no una
+credencial; igual no se sube al repositorio.
+
+1. En la consola de Aiven: el servicio de la base → *Overview* → *CA certificate*
+   → descargar `ca.pem`.
+2. En Render: el servicio → *Environment* → *Secret Files* → crear uno con ese
+   contenido, por ejemplo `/etc/secrets/aiven-ca.pem`.
+3. En Render: variable `DB_SSL_CA=/etc/secrets/aiven-ca.pem`.
+4. Para correr scripts desde una PC (`migrar.php`, `seed.php`, las migraciones):
+   `DB_SSL_CA` en `back/.env` apunta a la copia local de `ca.pem`, con la ruta
+   completa. Esa copia queda fuera del repositorio.
+
+Si Aiven cambia la CA del servicio (al recrearlo, o al rotarla), hay que bajar el
+certificado de nuevo y actualizar el Secret File, o la API deja de conectar.
+
 Las únicas contraseñas versionadas a propósito son las del modo de prueba
 (`FRONT/src/app/mock/datos.json`): son ficticias, con dominio `.test`, y no existen
 en ningún sistema real.
@@ -269,6 +287,15 @@ node scripts/demo-un-archivo.mjs      # deja dist/demo.html
 Cosas que ya costaron tiempo. Conviene leerlas antes de repetirlas.
 
 ### Base de datos
+
+**Todos los pedidos que usan la base dan 500 después de activar la verificación
+TLS (A-19).** El log de Render dice `DB_SSL=true requiere DB_SSL_CA` o `DB_SSL_CA
+apunta a un archivo que no existe o no se puede leer`. Falta el Secret File, la
+variable `DB_SSL_CA`, o la ruta no coincide con el nombre del archivo. Se arregla
+cargándolos (ver §2) y redeplegando. Si el mensaje es de conexión y el certificado
+no valida, probablemente Aiven cambió la CA: bajarla de nuevo. Para no llegar
+acá, **primero se carga el archivo y la variable en Render, y recién después se
+mergea**. `/api/health` también cae, porque usa la base.
 
 **`migrar.php` no aplica cambios de tipo de columna.** Solo ejecuta `schema.sql`,
 cuyas tablas usan `CREATE TABLE IF NOT EXISTS`: sobre una base existente no hace

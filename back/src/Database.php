@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace Sgso;
 
 use PDO;
+use Sgso\Seguridad\OpcionesTls;
 
 
 /**
  * Conexion a MariaDB/MySQL mediante PDO (singleton).
  * Lee los datos de conexion de variables de entorno (ver .env.example).
- * En local/on-premise no hace falta SSL; para una base en la nube que
- * lo exija, poner DB_SSL=true.
+ * En local/on-premise no hace falta SSL. Para una base en la nube que lo
+ * exija, DB_SSL=true junto con DB_SSL_CA (ruta al certificado de la CA): se
+ * cifra y se verifica el certificado. Sin DB_SSL_CA falla, no conecta a ciegas.
  */
 final class Database
 {
@@ -37,10 +39,8 @@ final class Database
             PDO::ATTR_EMULATE_PREPARES => false,
         ];
 
-        // Conexion cifrada para bases en la nube que la exigen (ej. Aiven).
-        if (Env::get('DB_SSL', 'false') === 'true') {
-            $opciones[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
-        }
+        // Conexion cifrada y verificada para bases en la nube (ej. Aiven).
+        $opciones += OpcionesTls::desde(Env::get('DB_SSL'), Env::get('DB_SSL_CA'));
 
         self::$pdo = new PDO($dsn, $usuario, $clave, $opciones);
         return self::$pdo;
