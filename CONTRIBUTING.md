@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/tls-base` | `main` @ `b4621dc` (2026-11-04) | A-19: la conexión a la base verifica el certificado con `DB_SSL_CA` y falla cerrado si falta; una prueba recorre `src`, `sql` y `public`. Antes de mergear: el Secret File y `DB_SSL_CA` ya cargados en Render | por abrir |
+| `claude/tls-base` | `main` @ `b4621dc` (2026-11-04) | A-19: la conexión a la base verifica el certificado con `DB_SSL_CA` y falla cerrado si falta; una prueba recorre `src`, `sql` y `public`. Antes de mergear: el Secret File y `DB_SSL_CA` ya cargados en Render | #95 |
 
 ### Reglas
 
