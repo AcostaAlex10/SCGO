@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/rf20-front-lista-blanca` | `main` @ `41c74f8` (2026-11-04) | A-15, el resto: `puedeVerCostos` y el simulador pasan a lista blanca, el contrato controla `/etapas`, y una prueba levanta `index.php` para ver que le pasa el rol al listado de etapas | — |
+| `claude/rf20-front-lista-blanca` | `main` @ `41c74f8` (2026-11-04) | A-15, el resto: `puedeVerCostos` y el simulador pasan a lista blanca, el contrato controla `/etapas`, y una prueba levanta `index.php` para ver que le pasa el rol al listado de etapas | #90 |
 
 ### Reglas
 

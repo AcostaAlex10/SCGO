@@ -86,7 +86,7 @@ día de dependencias.
 | #69 | Marco de proceso basado en CMMI (`docs/PROCESO.md`): criterios del CU y RF en cada PR, plantilla de PR, registro de riesgos (`OPERACION.md` §8) y cinco agentes por rol en `.claude/agents/`. Claude orquesta y delega |
 
 **No queda ningún P0 de seguridad abierto.** De seguridad quedan A-09, A-11 y
-A-12, ninguno bloqueante. A-15 se cerró con los PR #89 (API) y #NN (front y
+A-12, ninguno bloqueante. A-15 se cerró con los PR #89 (API) y #90 (front y
 simulador).
 
 ---
