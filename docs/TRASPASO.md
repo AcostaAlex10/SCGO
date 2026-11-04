@@ -7,8 +7,10 @@ se perdió.** Una sesión nueva empieza leyendo esto.
 - **Actualizado:** 2026-11-04, al cerrar A-15. El 2026-11-03 el producto volvió
   a llamarse **SGSO** (Sistema de Gestión y Seguimiento Operativo de obras,
   DEC-01); el repositorio de GitHub también se renombró a `SGSO`
-- **Base:** `main` @ `44f1853`. **La base de Aiven volvió**:
-  `/api/health` responde `{"status":"ok","db":"ok"}`. **Brevo ya funciona**: Alex
+- **Base:** `main` @ `ee0572d`. **La base de Aiven se volvió a apagar** y se
+  encendió el 2026-11-04 (riesgo R-01): `/api/health` responde
+  `{"status":"ok","db":"ok"}`. **La URL de producción ahora es
+  `https://sgsos.vercel.app`**; la anterior sigue conectada. **Brevo ya funciona**: Alex
   probó la recuperación de contraseña el 2026-10-21 y el correo llegó (sección 3)
 - **Demo de testers:** se publica desde `testing` (decisión del equipo, 2026-09-23).
   Desde el #65 tiene los seis arreglos del informe

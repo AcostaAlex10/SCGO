@@ -9,7 +9,7 @@ costaron tiempo.
 
 | Entorno | URL | Qué es | Se publica desde |
 |---|---|---|---|
-| Producción — sistema | https://ingenieria-en-software-proyecto.vercel.app/ | La aplicación contra la API real | `main` |
+| Producción — sistema | https://sgsos.vercel.app/ (la URL anterior, `ingenieria-en-software-proyecto.vercel.app`, sigue conectada) | La aplicación contra la API real | `main` |
 | Producción — API | https://ingenieria-en-software-proyecto.onrender.com/api | PHP + Apache en Docker | `main` |
 | Producción — base | Aiven | MariaDB / MySQL gestionada, con SSL | — |
 | Demo para testers | https://acostaalex10.github.io/SGSO/ | Frontend sin backend, con datos simulados. Es una versión anterior a la de `main` | `testing` |
@@ -390,7 +390,7 @@ responsable**. Hoy es Alex en todos; cuando se sume alguien al equipo, se repart
 
 | # | Riesgo | Probabilidad | Impacto | Cómo nos enteramos hoy | Qué se hace | Responsable |
 |---|---|---|---|---|---|---|
-| **R-01** | Aiven gratis apaga la base y deja de resolver en el DNS | **Alta**: pasó en octubre de 2026 | **Alto**: ningún pedido que use la base responde | Por un usuario, o por el log de Render (`getaddrinfo ... failed`). Con el monitor de B-04, en minutos | Encender el servicio en la consola de Aiven; si cambió el host, `DB_HOST` en Render. Verificar con `/api/health` | Alex |
+| **R-01** | Aiven gratis apaga la base y deja de resolver en el DNS | **Alta**: pasó en octubre y en noviembre de 2026 | **Alto**: ningún pedido que use la base responde | Por un usuario, o por el log de Render (`getaddrinfo ... failed`). Con el monitor de B-04, en minutos | Encender el servicio en la consola de Aiven; si cambió el host, `DB_HOST` en Render. Verificar con `/api/health` | Alex |
 | **R-02** | Brevo deshabilita la clave de la API | **Media**: pasó en octubre de 2026 | **Medio**: no sale la recuperación de contraseña ni los avisos de incidencias (D-02) | El log de Render: `Mailer: no salió "…"` (A-17) | Reactivar o regenerar la clave y ponerla en `BREVO_API_KEY` en Render | Alex |
 | **R-03** | Render agota las 750 horas del workspace y suspende todo | **Media**: hay otro servicio gratuito en el workspace (`sgso-backend`) | **Alto**: producción suspendida hasta el mes siguiente | Ninguna alerta | Apagar o mover `sgso-backend` **antes** de crear el monitor de B-04 (§5; `TRASPASO.md` §3) | Alex |
 | **R-04** | Se pierden datos y no hay cómo restaurarlos | Baja | **Alto**: Aiven gratis no tiene SLA ni restaura un respaldo en una base nueva | Cuando ya pasó | B-01, atado a DEC-04: plan pago con respaldos y una restauración probada | Alex |
