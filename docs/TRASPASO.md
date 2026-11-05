@@ -4,10 +4,10 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-11-04, al abrir D-13 (#94), con el comodín de CORS de las previews ya mergeado (#93). El 2026-11-03 el producto volvió
+- **Actualizado:** 2026-11-05, al mergear D-13 (#94), con la migración ya corrida en Aiven. El 2026-11-03 el producto volvió
   a llamarse **SGSO** (Sistema de Gestión y Seguimiento Operativo de obras,
   DEC-01); el repositorio de GitHub también se renombró a `SGSO`
-- **Base:** `main` @ `b4621dc` (2026-11-04). **La base de Aiven se volvió a apagar** y se
+- **Base:** `main` @ `841c105` (2026-11-05). **La base de Aiven se volvió a apagar** y se
   encendió el 2026-11-04 (riesgo R-01): `/api/health` responde
   `{"status":"ok","db":"ok"}`. **La URL de producción ahora es
   `https://sgsos.vercel.app`**; la anterior sigue conectada. **Brevo ya funciona**: Alex
@@ -96,12 +96,12 @@ simulador).
 
 ### El comodín de CORS de las previews
 
-Mergeado en el #93 y activo en producción: el comodín anterior aceptaba
+Hecho en el PR #93, activo en producción: el comodín anterior aceptaba
 `https://evil-acostaalex10.vercel.app` y rechazaba las previews reales. Ahora el
 patrón es `https://sgso-*-acostaalex10s-projects.vercel.app`, con el `*` limitado a
 una etiqueta DNS. Queda el riesgo R-08 de `OPERACION.md` §8: el patrón limita la
-forma del origen, pero no prueba quién lo controla. Mirar en Render que
-`CORS_ORIGIN` no use `*` ni un comodín de varias etiquetas, que dejan de valer.
+forma del origen, pero no prueba quién lo controla. En Render, `CORS_ORIGIN` tiene
+solo `https://sgsos.vercel.app` (Alex lo confirmó el 2026-11-04).
 
 ### La base volvió y el correo anda
 
@@ -133,19 +133,15 @@ uno que ya sea admin. **Pega contra producción**, porque `back/.env` apunta ah�
 Esto no se arregla con código, y **ninguna credencial pasa por el chat ni por el
 repositorio**.
 
+### La conexión a la base verifica el certificado (A-19)
+
+Hecho en los PR #95 y #97. La API usa `DB_SSL_CA` y, si falta la CA, no conecta. El
+#95 dejó la API en 500 del 2026-11-04 22:14 a 23:01 UTC: Apache no podía leer el
+Secret File de Render. El #97 hace que el arranque copie la CA a una ruta legible.
+Riesgo R-10 de `OPERACION.md` §8.
+
 ### PR abiertos
 
-- **#94 (`claude/d13-consumo-esperado`): D-13, consumo esperado por máquina.**
-  Columna opcional `maquinaria.consumo_esperado_por_hora`, alerta de consumo
-  contra lo esperado y ventana de 30 días. **No se mergea sin migrar antes**:
-  alguien del equipo corre `php back/sql/migracion-consumo-esperado.php` con las
-  credenciales de Aiven y `DB_SSL_CA` apuntando a la copia local de la CA
-  (idempotente, no toca datos). Si se despliega sin la
-  columna caen `GET /api/analisis`, `GET /api/maquinaria`,
-  `GET /api/maquinaria/{id}/registros`, `POST /api/maquinaria` y
-  `PUT /api/maquinaria/{id}` (riesgo R-09 de `OPERACION.md`). Después hay que
-  cargar el consumo esperado de las máquinas reales; hasta entonces RF24 sigue
-  parcial.
 - **#77 (`claude/requerimientos-excluidos`): lo que quedó afuera del sistema.**
   RF34 propuesto (D-24), pagos, facturación y ARCA fuera, reglas de alerta a
   validar, RNF como metas y la guía de entrevistas. Ver más abajo.
@@ -253,9 +249,8 @@ tres cosas:
   obra nueva arranca `creada`; las que ya existían no se tocaron. Pasarlas a
   `creada` es una migración de datos: la consulta está en el PR #47.
 - **D-13:** las decisiones ya se tomaron (consumo esperado opcional por máquina,
-  ventana de 30 días) y el código está en el PR #94, pero no está terminado: falta
-  correr `back/sql/migracion-consumo-esperado.php` en Aiven antes de desplegar y
-  cargar el consumo esperado de las máquinas reales. RF24 sigue parcial hasta
+  ventana de 30 días) y el código está mergeado en el PR #94, con la migración corrida en Aiven.
+  Falta cargar el consumo esperado de las máquinas reales. RF24 sigue parcial hasta
   entonces.
 - **D-12:** la asistencia duplicada depende de si hay turnos.
 - **DEC-04** sigue postergada hasta que se cierre la posible venta. De ella
@@ -288,7 +283,7 @@ tres cosas:
 - **DEC-03 → D-01:** documentos como archivos. DEC-03 es una decisión del equipo.
 - **D-05** (registro de cambios): pide una tabla nueva, o sea una migración, así
   que se pregunta antes.
-- **D-12**, que espera una decisión del equipo (ver arriba), y **D-13**, cuyo código está en el PR #94 y espera la migración en Aiven y la carga de datos.
+- **D-12**, que espera una decisión del equipo (ver arriba), y **D-13**, mergeado en el PR #94 con la migración corrida en Aiven: espera la carga de datos reales.
 
 ---
 
