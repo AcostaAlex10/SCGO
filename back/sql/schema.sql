@@ -249,12 +249,17 @@ CREATE TABLE IF NOT EXISTS item_excedente (
 --  Sprint 6 (opcional) - Gestion de Maquinaria
 -- ============================================================
 
--- Registro de equipos/maquinaria (catalogo).
+-- Registro de equipos/maquinaria (catalogo). `consumo_esperado_por_hora` son
+-- litros por hora y es opcional (D-13, RF24): con dato, la alerta de consumo
+-- compara contra el, y sin dato, contra el promedio de la maquina. En una base
+-- que ya existe esta columna no aparece sola: la agrega
+-- back/sql/migracion-consumo-esperado.php.
 CREATE TABLE IF NOT EXISTS maquinaria (
   id_maquinaria INT AUTO_INCREMENT PRIMARY KEY,
   nombre        VARCHAR(120) NOT NULL,
   tipo          VARCHAR(80) NOT NULL,
-  activa        TINYINT(1) NOT NULL DEFAULT 1
+  activa        TINYINT(1) NOT NULL DEFAULT 1,
+  consumo_esperado_por_hora DECIMAL(8,2) NULL DEFAULT NULL
 );
 
 -- Uso diario de cada maquina (RF23): horas, combustible, produccion y

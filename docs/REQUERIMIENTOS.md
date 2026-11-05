@@ -186,7 +186,7 @@ surgió del relevamiento pero todavía no lo aceptó Triwe.
 | RF21 | permitir revisar, editar y aprobar reportes antes de emitir informes definitivos | Importante | Cumplido | `ReporteController`, `Sgso\Reglas\CicloDeVida` |
 | RF22 | permitir registrar ítems o excedentes no contemplados | Secundaria | Cumplido | `ItemExcedenteController` |
 | RF23 | registrar el rendimiento de maquinaria: horas, combustible y producción | Importante | Cumplido | `MaquinariaController` |
-| RF24 | comparar el consumo con el rendimiento esperado y alertar ante desvíos | Importante | **Parcial** | `AlertasPage`, `MaquinariaPage`; ver desvío 2 |
+| RF24 | comparar el consumo con el rendimiento esperado y alertar ante desvíos | Importante | **Parcial** | `Sgso\Reglas\ConsumoMaquinaria`, `AlertasPage`, `MaquinariaPage`: el código compara contra el consumo esperado de cada máquina (D-13), pero falta correr la migración en Aiven y cargar el dato de las máquinas reales; ver desvío 2 |
 | RF25 | permitir registrar períodos de inactividad con su motivo | Importante | Cumplido | `InactividadController`, `Sgso\Reglas\CicloDeVida` |
 | RF26 | clasificar incidencias por gravedad para activar protocolos de notificación | Secundaria | Cumplido | `IncidenciaController`, `Sgso\Reglas\ProtocoloIncidencias`: alta avisa por correo a Gerentes y Personal Administrativo; media, al Personal Administrativo; baja no avisa |
 | RF27 | mantener el historial de fallas y reemplazos de cada máquina | Importante | Cumplido | `MaquinariaController`: una falla se marca resuelta o se reabre sin borrarla |
@@ -242,7 +242,7 @@ falta pasar de enlaces a archivos (desvío 1, plan: DEC-03 y D-01).
 | RF20 — costos ocultos a quien no está en la lista blanca | `back/tests/Reglas/PermisosTest.php`, `back/tests/Integracion/AnalisisTest.php`, `back/tests/Integracion/EtapaPlanificacionTest.php`, `back/tests/Integracion/RutaDeEtapasTest.php` (backend), `FRONT/scripts/pruebas/humo.mjs` (pantallas), `FRONT/scripts/pruebas/contrato.mjs` (simulador y tablero) |
 | RF22 — ítems excedentes | `back/tests/Integracion/ItemExcedenteTest.php` |
 | RF23, RF24, RF27 y RF28 — uso de maquinaria sin valores negativos, alerta de consumo, fallas y rendimiento por operario | `back/tests/Integracion/MaquinariaTest.php`, `FRONT/scripts/pruebas/contrato.mjs` |
-| RF24 — la alerta de consumo en Alertas, con la misma regla que el listado de la máquina | `back/tests/Reglas/ConsumoMaquinariaTest.php`, `back/tests/Integracion/AnalisisTest.php`, `FRONT/scripts/pruebas/contrato.mjs` |
+| RF24 — la alerta de consumo en Alertas, con la misma regla que el listado de la máquina; el consumo esperado y la ventana de 30 días (D-13) | `back/tests/Reglas/ConsumoMaquinariaTest.php`, `back/tests/Integracion/MaquinariaTest.php`, `back/tests/Integracion/AnalisisTest.php`, `back/tests/Ruteo/TablaTest.php`, `FRONT/scripts/pruebas/contrato.mjs` |
 | HU16 — gestión de cuentas: nunca sin un administrador activo | `back/tests/Integracion/UsuarioTest.php` |
 | RNF06 y A-14 — una baja, un cambio de rol, un restablecimiento o un login en otro lado cortan la sesión | `back/tests/Integracion/RevocacionDeSesionTest.php` |
 | RNF08 y C-03 — los listados que crecen se paginan a pedido, con el total real | `back/tests/Integracion/PaginacionTest.php`, `back/tests/Http/PaginacionTest.php`, `back/tests/Http/CorsTest.php`, `FRONT/scripts/pruebas/contrato.mjs` |
@@ -293,13 +293,20 @@ pueden demostrar.
    Render no conserva archivos entre reinicios, así que se optó por referenciar una
    URL externa. Se resuelve con almacenamiento de objetos (plan: DEC-03 y D-01). Hoy
    esta limitación además abre un agujero de seguridad (plan: A-01).
-2. **RF24 — la alerta de consumo compara la máquina consigo misma.** Cada
-   registro de uso se compara con el promedio histórico de su máquina y alerta si
-   lo supera en más de 1,5 veces (`Sgso\Reglas\ConsumoMaquinaria`). La alerta
-   aparece en el listado de la máquina y en Alertas (D-03). Pero RF24 pide
-   compararlo con el rendimiento esperado, y ese dato no se guarda: una máquina que
-   siempre consume de más nunca alerta, porque no se aparta de su propio promedio,
-   y un registro anómalo alerta para siempre (plan: D-13).
+2. **RF24 — la alerta de consumo solo compara con lo esperado si alguien carga
+   ese dato.** Cada registro de uso se compara con una referencia y alerta si la
+   supera en más de 1,5 veces (`Sgso\Reglas\ConsumoMaquinaria`): el consumo
+   esperado de la máquina (`maquinaria.consumo_esperado_por_hora`, en litros por
+   hora, opcional, lo cargan Administración y el administrador del sistema) si lo
+   tiene, y si no, el promedio de todos sus registros. Solo alertan los registros de
+   los últimos 30 días, con el borde inclusivo (D-13); la ventana no achica el
+   promedio. La alerta aparece en el listado de la máquina y en Alertas (D-03).
+   Queda pendiente, para que este desvío se cierre: correr
+   `back/sql/migracion-consumo-esperado.php` en Aiven antes de desplegar, y cargar
+   el consumo esperado de cada máquina real desde la pantalla de Maquinaria. Hasta
+   entonces cada máquina sigue comparándose contra su propio promedio, y una que
+   siempre consume de más no alerta. Con la ventana, además, un registro anómalo
+   deja de alertar a los 30 días; "dar por vista" una alerta no existe.
 3. **RF13 — "ejecutado" es una estimación, no el gasto real.** RF13 pide la
    diferencia entre el presupuesto y los gastos reales ejecutados, pero el sistema
    no registra ningún gasto: los materiales no tienen precio y la asistencia no
