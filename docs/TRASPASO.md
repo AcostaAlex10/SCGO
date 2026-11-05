@@ -4,10 +4,10 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-11-04, al corregir el comodín de CORS de las previews. El 2026-11-03 el producto volvió
+- **Actualizado:** 2026-11-05, al mergear D-13 (#94), con la migración ya corrida en Aiven. El 2026-11-03 el producto volvió
   a llamarse **SGSO** (Sistema de Gestión y Seguimiento Operativo de obras,
   DEC-01); el repositorio de GitHub también se renombró a `SGSO`
-- **Base:** `main` @ `1b4a55e`. **La base de Aiven se volvió a apagar** y se
+- **Base:** `main` @ `841c105` (2026-11-05). **La base de Aiven se volvió a apagar** y se
   encendió el 2026-11-04 (riesgo R-01): `/api/health` responde
   `{"status":"ok","db":"ok"}`. **La URL de producción ahora es
   `https://sgsos.vercel.app`**; la anterior sigue conectada. **Brevo ya funciona**: Alex
@@ -248,9 +248,10 @@ tres cosas:
 - **Obras viejas en `planificacion` sin planificación.** Desde D-04 (#47) toda
   obra nueva arranca `creada`; las que ya existían no se tocaron. Pasarlas a
   `creada` es una migración de datos: la consulta está en el PR #47.
-- **D-13:** la alerta de consumo compara cada máquina consigo misma. Hace falta
-  guardar un consumo esperado por máquina (migración) y decidir una ventana de
-  fechas.
+- **D-13:** las decisiones ya se tomaron (consumo esperado opcional por máquina,
+  ventana de 30 días) y el código está mergeado en el PR #94, con la migración corrida en Aiven.
+  Falta cargar el consumo esperado de las máquinas reales. RF24 sigue parcial hasta
+  entonces.
 - **D-12:** la asistencia duplicada depende de si hay turnos.
 - **DEC-04** sigue postergada hasta que se cierre la posible venta. De ella
   dependen B-01 y B-02.
@@ -282,7 +283,7 @@ tres cosas:
 - **DEC-03 → D-01:** documentos como archivos. DEC-03 es una decisión del equipo.
 - **D-05** (registro de cambios): pide una tabla nueva, o sea una migración, así
   que se pregunta antes.
-- **D-12** y **D-13**, que esperan decisiones del equipo (ver arriba).
+- **D-12**, que espera una decisión del equipo (ver arriba), y **D-13**, mergeado en el PR #94 con la migración corrida en Aiven: espera la carga de datos reales.
 
 ---
 

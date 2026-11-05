@@ -259,10 +259,10 @@ final class AnalisisTest extends CasoConBase
     {
         $idObra = $this->crearProyecto('en_ejecucion', 'Obra Norte');
         $idMaquina = $this->crearMaquina('Retroexcavadora');
-        $this->cargarUso($idMaquina, '2026-03-01', 1, 10, $idObra);
-        $this->cargarUso($idMaquina, '2026-03-02', 1, 10, $idObra);
+        $this->cargarUso($idMaquina, $this->fechaHace(3), 1, 10, $idObra);
+        $this->cargarUso($idMaquina, $this->fechaHace(2), 1, 10, $idObra);
         // Promedio 20 l/h: 40 l/h supera el umbral de 30.
-        $this->cargarUso($idMaquina, '2026-03-03', 1, 40, $idObra);
+        $this->cargarUso($idMaquina, $this->fechaHace(1), 1, 40, $idObra);
 
         $alertas = $this->alertasDeMaquinaria($this->resumen('Gerente')['cuerpo']);
 
@@ -270,7 +270,12 @@ final class AnalisisTest extends CasoConBase
         self::assertSame('Retroexcavadora', $alertas[0]['maquina']);
         self::assertSame('Obra Norte', $alertas[0]['proyecto']);
         self::assertSame('media', $alertas[0]['gravedad']);
-        self::assertStringContainsString('03/03/2026', $alertas[0]['mensaje']);
+        self::assertStringContainsString(date('d/m/Y', strtotime($this->fechaHace(1))), $alertas[0]['mensaje']);
+        self::assertSame(
+            'Un registro de uso, del ' . date('d/m/Y', strtotime($this->fechaHace(1)))
+                . ', consumió más de 1,5 veces el combustible por hora promedio de la máquina.',
+            $alertas[0]['mensaje']
+        );
     }
 
     /** Una alerta por maquina, no una por registro: con cuantos son y el ultimo. */
@@ -279,26 +284,26 @@ final class AnalisisTest extends CasoConBase
         $idObra = $this->crearProyecto('en_ejecucion', 'Obra Sur');
         $idMaquina = $this->crearMaquina('Grua');
         for ($dia = 1; $dia <= 6; $dia++) {
-            $this->cargarUso($idMaquina, "2026-04-0{$dia}", 1, 10, $idObra);
+            $this->cargarUso($idMaquina, $this->fechaHace(20 - $dia), 1, 10, $idObra);
         }
         // Promedio 140 / 8 = 17,5 l/h: el umbral es 26,25 y los dos de 40 lo superan.
-        $this->cargarUso($idMaquina, '2026-04-10', 1, 40, $idObra);
-        $this->cargarUso($idMaquina, '2026-04-08', 1, 40, $idObra);
+        $this->cargarUso($idMaquina, $this->fechaHace(3), 1, 40, $idObra);
+        $this->cargarUso($idMaquina, $this->fechaHace(5), 1, 40, $idObra);
 
         $alertas = $this->alertasDeMaquinaria($this->resumen('Gerente')['cuerpo']);
 
         self::assertCount(1, $alertas);
         self::assertStringContainsString('2 registros', $alertas[0]['mensaje']);
-        self::assertStringContainsString('10/04/2026', $alertas[0]['mensaje']);
+        self::assertStringContainsString(date('d/m/Y', strtotime($this->fechaHace(3))), $alertas[0]['mensaje']);
     }
 
     public function testUnaMaquinaSinDesviosNoAlerta(): void
     {
         $idMaquina = $this->crearMaquina('Hormigonera');
-        $this->cargarUso($idMaquina, '2026-03-01', 2, 20);
-        $this->cargarUso($idMaquina, '2026-03-02', 1, 12);
+        $this->cargarUso($idMaquina, $this->fechaHace(3), 2, 20);
+        $this->cargarUso($idMaquina, $this->fechaHace(2), 1, 12);
         // Una carga sin horas no consume por hora: no alerta ni corre el promedio.
-        $this->cargarUso($idMaquina, '2026-03-03', 0, 50);
+        $this->cargarUso($idMaquina, $this->fechaHace(1), 0, 50);
 
         self::assertSame([], $this->alertasDeMaquinaria($this->resumen('Gerente')['cuerpo']));
     }
@@ -307,9 +312,9 @@ final class AnalisisTest extends CasoConBase
     public function testElUsoSinObraAlertaSinProyecto(): void
     {
         $idMaquina = $this->crearMaquina('Compactadora');
-        $this->cargarUso($idMaquina, '2026-03-01', 1, 10);
-        $this->cargarUso($idMaquina, '2026-03-02', 1, 10);
-        $this->cargarUso($idMaquina, '2026-03-03', 1, 40);
+        $this->cargarUso($idMaquina, $this->fechaHace(3), 1, 10);
+        $this->cargarUso($idMaquina, $this->fechaHace(2), 1, 10);
+        $this->cargarUso($idMaquina, $this->fechaHace(1), 1, 40);
 
         $alertas = $this->alertasDeMaquinaria($this->resumen('PersonalTecnico')['cuerpo']);
 
@@ -326,7 +331,7 @@ final class AnalisisTest extends CasoConBase
         $idMaquina = $this->crearMaquina('Topadora');
         // Promedio 210 / 14 = 15 l/h y umbral 22,5: superan el de 30 y el de 31; el de 20 no.
         foreach ([[4, 40], [2, 20], [1, 10], [1, 30], [3, 60], [1, 31], [2, 19]] as $i => [$horas, $litros]) {
-            $this->cargarUso($idMaquina, '2026-05-0' . ($i + 1), $horas, $litros);
+            $this->cargarUso($idMaquina, $this->fechaHace(7 - $i), $horas, $litros);
         }
 
         $listado = $this->capturar(fn () => (new MaquinariaController($this->base()))->listarRegistros((string) $idMaquina))['cuerpo'];
@@ -336,6 +341,97 @@ final class AnalisisTest extends CasoConBase
         self::assertSame(2, $marcados);
         self::assertCount(1, $alertas);
         self::assertStringContainsString("{$marcados} registros", $alertas[0]['mensaje']);
+    }
+
+    /** D-13: con consumo esperado, la alerta compara contra el y lo dice en el texto. */
+    public function testElFeedComparaContraElEsperadoYLoDiceEnElTexto(): void
+    {
+        $idMaquina = $this->crearMaquina('Retroexcavadora', 8);
+        // Siempre 16 L/h: contra su promedio nunca alertaria, contra los 8 esperados (umbral 12) siempre.
+        $this->cargarUso($idMaquina, $this->fechaHace(3), 1, 16);
+        $this->cargarUso($idMaquina, $this->fechaHace(2), 1, 16);
+        $this->cargarUso($idMaquina, $this->fechaHace(1), 1, 16);
+
+        $alertas = $this->alertasDeMaquinaria($this->resumen('Gerente')['cuerpo']);
+
+        self::assertCount(1, $alertas);
+        self::assertSame(
+            '3 registros de uso consumieron más de 1,5 veces el combustible por hora esperado de la máquina (8 L/h)'
+                . '; el último, del ' . date('d/m/Y', strtotime($this->fechaHace(1))) . '.',
+            $alertas[0]['mensaje']
+        );
+    }
+
+    public function testUnaMaquinaQueSiempreConsumeElDobleSinDatoEsperadoNoAlerta(): void
+    {
+        $idMaquina = $this->crearMaquina('Sin dato');
+        foreach ([3, 2, 1] as $dias) {
+            $this->cargarUso($idMaquina, $this->fechaHace($dias), 1, 16);
+        }
+
+        self::assertSame([], $this->alertasDeMaquinaria($this->resumen('Gerente')['cuerpo']));
+    }
+
+    /** Un registro anomalo fuera de la ventana no cuenta en el feed; el de hace 30 dias, si. */
+    public function testElFeedSoloCuentaLosRegistrosDeLosUltimosTreintaDias(): void
+    {
+        $idMaquina = $this->crearMaquina('Con ventana', 8);
+        $this->cargarUso($idMaquina, $this->fechaHace(31), 1, 40);
+        $this->cargarUso($idMaquina, $this->fechaHace(30), 1, 40);
+        $this->cargarUso($idMaquina, $this->fechaHace(45), 1, 40);
+
+        $alertas = $this->alertasDeMaquinaria($this->resumen('Gerente')['cuerpo']);
+
+        self::assertCount(1, $alertas);
+        self::assertStringContainsString('Un registro de uso, del ' . date('d/m/Y', strtotime($this->fechaHace(30))), $alertas[0]['mensaje']);
+    }
+
+    public function testSiTodosLosRegistrosAnomalosSalieronDeLaVentanaNoHayAlerta(): void
+    {
+        $idMaquina = $this->crearMaquina('Vieja', 8);
+        $this->cargarUso($idMaquina, $this->fechaHace(31), 1, 40);
+        $this->cargarUso($idMaquina, $this->fechaHace(90), 1, 40);
+
+        self::assertSame([], $this->alertasDeMaquinaria($this->resumen('Gerente')['cuerpo']));
+    }
+
+    /** Con dato esperado, feed y listado de la maquina siguen diciendo lo mismo. */
+    public function testConDatoEsperadoElFeedYElListadoTambienCoinciden(): void
+    {
+        $idMaquina = $this->crearMaquina('Con dato', 10);
+        // Umbral 15: superan el de 16 y el de 30; el de 15 justo no; el viejo esta fuera de la ventana.
+        foreach ([[1, 16, 2], [1, 30, 3], [1, 15, 4], [1, 12, 5], [1, 50, 40]] as [$horas, $litros, $dias]) {
+            $this->cargarUso($idMaquina, $this->fechaHace($dias), $horas, $litros);
+        }
+
+        $listado = $this->capturar(fn () => (new MaquinariaController($this->base()))->listarRegistros((string) $idMaquina))['cuerpo'];
+        $marcados = count(array_filter($listado, fn (array $r): bool => $r['alerta_consumo']));
+        $alertas = $this->alertasDeMaquinaria($this->resumen('Gerente')['cuerpo']);
+
+        self::assertSame(2, $marcados);
+        self::assertCount(1, $alertas);
+        self::assertStringContainsString("{$marcados} registros", $alertas[0]['mensaje']);
+    }
+
+    /**
+     * RF24 (D-13), hallazgo del revisor: sin dato esperado, listado y feed
+     * tienen que contar lo mismo aunque sumen distinto. El listado suma en SQL
+     * (decimales exactos: 40,60) y el feed en PHP (10,1 + 10,2 + 20,3 da
+     * 40,599999...): el registro de 20,3 L queda justo en el umbral para uno y
+     * por encima para el otro.
+     */
+    public function testSinEsperadoElFeedYElListadoCuentanLoMismoConSumasDeDecimales(): void
+    {
+        $idMaquina = $this->crearMaquina('Sumas con decimales');
+        foreach ([[10.1, 3], [10.2, 2], [20.3, 1]] as [$litros, $dias]) {
+            $this->cargarUso($idMaquina, $this->fechaHace($dias), 1, $litros);
+        }
+
+        $listado = $this->capturar(fn () => (new MaquinariaController($this->base()))->listarRegistros((string) $idMaquina))['cuerpo'];
+        $marcados = count(array_filter($listado, fn (array $r): bool => $r['alerta_consumo']));
+        $alertas = $this->alertasDeMaquinaria($this->resumen('Gerente')['cuerpo']);
+
+        self::assertCount($marcados === 0 ? 0 : 1, $alertas, "el listado marca {$marcados} registros");
     }
 
     // ----------------------------------------------------------------
@@ -390,9 +486,10 @@ final class AnalisisTest extends CasoConBase
         self::fail("La obra {$idProyecto} no esta en el resumen");
     }
 
-    private function crearMaquina(string $nombre): int
+    private function crearMaquina(string $nombre, ?float $esperado = null): int
     {
-        $this->base()->prepare("INSERT INTO maquinaria (nombre, tipo) VALUES (?, 'Movimiento de suelos')")->execute([$nombre]);
+        $this->base()->prepare("INSERT INTO maquinaria (nombre, tipo, consumo_esperado_por_hora) VALUES (?, 'Movimiento de suelos', ?)")
+            ->execute([$nombre, $esperado]);
         return (int) $this->base()->lastInsertId();
     }
 

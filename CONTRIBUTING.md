@@ -182,6 +182,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/cors-previews-vercel` | CORS: el comodín de previews pasa a la forma real, `sgso-*-acostaalex10s-projects.vercel.app`, y su `*` cubre una sola etiqueta DNS. Limita la forma, no prueba quién controla el dominio (R-08) | PR #93 |
 | `claude/tls-base` | A-19: la conexión a la base verifica el certificado con `DB_SSL_CA` y falla cerrado si falta; una prueba recorre `src`, `sql` y `public`. Antes de mergear: el Secret File y `DB_SSL_CA` ya cargados en Render | PR #95 |
 | `claude/tls-ca-legible` | La API no podía leer la CA del Secret File de Render y producción quedó en 500: el arranque la copia a una ruta legible | PR #97 |
+| `claude/d13-consumo-esperado` | D-13 (RF24): consumo esperado por hora en cada máquina, opcional, con la alerta de consumo comparada contra él y una ventana de 30 días; script `migracion-consumo-esperado.php` | PR #94 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
 
 ### Dos cosas que no conviene repetir

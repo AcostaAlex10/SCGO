@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Sgso\Tests\Integracion;
 
+use DateTimeImmutable;
+use DateTimeZone;
 use PDO;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use Sgso\Reglas\ConsumoMaquinaria;
 
 /**
  * Base de las pruebas de integracion (ADR-001 fase 2b).
@@ -173,6 +176,18 @@ abstract class CasoConBase extends TestCase
     // ----------------------------------------------------------------
     //  Datos de prueba
     // ----------------------------------------------------------------
+
+    /**
+     * La fecha de hace `$dias` dias, `YYYY-MM-DD`, en la zona local del producto.
+     * La ventana de la alerta de consumo (D-13) cuenta desde hoy, asi que las
+     * pruebas que dependen de ella no pueden usar fechas fijas.
+     */
+    protected function fechaHace(int $dias): string
+    {
+        return (new DateTimeImmutable('today', new DateTimeZone(ConsumoMaquinaria::ZONA)))
+            ->modify("-{$dias} days")
+            ->format('Y-m-d');
+    }
 
     protected function crearUsuario(string $rol = 'AdministradorSistema'): int
     {

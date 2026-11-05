@@ -163,13 +163,20 @@ export interface ItemExcedente {
   motivo: string | null;
 }
 
+/** Un error de la API. Si fue un 422, `errores` trae el mensaje de cada campo. */
+export class ErrorDeApi extends Error {
+  constructor(mensaje: string, readonly errores?: Record<string, string>) {
+    super(mensaje);
+  }
+}
+
 async function parse<T>(res: Response): Promise<T> {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     const d = data as { error?: string; errors?: Record<string, string> };
     // Errores por campo (422): los unimos en un mensaje legible.
     const porCampo = d.errors ? Object.values(d.errors).join(". ") : null;
-    throw new Error(d.error ?? porCampo ?? "Error en la solicitud");
+    throw new ErrorDeApi(d.error ?? porCampo ?? "Error en la solicitud", d.errors);
   }
   return data as T;
 }
@@ -466,6 +473,8 @@ export async function obtenerAnalisis(): Promise<Analisis> {
 // ---------- Maquinaria (RF23/RF24/RF27/RF28) ----------
 export interface Maquinaria {
   id_maquinaria: number; nombre: string; tipo: string; activa: boolean;
+  // Litros por hora que se esperan de la maquina (D-13), o null si no tiene dato.
+  consumo_esperado_por_hora: number | null;
   horas: number; combustible: number; produccion: number;
   combustible_por_hora: number; produccion_por_hora: number; fallas_abiertas: number;
 }
@@ -473,6 +482,7 @@ export interface RegistroMaquinaria {
   id_registro: number; id_maquinaria: number; id_proyecto: number | null; fecha: string;
   operario: string | null; horas_uso: number; combustible_consumido: number;
   produccion_realizada: number; combustible_por_hora: number; alerta_consumo: boolean;
+  consumo_esperado_por_hora: number | null;
 }
 export interface FallaMaquinaria {
   id_falla: number; id_maquinaria: number; fecha: string; componente: string | null;
@@ -485,8 +495,17 @@ export interface RendimientoOperario {
 export async function listarMaquinaria(): Promise<Maquinaria[]> {
   return parse(await apiFetch(`/maquinaria`));
 }
-export async function crearMaquinaria(datos: { nombre: string; tipo: string }): Promise<Maquinaria> {
+export async function crearMaquinaria(
+  datos: { nombre: string; tipo: string; consumo_esperado_por_hora?: number }
+): Promise<Maquinaria> {
   return parse(await apiFetch(`/maquinaria`, { method: "POST", body: JSON.stringify(datos) }));
+}
+/** Carga, cambia o borra (null) el consumo esperado de una maquina (D-13). Solo cambia ese dato. */
+export async function actualizarConsumoEsperado(
+  id: number,
+  consumo_esperado_por_hora: number | null
+): Promise<{ id_maquinaria: number; consumo_esperado_por_hora: number | null }> {
+  return parse(await apiFetch(`/maquinaria/${id}`, { method: "PUT", body: JSON.stringify({ consumo_esperado_por_hora }) }));
 }
 export async function eliminarMaquinaria(id: number): Promise<void> {
   await parse(await apiFetch(`/maquinaria/${id}`, { method: "DELETE" }));

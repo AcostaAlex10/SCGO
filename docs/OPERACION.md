@@ -315,6 +315,24 @@ nada. Un cambio de tipo necesita su propio script con el `ALTER`, como
 `migracion-estado-enum.php`. Por eso el esquema del repositorio y el de Aiven
 pueden no coincidir.
 
+**Las columnas nuevas se agregan con su script, y antes de desplegar.** El que
+corresponde a D-13 (RF24) es `back/sql/migracion-consumo-esperado.php`: agrega
+`maquinaria.consumo_esperado_por_hora` y no toca ningún valor. Se puede correr más
+de una vez (si la columna existe, no hace nada). El orden importa: **primero
+migrar y después desplegar la API**, porque el código nuevo lee la columna y, sin
+ella, caen `GET /api/analisis` (para todos los roles: el Tablero y las Alertas),
+`GET /api/maquinaria`, `GET /api/maquinaria/{id}/registros`, `POST /api/maquinaria` y
+`PUT /api/maquinaria/{id}`. Se corre con las credenciales de Aiven en
+`back/.env` (o en las variables `DB_*`):
+
+```bash
+php back/sql/migracion-consumo-esperado.php
+```
+
+Después hay que cargar el consumo esperado de cada máquina real desde la pantalla
+de Maquinaria; hasta entonces las alertas comparan contra el promedio, como antes.
+Es el mismo patrón que `migracion-reporte-final.php` y `migracion-estado-enum.php`.
+
 **El antivirus borra los scripts PHP que se conectan a la base.** `migrar.php` y
 similares desaparecen del árbol de trabajo. Están versionados: si falta uno,
 `git checkout` sobre ese archivo, y cuidado con un `git add -A` a ciegas.
@@ -437,4 +455,5 @@ responsable**. Hoy es Alex en todos; cuando se sume alguien al equipo, se repart
 | **R-06** | Una credencial o un dato de Triwe entra al repositorio, que es público | Baja | **Alto**: queda visible para cualquiera (DEC-07) | Revisando el PR | Rotar la credencial en el momento: borrarla del historial no alcanza, porque ya pudo copiarse | Alex |
 | **R-07** | El simulador acepta datos que la API rechaza | **Alta**: pasó tres veces | **Medio**: la demo de los testers muestra algo que el sistema real no hace | Los testers, o una suite de Playwright | Tocar las dos validaciones juntas (§7, "Modo de prueba"); C-02 lo corta de raíz | Alex |
 | **R-08** | Otra cuenta de Vercel consigue un subdominio con la forma de una preview (`sgso-*-acostaalex10s-projects.vercel.app`) y `back/src/Cors.php` lo acepta. Por ejemplo, el proyecto `sgso` de un equipo con slug `evil-acostaalex10s-projects`. `vercel.app` es compartido y la documentación de Vercel no dice que ese sufijo esté reservado; no se probó, porque haría falta crear un proyecto en una cuenta ajena. Ningún patrón lo evita: una rama puede llamarse `main-evil` | Baja | **Bajo mientras no haya credenciales de navegador**: no hay cookies ni `Allow-Credentials`, y el JWT vive en `localStorage` del origen propio, así que esa página no recibe ninguna sesión. Pasar el token a cookie (A-09) lo vuelve **alto** | Ninguna alerta | Si se agregan cookies o `Allow-Credentials`, sacar el comodín antes: nombrar cada preview en `CORS_ORIGIN`, o pasar las previews a un dominio propio con Preview Deployment Suffix (plan Pro) | Alex |
+| **R-09** | Se despliega la API de D-13 (o una posterior que lea `maquinaria.consumo_esperado_por_hora`) antes de correr `back/sql/migracion-consumo-esperado.php` en Aiven | Media: Render despliega solo al mergear a `main`, y la migración la corre una persona a mano | **Alto**: sin la columna caen `GET /api/analisis` (el Tablero y las Alertas, para todos los roles), `GET /api/maquinaria`, `GET /api/maquinaria/{id}/registros`, `POST /api/maquinaria` y `PUT /api/maquinaria/{id}` | Por un usuario, o por el log de Render (`Unknown column 'consumo_esperado_por_hora'`) | Correr `php back/sql/migracion-consumo-esperado.php` con las credenciales de Aiven; es idempotente y no toca datos. Para evitarlo: **migrar primero y mergear después** (§7) | Alex |
 | **R-10** | El certificado de CA de `DB_SSL_CA` falta, no se puede leer o ya no es el de la base (por ejemplo, Aiven cambia su CA) | Media | **Alto**: ningún pedido que use la base responde, y `/api/health` da 500 | Por el monitor o un usuario, y por la referencia en el log de Render | Bajar la CA de nuevo y actualizar el Secret File; si urge, volver al despliegue anterior. No apagar la verificación | Alex |

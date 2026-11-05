@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Sgso\Reglas\Permisos;
+use Sgso\Ruteo\Despachador;
 use Sgso\Ruteo\Ruta;
 use Sgso\Ruteo\Tabla;
 
@@ -49,6 +50,7 @@ final class TablaTest extends TestCase
             ['DELETE', '/maquinaria/falla/{id}', Permisos::DOC],
             ['POST', '/maquinaria/{id}/registros', Permisos::DOC],
             ['POST', '/maquinaria/{id}/fallas', Permisos::DOC],
+            ['PUT', '/maquinaria/{id}', Permisos::GESTION_OBRA],
             ['DELETE', '/maquinaria/{id}', Permisos::GESTION_OBRA],
 
             ['GET', '/usuarios', Permisos::ADMIN],
@@ -196,6 +198,35 @@ final class TablaTest extends TestCase
     {
         // No es una prueba de calidad: es un recordatorio. Si alguien agrega o
         // saca un endpoint, tiene que pasar por aca y por las guardas.
-        self::assertCount(120, Tabla::rutas());
+        self::assertCount(121, Tabla::rutas());
+    }
+
+    /**
+     * D-13: PUT /maquinaria/{id} cambia el consumo esperado. Tiene que convivir
+     * con los PUT de dos segmentos que ya existian y con los comodines que
+     * contestan "falta el id".
+     */
+    public function testElPutDeUnaMaquinaNoPisaLosOtrosPutDeMaquinaria(): void
+    {
+        $rutas = Tabla::rutas();
+
+        $maquina = Despachador::resolver('PUT', '/maquinaria/7', $rutas);
+        self::assertSame('maquinaria.actualizar', $maquina->ruta?->manejador);
+        self::assertSame(['id' => '7'], $maquina->parametros);
+
+        $falla = Despachador::resolver('PUT', '/maquinaria/falla/7', $rutas);
+        self::assertSame('maquinaria.falla.actualizar', $falla->ruta?->manejador);
+
+        self::assertSame('error.falta.falla', Despachador::resolver('PUT', '/maquinaria/falla', $rutas)->ruta?->manejador);
+        self::assertSame('error.falta.registro', Despachador::resolver('PUT', '/maquinaria/registro', $rutas)->ruta?->manejador);
+    }
+
+    public function testElPutDeUnaMaquinaLoPuedenUsarSoloLosRolesDeGestionDeObra(): void
+    {
+        $ruta = Despachador::resolver('PUT', '/maquinaria/7', Tabla::rutas())->ruta;
+
+        self::assertSame(Permisos::GESTION_OBRA, $ruta?->roles);
+        self::assertNotContains('Gerente', $ruta->roles ?? []);
+        self::assertNotContains('PersonalTecnico', $ruta->roles ?? []);
     }
 }
