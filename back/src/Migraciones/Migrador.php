@@ -103,7 +103,14 @@ final class Migrador
         try {
             $this->asegurarRegistro();
 
-            if (!in_array(self::VERSIONES_BASE[0], $this->aplicadas(), true)) {
+            // También con la marca puesta aunque 0001 ya esté: la corrida anterior
+            // se cortó entre registrar las versiones base y borrar la marca, y sin
+            // esto la marca quedaría para siempre y faltarían 0002 y 0003.
+            $yaRegistradas = $this->aplicadas();
+            if (
+                !in_array(self::VERSIONES_BASE[0], $yaRegistradas, true)
+                || in_array(self::MARCA_ESQUEMA_A_MEDIAS, $yaRegistradas, true)
+            ) {
                 $decir($this->sentarLaBase());
             }
 
@@ -217,7 +224,7 @@ final class Migrador
 
         if ((int) $stmt->fetchColumn() !== 1) {
             throw new RuntimeException(
-                'Hay otra corrida de migraciones en curso sobre esta base. Esperá a que termine y volvé a intentar.'
+                'Hay otra corrida de migraciones en curso en este servidor de base de datos. Esperá a que termine y volvé a intentar.'
             );
         }
     }

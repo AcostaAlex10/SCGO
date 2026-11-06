@@ -230,6 +230,29 @@ final class MigracionesTest extends CasoConBase
         self::assertNotSame([], $this->migrador()->aplicarPendientes());
     }
 
+    /**
+     * La corrida anterior se cortó después de registrar 0001 y antes de borrar la
+     * marca. Sin tratarla, la marca quedaba para siempre y 0002 y 0003 nunca se
+     * registraban.
+     */
+    public function testUnaMarcaHuerfanaConLa0001YaRegistradaSeLimpiaAlReintentar(): void
+    {
+        $pdo = $this->base();
+        $pdo->exec('CREATE TABLE schema_migrations (version VARCHAR(64) NOT NULL PRIMARY KEY, aplicada_en DATETIME NOT NULL)');
+        $pdo->exec(
+            "INSERT INTO schema_migrations (version, aplicada_en) VALUES
+               ('" . Migrador::MARCA_ESQUEMA_A_MEDIAS . "', NOW()), ('0001-esquema-base', NOW())"
+        );
+
+        $this->migrador()->aplicarPendientes();
+
+        $registradas = $this->registradas();
+        self::assertNotContains(Migrador::MARCA_ESQUEMA_A_MEDIAS, $registradas);
+        foreach (Migrador::VERSIONES_BASE as $version) {
+            self::assertContains($version, $registradas);
+        }
+    }
+
     public function testElEstadoAvisaQueLaPrimeraCorridaSoloRegistraLasVersionesBase(): void
     {
         self::assertTrue($this->migrador()->estado()['baseExistenteSinRegistro']);
