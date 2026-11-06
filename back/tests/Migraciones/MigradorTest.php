@@ -82,6 +82,42 @@ final class MigradorTest extends TestCase
         }
     }
 
+    /**
+     * `schema_migrations.version` es VARCHAR(64): un nombre más largo se
+     * truncaba en silencio y la migración se volvía a aplicar en cada corrida.
+     */
+    public function testRechazaUnNombreDeVersionDemasiadoLargo(): void
+    {
+        $directorio = sys_get_temp_dir() . '/scgo-migraciones-' . uniqid();
+        mkdir($directorio);
+        $archivo = $directorio . '/0006-' . str_repeat('a', 60) . '.sql';
+        file_put_contents($archivo, 'SELECT 1;');
+
+        try {
+            $this->expectException(RuntimeException::class);
+            $this->migradorDe($directorio)->disponibles();
+        } finally {
+            unlink($archivo);
+            rmdir($directorio);
+        }
+    }
+
+    public function testAceptaUnNombreDeVersionDeHasta64Caracteres(): void
+    {
+        $directorio = sys_get_temp_dir() . '/scgo-migraciones-' . uniqid();
+        mkdir($directorio);
+        $nombre = '0006-' . str_repeat('a', 59);
+        file_put_contents($directorio . '/' . $nombre . '.sql', 'SELECT 1;');
+
+        try {
+            self::assertSame([$nombre], $this->migradorDe($directorio)->disponibles());
+            self::assertSame(64, strlen($nombre));
+        } finally {
+            unlink($directorio . '/' . $nombre . '.sql');
+            rmdir($directorio);
+        }
+    }
+
     /** El migrador no toca la base hasta que se le pide aplicar algo. */
     private function migradorDe(string $directorio): Migrador
     {

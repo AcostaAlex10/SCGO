@@ -78,9 +78,22 @@ if (in_array('--estado', $argv, true)) {
     $estado = $migrador->estado();
     echo 'Aplicadas:  ' . ($estado['aplicadas'] === [] ? '(ninguna)' : implode(', ', $estado['aplicadas'])) . PHP_EOL;
     echo 'Pendientes: ' . ($estado['pendientes'] === [] ? '(ninguna)' : implode(', ', $estado['pendientes'])) . PHP_EOL;
+    if ($estado['baseExistenteSinRegistro']) {
+        echo 'Nota: la base ya tiene tablas pero ningun registro. La primera corrida va a anotar '
+            . implode(', ', Migrador::VERSIONES_BASE) . ' como aplicadas, SIN ejecutarlas.' . PHP_EOL;
+    }
     exit(0);
 }
 
-foreach ($migrador->aplicarPendientes() as $linea) {
-    echo $linea . PHP_EOL;
+// Cada linea sale apenas ocurre: si una migracion falla, queda a la vista cual
+// fue y cuales ya se habian aplicado antes.
+try {
+    $migrador->aplicarPendientes(static function (string $linea): void {
+        echo $linea . PHP_EOL;
+    });
+} catch (RuntimeException $e) {
+    fwrite(STDERR, $e->getMessage() . PHP_EOL);
+    fwrite(STDERR, 'Lo que figura arriba como aplicado, quedo aplicado. Corregi la causa y volve a correr: ' . PHP_EOL
+        . 'las migraciones son idempotentes. Para ver como quedo la base: php back/sql/migrar.php --estado' . PHP_EOL);
+    exit(1);
 }

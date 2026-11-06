@@ -339,8 +339,27 @@ sirve `ADD COLUMN IF NOT EXISTS`: lo entiende MariaDB (el CI) pero no MySQL 8.4
 `information_schema`.
 
 **Si una migración falla a la mitad**, MySQL no deshace el DDL: lo que ya se aplicó
-queda aplicado, y la migración **no** se registra. Como son idempotentes, se
-corrige la causa y se vuelve a correr.
+queda aplicado, y la migración **no** se registra. `migrar.php` imprime cada paso
+apenas ocurre, así que se ve cuáles se aplicaron antes, y termina con el nombre de
+la que falló y código de salida 1. Como son idempotentes, se corrige la causa y se
+vuelve a correr; `--estado` muestra cómo quedó la base.
+
+**Si lo que falla es el esquema base** de una base vacía, queda con algunas tablas
+y la marca `0000-creando-esquema` en `schema_migrations`. Mientras la marca esté,
+el reintento vuelve a ejecutar `schema.sql` (idempotente) en vez de tomar la base
+por una que ya existía. **No se borra a mano**: se borra sola al terminar.
+
+**Una sola corrida a la vez.** El migrador toma `GET_LOCK('sgso_migrar')`; una
+segunda corrida simultánea se niega con un mensaje en vez de aplicar lo mismo dos
+veces.
+
+**Reglas para escribir una migración:** nombre `NNNN-nombre-en-minusculas.sql`
+(hasta 64 caracteres en total, que es lo que entra en `schema_migrations`), y sin
+`;` dentro de un texto entre comillas, de un comentario al final de una línea o de
+un comentario de bloque: el separador corta por `;` y solo saca los comentarios que
+ocupan la línea entera. Las versiones base (`0001` a `0003`) se registran **sin
+comprobar** que estén aplicadas: una base vieja a la que le faltan `0002` o `0003`
+se pone al día antes con sus scripts.
 
 Después de D-13 hay que cargar el consumo esperado de cada máquina real desde la
 pantalla de Maquinaria; hasta entonces las alertas comparan contra el promedio.

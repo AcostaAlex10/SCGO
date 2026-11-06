@@ -6,6 +6,7 @@ namespace Sgso\Tests\Integracion;
 
 use PDO;
 use PHPUnit\Framework\Attributes\CoversClass;
+use RuntimeException;
 use Sgso\Migraciones\Migrador;
 
 /**
@@ -133,7 +134,131 @@ final class MigracionesTest extends CasoConBase
         self::assertSame('decimal(8,2)', strtolower((string) $columna));
     }
 
+    /**
+     * El esquema base falla después de crear algunas tablas (corte de conexión,
+     * error). Sin la marca, el reintento veía la tabla `proyecto`, creía que la
+     * base ya existía y la dejaba sin el resto del esquema, para siempre.
+     */
+    public function testUnEsquemaBaseAMediasSeCompletaAlReintentar(): void
+    {
+        $this->vaciarLaBaseEntera();
+        $primeras = array_slice(Migrador::sentencias((string) file_get_contents(self::ESQUEMA)), 0, 3);
+        $roto = $this->archivoTemporal(implode(";\n", $primeras) . ";\nESTO NO ES SQL;");
+
+        try {
+            try {
+                (new Migrador($this->base(), self::MIGRACIONES, $roto))->aplicarPendientes();
+                self::fail('Tenía que fallar con el esquema roto.');
+            } catch (RuntimeException $e) {
+                self::assertStringContainsString('No se pudo crear el esquema base', $e->getMessage());
+            }
+            self::assertContains(Migrador::MARCA_ESQUEMA_A_MEDIAS, $this->registradas());
+            self::assertContains('proyecto', $this->tablas());
+            self::assertNotContains('maquinaria', $this->tablas());
+
+            $hechos = $this->migrador()->aplicarPendientes();
+
+            self::assertStringContainsString('a medias', implode(' ', $hechos));
+            self::assertContains('maquinaria', $this->tablas());
+            self::assertNotContains(Migrador::MARCA_ESQUEMA_A_MEDIAS, $this->registradas());
+            self::assertSame([], $this->migrador()->estado()['pendientes']);
+        } finally {
+            unlink($roto);
+        }
+    }
+
+    /**
+     * Una migración que falla a la mitad: las anteriores quedan aplicadas y
+     * registradas, ella no, y quien corre lo ve apenas ocurre. Corregida la
+     * causa, el reintento sigue desde ahí.
+     */
+    public function testUnaMigracionQueFallaNoQuedaRegistradaYSeReintenta(): void
+    {
+        $directorio = $this->directorioTemporal();
+        file_put_contents($directorio . '/9001-prueba-ok.sql', 'CREATE TABLE IF NOT EXISTS zz_prueba_b03 (id INT);');
+        file_put_contents($directorio . '/9002-prueba-mala.sql', 'ESTO NO ES SQL;');
+        $migrador = new Migrador($this->base(), $directorio, self::ESQUEMA);
+        $vistas = [];
+
+        try {
+            try {
+                $migrador->aplicarPendientes(static function (string $linea) use (&$vistas): void {
+                    $vistas[] = $linea;
+                });
+                self::fail('Tenía que fallar la migración 9002.');
+            } catch (RuntimeException $e) {
+                self::assertStringContainsString('9002-prueba-mala', $e->getMessage());
+            }
+
+            self::assertContains('Aplicada 9001-prueba-ok', $vistas);
+            self::assertContains('9001-prueba-ok', $this->registradas());
+            self::assertNotContains('9002-prueba-mala', $this->registradas());
+
+            file_put_contents($directorio . '/9002-prueba-mala.sql', 'DO 0;');
+            $hechos = $migrador->aplicarPendientes();
+
+            self::assertSame(['Aplicada 9002-prueba-mala'], $hechos);
+        } finally {
+            $this->base()->exec('DROP TABLE IF EXISTS zz_prueba_b03');
+            array_map('unlink', glob($directorio . '/*.sql') ?: []);
+            rmdir($directorio);
+        }
+    }
+
+    /** Dos corridas a la vez aplicaban la misma migración dos veces. */
+    public function testUnaSegundaCorridaSimultaneaFallaEnVezDeAplicarDosVeces(): void
+    {
+        ['host' => $host, 'puerto' => $puerto, 'usuario' => $usuario, 'clave' => $clave] = self::datosDeConexion();
+        $otra = new PDO(
+            "mysql:host={$host};port={$puerto};dbname=" . (string) getenv('SGSO_TEST_DB_NAME') . ';charset=utf8mb4',
+            $usuario,
+            $clave,
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+        );
+        $otra->query("SELECT GET_LOCK('sgso_migrar', 0)")->fetchColumn();
+
+        try {
+            $this->migrador()->aplicarPendientes();
+            self::fail('Tenía que negarse: hay otra corrida en curso.');
+        } catch (RuntimeException $e) {
+            self::assertStringContainsString('otra corrida', $e->getMessage());
+        } finally {
+            $otra->query("SELECT RELEASE_LOCK('sgso_migrar')")->fetchColumn();
+        }
+
+        // Y una vez libre, la corrida normal anda.
+        self::assertNotSame([], $this->migrador()->aplicarPendientes());
+    }
+
+    public function testElEstadoAvisaQueLaPrimeraCorridaSoloRegistraLasVersionesBase(): void
+    {
+        self::assertTrue($this->migrador()->estado()['baseExistenteSinRegistro']);
+
+        $this->migrador()->aplicarPendientes();
+
+        self::assertFalse($this->migrador()->estado()['baseExistenteSinRegistro']);
+    }
+
     // ----------------------------------------------------------------
+
+    private const ESQUEMA = __DIR__ . '/../../sql/schema.sql';
+    private const MIGRACIONES = __DIR__ . '/../../sql/migraciones';
+
+    private function archivoTemporal(string $contenido): string
+    {
+        $ruta = sys_get_temp_dir() . '/sgso-esquema-' . uniqid() . '.sql';
+        file_put_contents($ruta, $contenido);
+
+        return $ruta;
+    }
+
+    private function directorioTemporal(): string
+    {
+        $directorio = sys_get_temp_dir() . '/sgso-migraciones-' . uniqid();
+        mkdir($directorio);
+
+        return $directorio;
+    }
 
     private function migrador(): Migrador
     {
