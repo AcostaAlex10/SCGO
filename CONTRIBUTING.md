@@ -30,7 +30,7 @@ rama sin entrada es una rama que nadie va a saber para qué estaba.
 
 | Rama | Desde | Para qué | PR |
 |---|---|---|---|
-| `claude/docs-cors` | `main` @ `b4621dc` (2026-11-04) | Corregir lo que `NUBE.md`, `ON-PREMISE.md` y `TRASPASO.md` dicen de CORS | #96 |
+| `claude/traspaso-sesiones` | `main` @ `eca5e8a` (2026-11-06) | `TRASPASO.md` al día con la revisión del repositorio, las dos sesiones en paralelo y cómo repartirse los ítems | (este PR) |
 
 ### Reglas
 
@@ -184,6 +184,7 @@ El trabajo sigue en `main`; los PR explican por qué el código quedó como qued
 | `claude/tls-ca-legible` | La API no podía leer la CA del Secret File de Render y producción quedó en 500: el arranque la copia a una ruta legible | PR #97 |
 | `claude/d13-consumo-esperado` | D-13 (RF24): consumo esperado por hora en cada máquina, opcional, con la alerta de consumo comparada contra él y una ventana de 30 días; script `migracion-consumo-esperado.php` | PR #94 |
 | `TP1-plan-de-testing` | Nada: se creó vacía para un trabajo de la facultad que no corresponde a este repositorio | Borrada sin mergear |
+| `claude/docs-cors` | Corregir lo que `NUBE.md`, `ON-PREMISE.md` y `TRASPASO.md` dicen de CORS | PR #96 |
 
 ### Dos cosas que no conviene repetir
 
