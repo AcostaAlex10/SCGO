@@ -112,7 +112,7 @@ Programador**. Para no pisarse:
 
 | Ítem | Sesión | Estado | Pendiente |
 |---|---|---|---|
-| B-03 (PR #99, migraciones versionadas) | Local | Hecho en el #99, CI en verde; el #23 se cerró | Que alguien corra `migrar.php --estado` y `migrar.php` en Aiven (primera prueba contra MySQL 8.4), y el visto bueno de Alex para mergear. Decidir si se automatiza en el arranque de Render |
+| B-03 (PR #99, migraciones versionadas) | Local | Hecho en el #99; migraciones corridas en Aiven el 2026-11-07, sin cambios; el #23 se cerró | El visto bueno de Alex para mergear. Decidir si se automatiza en el arranque de Render |
 
 **Estado del repositorio al 2026-11-06** (revisado con `gh` y `origin/main`):
 `main` @ `eca5e8a` con CI en verde en los últimos cinco pushes. El único PR
@@ -179,9 +179,10 @@ Al 2026-11-07 **el único PR abierto es el #99**. El #23 se cerró sin mergear:
 quedó atrás de `main` y apagaba la verificación TLS de la base (A-19).
 
 - **#99 (B-03, migraciones versionadas).** Rehace el #23 sobre `main`, con dos
-  revisiones de un agente distinto. **No se mergea hasta que alguien del equipo
-  corra las migraciones en Aiven**: el PR saca el `CREATE TABLE` que creaba
-  `intento_login` sola en cada arranque (en producción la tabla ya existe).
+  revisiones de un agente distinto. **Las migraciones ya se corrieron en Aiven**
+  (Alex, 2026-11-07): `0001` a `0003` quedaron registradas sin ejecutarse, `0004`
+  y `0005` no cambiaron nada, y `/api/health` siguió en `ok`. Solo falta el visto
+  bueno para mergear. Para la próxima migración, lo mismo:
 
   ```bash
   php back/sql/migrar.php --estado   # informa, no toca nada (ni crea schema_migrations)
