@@ -4,10 +4,10 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-11-05, al mergear D-13 (#94), con la migración ya corrida en Aiven. El 2026-11-03 el producto volvió
+- **Actualizado:** 2026-11-06, al revisar el estado del repositorio con la sesión local (sección 3, "Sesiones en paralelo"). El 2026-11-03 el producto volvió
   a llamarse **SGSO** (Sistema de Gestión y Seguimiento Operativo de obras,
   DEC-01); el repositorio de GitHub también se renombró a `SGSO`
-- **Base:** `main` @ `841c105` (2026-11-05). **La base de Aiven se volvió a apagar** y se
+- **Base:** `main` @ `eca5e8a` (2026-11-05, #96; CI en verde). **La base de Aiven se volvió a apagar** y se
   encendió el 2026-11-04 (riesgo R-01): `/api/health` responde
   `{"status":"ok","db":"ok"}`. **La URL de producción ahora es
   `https://sgsos.vercel.app`**; la anterior sigue conectada. **Brevo ya funciona**: Alex
@@ -94,6 +94,39 @@ simulador).
 
 ## 3. Qué hay en vuelo ahora mismo
 
+### Sesiones en paralelo (2026-11-06)
+
+Alex armó dos sesiones de programación sobre este repositorio: **Local SGSO:
+Programador** (carpeta `E:\claude code\proyecto_SGSO`) y **Nube SGSO:
+Programador**. Para no pisarse:
+
+- **Cada sesión toma un ítem del plan y lo dice acá antes de empezar**, en la
+  tabla de abajo. Un ítem tomado no lo toca la otra.
+- **Cada tarea es una rama desde `main` actualizado**, con su fila en
+  `CONTRIBUTING.md` y su PR. Las dos sesiones editan este archivo: antes de
+  tocarlo, `git fetch` y rebasar sobre `main` (trampa 19).
+- **Al terminar un ítem**, la sesión actualiza esta sección y el estado del
+  ítem en `PLAN-PRODUCTO.md`. Lo que quedó pendiente se escribe con su motivo.
+- **Se mergea solo con el visto bueno de Alex**; migraciones, workflows,
+  dependencias nuevas, borrados y producción también lo piden antes.
+
+| Ítem | Sesión | Estado | Pendiente |
+|---|---|---|---|
+| B-03 (PR #23, migraciones versionadas) | sin tomar; la local lo propuso | Propuesto a Alex el 2026-11-06 | Rehacerlo sobre `main` (el #23 tiene conflictos), y que Alex corra `migrar.php` en Aiven antes de mergear |
+
+**Estado del repositorio al 2026-11-06** (revisado con `gh` y `origin/main`):
+`main` @ `eca5e8a` con CI en verde en los últimos cinco pushes. El único PR
+abierto es el #23. No hay issues. Las ramas remotas son `main`, `testing` y
+`claude/migraciones-versionadas`. **Lo que queda abierto del plan:** P0, solo
+B-01 (postergado por DEC-04). P1 sin decisión pendiente: B-03, B-08, D-05, D-07,
+C-02 y A-11 (Strix local espera Docker). P1 que esperan decisión: D-01 (DEC-03),
+D-17 y D-18 (DEC-08), B-02 (DEC-04), E-01, E-02 y E-04 (DEC-02, DEC-05, legal).
+
+**Seguridad en GitHub:** las alertas de Dependabot están **desactivadas** en el
+repositorio y code scanning no tiene ningún análisis. Los PR de Dependabot
+siguen llegando por `dependabot.yml`, pero las alertas de seguridad no.
+Activarlas es un ajuste de Alex en Settings → Code security; no se hizo.
+
 ### El comodín de CORS de las previews
 
 Hecho en el PR #93, activo en producción: el comodín anterior aceptaba
@@ -142,11 +175,13 @@ Riesgo R-10 de `OPERACION.md` §8.
 
 ### PR abiertos
 
-- **#77 (`claude/requerimientos-excluidos`): lo que quedó afuera del sistema.**
-  RF34 propuesto (D-24), pagos, facturación y ARCA fuera, reglas de alerta a
-  validar, RNF como metas y la guía de entrevistas. Ver más abajo.
-- **#23 (B-03, migraciones versionadas).** Quedó atrás de `main` y hay que
-  rebasearlo (trampas 8 y 19). **No se mergea hasta que alguien del equipo corra
+Al 2026-11-06 **el único PR abierto es el #23**. El #77 (lo que quedó afuera del
+sistema) se mergeó el 2026-10-23, y los de Dependabot #54, #55 y #58 se cerraron;
+#51 y #60 entraron a `main`.
+
+- **#23 (B-03, migraciones versionadas).** Sin tocar desde el 2026-09-27; GitHub
+  lo marca `CONFLICTING` (12 archivos, +559 / −54). Hay que rebasearlo, o mejor
+  rehacerlo sobre `main` (trampas 8 y 19). **No se mergea hasta que alguien del equipo corra
   las migraciones en Aiven**: el PR saca el `CREATE TABLE` que creaba
   `intento_login` sola en cada arranque.
 
@@ -156,10 +191,8 @@ Riesgo R-10 de `OPERACION.md` §8.
   ```
 
   Con las credenciales de la base, desde la máquina de alguien del equipo.
-- **Dependabot:** #54 (`react-is` 19), #58 (menores del front) y #60
-  (`lucide-react` 1.57) están en verde; #51 (`phpstan` 2.3.1) falla en Backend
-  (PHPStan + PHPUnit) y #55 (`react-router` 8) en Playwright (`gh pr checks`,
-  2026-10-21). Antes de mergear cualquiera, la trampa 20.
+- **Dependabot:** ninguno abierto al 2026-11-06. Antes de mergear uno nuevo, la
+  trampa 20.
 
 ### El informe de testing del Grupo 9
 
