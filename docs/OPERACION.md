@@ -309,29 +309,63 @@ https://<la API>/api/health` tiene que dar `{"status":"ok","db":"ok"}`. Si da 50
 buscar su `referencia` en el log de Render. Para volver atrás: *Rollback* en Render
 al despliegue anterior. **No se apaga la verificación** para salir del paso.
 
-**`migrar.php` no aplica cambios de tipo de columna.** Solo ejecuta `schema.sql`,
-cuyas tablas usan `CREATE TABLE IF NOT EXISTS`: sobre una base existente no hace
-nada. Un cambio de tipo necesita su propio script con el `ALTER`, como
-`migracion-estado-enum.php`. Por eso el esquema del repositorio y el de Aiven
-pueden no coincidir.
-
-**Las columnas nuevas se agregan con su script, y antes de desplegar.** El que
-corresponde a D-13 (RF24) es `back/sql/migracion-consumo-esperado.php`: agrega
-`maquinaria.consumo_esperado_por_hora` y no toca ningún valor. Se puede correr más
-de una vez (si la columna existe, no hace nada). El orden importa: **primero
-migrar y después desplegar la API**, porque el código nuevo lee la columna y, sin
-ella, caen `GET /api/analisis` (para todos los roles: el Tablero y las Alertas),
-`GET /api/maquinaria`, `GET /api/maquinaria/{id}/registros`, `POST /api/maquinaria` y
-`PUT /api/maquinaria/{id}`. Se corre con las credenciales de Aiven en
-`back/.env` (o en las variables `DB_*`):
+**Las migraciones no corren solas en el deploy (B-03).** Render levanta Apache y
+nada más. Si un deploy trae una migración, hay que aplicarla a mano, con las
+credenciales de la base en `back/.env` (o en las variables `DB_*`, que tienen
+prioridad). Verifica el certificado TLS como la API (A-19), así que necesita
+`DB_SSL=true` y `DB_SSL_CA`:
 
 ```bash
-php back/sql/migracion-consumo-esperado.php
+php back/sql/migrar.php --estado   # qué hay aplicado y qué falta; no toca nada
+php back/sql/migrar.php            # aplica lo pendiente
 ```
 
-Después hay que cargar el consumo esperado de cada máquina real desde la pantalla
-de Maquinaria; hasta entonces las alertas comparan contra el promedio, como antes.
-Es el mismo patrón que `migracion-reporte-final.php` y `migracion-estado-enum.php`.
+La tabla `schema_migrations` lleva la cuenta, así que correrlo de más no hace
+nada. **Si el deploy cambia el código para leer algo nuevo del esquema, el orden
+importa: primero migrar y después desplegar la API**, porque sin el cambio caen los
+pedidos que lo leen (R-09 es el caso de D-13).
+
+Sobre una base que ya existía, la primera corrida registra las tres versiones base
+(`0001` a `0003`: `schema.sql` y los dos scripts sueltos, que ya se habían corrido)
+**sin ejecutarlas**, y aplica lo que venga después. Sobre una base vacía crea el
+esquema desde `schema.sql`.
+
+**Cada cambio de esquema va en dos lugares:** su archivo en
+`back/sql/migraciones/NNNN-nombre.sql`, escrito idempotente, y también
+`schema.sql`, que sigue siendo la foto completa del esquema. Si alguien se olvida
+de uno de los dos, `MigracionesTest` falla en el CI. Para agregar una columna no
+sirve `ADD COLUMN IF NOT EXISTS`: lo entiende MariaDB (el CI) pero no MySQL 8.4
+(Aiven). `0004-consumo-esperado.sql` muestra cómo se resuelve mirando
+`information_schema`.
+
+**Si una migración falla a la mitad**, MySQL no deshace el DDL: lo que ya se aplicó
+queda aplicado, y la migración **no** se registra. `migrar.php` imprime cada paso
+apenas ocurre, así que se ve cuáles se aplicaron antes, y termina con el nombre de
+la que falló y código de salida 1. Como son idempotentes, se corrige la causa y se
+vuelve a correr; `--estado` muestra cómo quedó la base.
+
+**Si lo que falla es el esquema base** de una base vacía, queda con algunas tablas
+y la marca `0000-creando-esquema` en `schema_migrations`. Mientras la marca esté,
+el reintento vuelve a ejecutar `schema.sql` (idempotente) en vez de tomar la base
+por una que ya existía. **No se borra a mano**: se borra sola al terminar.
+
+**Una sola corrida a la vez.** El migrador toma `GET_LOCK('sgso_migrar')`; una
+segunda corrida simultánea se niega con un mensaje en vez de aplicar lo mismo dos
+veces.
+
+**Reglas para escribir una migración:** nombre `NNNN-nombre-en-minusculas.sql`
+(hasta 64 caracteres en total, que es lo que entra en `schema_migrations`), y sin
+`;` dentro de un texto entre comillas, de un comentario al final de una línea o de
+un comentario de bloque: el separador corta por `;` y solo saca los comentarios que
+ocupan la línea entera. Las versiones base (`0001` a `0003`) se registran **sin
+comprobar** que estén aplicadas: una base vieja a la que le faltan `0002` o `0003`
+se pone al día antes con sus scripts.
+
+Después de D-13 hay que cargar el consumo esperado de cada máquina real desde la
+pantalla de Maquinaria; hasta entonces las alertas comparan contra el promedio.
+Los tres scripts viejos (`migracion-estado-enum.php`, `migracion-reporte-final.php`
+y `migracion-consumo-esperado.php`) quedan como referencia: ya se aplicaron y el
+migrador los da por hechos (el último ahora es la migración `0004`).
 
 **El antivirus borra los scripts PHP que se conectan a la base.** `migrar.php` y
 similares desaparecen del árbol de trabajo. Están versionados: si falta uno,
@@ -455,5 +489,5 @@ responsable**. Hoy es Alex en todos; cuando se sume alguien al equipo, se repart
 | **R-06** | Una credencial o un dato de Triwe entra al repositorio, que es público | Baja | **Alto**: queda visible para cualquiera (DEC-07) | Revisando el PR | Rotar la credencial en el momento: borrarla del historial no alcanza, porque ya pudo copiarse | Alex |
 | **R-07** | El simulador acepta datos que la API rechaza | **Alta**: pasó tres veces | **Medio**: la demo de los testers muestra algo que el sistema real no hace | Los testers, o una suite de Playwright | Tocar las dos validaciones juntas (§7, "Modo de prueba"); C-02 lo corta de raíz | Alex |
 | **R-08** | Otra cuenta de Vercel consigue un subdominio con la forma de una preview (`sgso-*-acostaalex10s-projects.vercel.app`) y `back/src/Cors.php` lo acepta. Por ejemplo, el proyecto `sgso` de un equipo con slug `evil-acostaalex10s-projects`. `vercel.app` es compartido y la documentación de Vercel no dice que ese sufijo esté reservado; no se probó, porque haría falta crear un proyecto en una cuenta ajena. Ningún patrón lo evita: una rama puede llamarse `main-evil` | Baja | **Bajo mientras no haya credenciales de navegador**: no hay cookies ni `Allow-Credentials`, y el JWT vive en `localStorage` del origen propio, así que esa página no recibe ninguna sesión. Pasar el token a cookie (A-09) lo vuelve **alto** | Ninguna alerta | Si se agregan cookies o `Allow-Credentials`, sacar el comodín antes: nombrar cada preview en `CORS_ORIGIN`, o pasar las previews a un dominio propio con Preview Deployment Suffix (plan Pro) | Alex |
-| **R-09** | Se despliega la API de D-13 (o una posterior que lea `maquinaria.consumo_esperado_por_hora`) antes de correr `back/sql/migracion-consumo-esperado.php` en Aiven | Media: Render despliega solo al mergear a `main`, y la migración la corre una persona a mano | **Alto**: sin la columna caen `GET /api/analisis` (el Tablero y las Alertas, para todos los roles), `GET /api/maquinaria`, `GET /api/maquinaria/{id}/registros`, `POST /api/maquinaria` y `PUT /api/maquinaria/{id}` | Por un usuario, o por el log de Render (`Unknown column 'consumo_esperado_por_hora'`) | Correr `php back/sql/migracion-consumo-esperado.php` con las credenciales de Aiven; es idempotente y no toca datos. Para evitarlo: **migrar primero y mergear después** (§7) | Alex |
+| **R-09** | Se despliega la API de D-13 (o una posterior que lea `maquinaria.consumo_esperado_por_hora`) antes de correr `back/sql/migracion-consumo-esperado.php` en Aiven | Media: Render despliega solo al mergear a `main`, y la migración la corre una persona a mano | **Alto**: sin la columna caen `GET /api/analisis` (el Tablero y las Alertas, para todos los roles), `GET /api/maquinaria`, `GET /api/maquinaria/{id}/registros`, `POST /api/maquinaria` y `PUT /api/maquinaria/{id}` | Por un usuario, o por el log de Render (`Unknown column 'consumo_esperado_por_hora'`) | Correr `php back/sql/migrar.php` con las credenciales de Aiven (aplica `0004-consumo-esperado`); es idempotente y no toca datos. Para evitarlo: **migrar primero y mergear después** (§7) | Alex |
 | **R-10** | El certificado de CA de `DB_SSL_CA` falta, no se puede leer o ya no es el de la base (por ejemplo, Aiven cambia su CA) | Media | **Alto**: ningún pedido que use la base responde, y `/api/health` da 500 | Por el monitor o un usuario, y por la referencia en el log de Render | Bajar la CA de nuevo y actualizar el Secret File; si urge, volver al despliegue anterior. No apagar la verificación | Alex |

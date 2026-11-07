@@ -13,6 +13,9 @@ use Sgso\Seguridad\OpcionesTls;
  * alerta de consumo compara contra lo esperado y no contra el promedio de la
  * propia maquina.
  *
+ * **Desde B-03 queda como referencia**: es la migracion `0004-consumo-esperado` de `sql/migraciones/`; lo que sigue cuenta como
+ * era antes de que `migrar.php` llevara el registro (`schema_migrations`).
+ *
  * Hace falta un script aparte porque migrar.php solo ejecuta schema.sql, y
  * todas sus tablas usan CREATE TABLE IF NOT EXISTS: sobre una base que ya
  * existe, agregar una columna en schema.sql no tiene ningun efecto. Sin esto,

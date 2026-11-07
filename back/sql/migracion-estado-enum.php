@@ -11,6 +11,9 @@ use Sgso\Seguridad\OpcionesTls;
  * Convierte proyecto.estado de VARCHAR(30) a ENUM con los siete estados del
  * ciclo de vida del TP3.
  *
+ * **Desde B-03 queda como referencia**: es la version base `0002-estado-enum`, que `migrar.php` da por aplicada; lo que sigue cuenta como
+ * era antes de que `migrar.php` llevara el registro (`schema_migrations`).
+ *
  * Hace falta un script aparte porque migrar.php solo ejecuta schema.sql, y
  * todas sus tablas usan CREATE TABLE IF NOT EXISTS: sobre una base que ya
  * existe, cambiar el tipo de una columna en schema.sql no tiene ningun efecto.

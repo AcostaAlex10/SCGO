@@ -4,10 +4,10 @@ Este archivo existe porque las sesiones locales de Claude Code se pierden con
 cada corte de luz o reinicio brusco. **Lo que no está acá ni en el repositorio,
 se perdió.** Una sesión nueva empieza leyendo esto.
 
-- **Actualizado:** 2026-11-06, al revisar el estado del repositorio con la sesión local (sección 3, "Sesiones en paralelo"). El 2026-11-03 el producto volvió
+- **Actualizado:** 2026-11-07, con B-03 en el PR #99 (sección 3). El 2026-11-03 el producto volvió
   a llamarse **SGSO** (Sistema de Gestión y Seguimiento Operativo de obras,
   DEC-01); el repositorio de GitHub también se renombró a `SGSO`
-- **Base:** `main` @ `eca5e8a` (2026-11-05, #96; CI en verde). **La base de Aiven se volvió a apagar** y se
+- **Base:** `main` @ `235a630` (2026-11-07, #98; CI en verde). **La base de Aiven se volvió a apagar** y se
   encendió el 2026-11-04 (riesgo R-01): `/api/health` responde
   `{"status":"ok","db":"ok"}`. **La URL de producción ahora es
   `https://sgsos.vercel.app`**; la anterior sigue conectada. **Brevo ya funciona**: Alex
@@ -112,7 +112,7 @@ Programador**. Para no pisarse:
 
 | Ítem | Sesión | Estado | Pendiente |
 |---|---|---|---|
-| B-03 (PR #23, migraciones versionadas) | sin tomar; la local lo propuso | Propuesto a Alex el 2026-11-06 | Rehacerlo sobre `main` (el #23 tiene conflictos), y que Alex corra `migrar.php` en Aiven antes de mergear |
+| B-03 (PR #99, migraciones versionadas) | Local | Hecho en el #99; migraciones corridas en Aiven el 2026-11-07, sin cambios; el #23 se cerró | El visto bueno de Alex para mergear. Decidir si se automatiza en el arranque de Render |
 
 **Estado del repositorio al 2026-11-06** (revisado con `gh` y `origin/main`):
 `main` @ `eca5e8a` con CI en verde en los últimos cinco pushes. El único PR
@@ -175,22 +175,22 @@ Riesgo R-10 de `OPERACION.md` §8.
 
 ### PR abiertos
 
-Al 2026-11-06 **el único PR abierto es el #23**. El #77 (lo que quedó afuera del
-sistema) se mergeó el 2026-10-23, y los de Dependabot #54, #55 y #58 se cerraron;
-#51 y #60 entraron a `main`.
+Al 2026-11-07 **el único PR abierto es el #99**. El #23 se cerró sin mergear:
+quedó atrás de `main` y apagaba la verificación TLS de la base (A-19).
 
-- **#23 (B-03, migraciones versionadas).** Sin tocar desde el 2026-09-27; GitHub
-  lo marca `CONFLICTING` (12 archivos, +559 / −54). Hay que rebasearlo, o mejor
-  rehacerlo sobre `main` (trampas 8 y 19). **No se mergea hasta que alguien del equipo corra
-  las migraciones en Aiven**: el PR saca el `CREATE TABLE` que creaba
-  `intento_login` sola en cada arranque.
+- **#99 (B-03, migraciones versionadas).** Rehace el #23 sobre `main`, con dos
+  revisiones de un agente distinto. **Las migraciones ya se corrieron en Aiven**
+  (Alex, 2026-11-07): `0001` a `0003` quedaron registradas sin ejecutarse, `0004`
+  y `0005` no cambiaron nada, y `/api/health` siguió en `ok`. Solo falta el visto
+  bueno para mergear. Para la próxima migración, lo mismo:
 
   ```bash
-  php back/sql/migrar.php --estado   # informa, no toca nada
-  php back/sql/migrar.php            # registra las versiones base y aplica 0004
+  php back/sql/migrar.php --estado   # informa, no toca nada (ni crea schema_migrations)
+  php back/sql/migrar.php            # registra 0001-0003 y aplica 0004 y 0005, sin cambios
   ```
 
-  Con las credenciales de la base, desde la máquina de alguien del equipo.
+  Con las credenciales de la base (`DB_SSL=true` y `DB_SSL_CA`), desde la máquina
+  de alguien del equipo. Es la primera prueba contra MySQL 8.4: el CI usa MariaDB.
 - **Dependabot:** ninguno abierto al 2026-11-06. Antes de mergear uno nuevo, la
   trampa 20.
 
@@ -339,10 +339,13 @@ Cada una de estas hizo perder al menos media hora. Están acá para no repetirla
    1.344 líneas que reimplementan el backend a mano. Ya pasó tres veces que la
    demo acepta datos que el sistema real rechaza. Si cambiás una validación de la
    API, cambiá las dos. Es el problema que ataca C-02.
-4. **`migrar.php` no cambia columnas que ya existen.** Todas las tablas de
-   `schema.sql` usan `CREATE TABLE IF NOT EXISTS`, así que sobre una base viva un
-   cambio de tipo no hace nada. Por eso cada cambio de esquema lleva su script
-   aparte en `back/sql/`. Las dos migraciones existentes **ya se corrieron**.
+4. **Cada cambio de esquema es una migración registrada (B-03).** Todas las tablas
+   de `schema.sql` usan `CREATE TABLE IF NOT EXISTS`, así que sobre una base viva
+   `schema.sql` solo no cambia nada: el cambio va **también** en
+   `back/sql/migraciones/NNNN-nombre.sql`, idempotente, y `migrar.php` lo aplica y
+   lo anota en `schema_migrations`. **No corre solo en el deploy**: se corre a mano
+   y antes de desplegar código que lea lo nuevo (`OPERACION.md` §7). Los tres
+   scripts `migracion-*.php` viejos **ya se corrieron** y quedan como referencia.
 5. **Las credenciales de la base están en Render → servicio → Environment.** El
    repositorio es **público**: ninguna credencial ni dato de Triwe puede entrar,
    ni al código ni a un archivo ni al chat.

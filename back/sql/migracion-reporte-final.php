@@ -11,6 +11,9 @@ use Sgso\Seguridad\OpcionesTls;
  * Agrega reporte.es_final, la marca que distingue el reporte de cierre de la
  * obra de un parte diario comun.
  *
+ * **Desde B-03 queda como referencia**: es la version base `0003-reporte-final`, que `migrar.php` da por aplicada; lo que sigue cuenta como
+ * era antes de que `migrar.php` llevara el registro (`schema_migrations`).
+ *
  * Hace falta un script aparte porque migrar.php solo ejecuta schema.sql, y
  * todas sus tablas usan CREATE TABLE IF NOT EXISTS: sobre una base que ya
  * existe, agregar una columna en schema.sql no tiene ningun efecto. Sin esto,
